@@ -67,7 +67,8 @@
       "Bash(git init)",
       "Bash(git branch -M main)",
       "Bash(git add .)",
-      "Bash(git remote add origin https://github.com/steviedawonder/simplecube.git)"
+      "Bash(git remote add origin https://github.com/steviedawonder/simplecube.git)",
+      "Bash(git rm -r --cached .github/)"
     ]
   }
 }
