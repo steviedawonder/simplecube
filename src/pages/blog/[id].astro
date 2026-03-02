@@ -1,0 +1,154 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import { getCollection, render } from 'astro:content';
+import Button from '@components/common/Button.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data }) => !data.draft);
+  return posts.map((post) => ({
+    params: { id: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+
+const base = import.meta.env.BASE_URL;
+
+// JSON-LD structured data for SEO
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: post.data.title,
+  description: post.data.description,
+  datePublished: post.data.date.toISOString(),
+  image: post.data.image,
+  author: {
+    '@type': 'Organization',
+    name: '심플큐브',
+    url: 'https://steviedawonder.github.io/simplecube-web/',
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: '심플큐브',
+  },
+};
+---
+
+<BaseLayout
+  title={`${post.data.title} | 심플큐브 블로그`}
+  description={post.data.description}
+  ogImage={post.data.image}
+>
+  <!-- JSON-LD -->
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <article class="pt-28 pb-16 lg:pt-32 lg:pb-24">
+    <div class="mx-auto max-w-3xl px-6 lg:px-8">
+      <!-- Meta -->
+      <div class="flex items-center gap-3">
+        <span class="rounded-full bg-olive-tint px-3 py-1 text-xs font-medium text-olive">
+          {post.data.category}
+        </span>
+        <time class="text-sm text-secondary-light" datetime={post.data.date.toISOString()}>
+          {post.data.date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
+        </time>
+      </div>
+
+      <!-- Title -->
+      <h1 class="mt-4 text-[clamp(1.75rem,3.5vw,2.5rem)] font-bold leading-tight text-primary">
+        {post.data.title}
+      </h1>
+
+      <p class="mt-4 text-lg text-secondary">
+        {post.data.description}
+      </p>
+
+      <!-- Featured Image -->
+      {post.data.image && (
+        <div class="mt-8 overflow-hidden rounded-2xl">
+          <img
+            src={post.data.image}
+            alt={post.data.title}
+            class="w-full object-cover"
+            loading="eager"
+          />
+        </div>
+      )}
+
+      <!-- Content -->
+      <div class="blog-content mt-12">
+        <Content />
+      </div>
+
+      <!-- Tags -->
+      {post.data.tags && post.data.tags.length > 0 && (
+        <div class="mt-12 flex flex-wrap gap-2 border-t border-border-light pt-6">
+          {post.data.tags.map((tag) => (
+            <span class="rounded-full bg-bg-light px-3 py-1 text-xs text-secondary">
+              #{tag}
+            </span>
+          ))}
+        </div>
+      )}
+
+      <!-- Back to list -->
+      <div class="mt-12">
+        <Button href="/blog" variant="outline" size="sm">
+          ← 목록으로 돌아가기
+        </Button>
+      </div>
+    </div>
+  </article>
+</BaseLayout>
+
+<style is:global>
+  .blog-content h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+    color: var(--color-primary);
+  }
+  .blog-content h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+    color: var(--color-primary);
+  }
+  .blog-content p {
+    margin-bottom: 1.25rem;
+    line-height: 1.8;
+    color: var(--color-secondary);
+  }
+  .blog-content ul, .blog-content ol {
+    margin-bottom: 1.25rem;
+    padding-left: 1.5rem;
+    color: var(--color-secondary);
+  }
+  .blog-content li {
+    margin-bottom: 0.5rem;
+    line-height: 1.8;
+  }
+  .blog-content strong {
+    color: var(--color-primary);
+    font-weight: 600;
+  }
+  .blog-content hr {
+    margin: 2rem 0;
+    border-color: var(--color-border-light);
+  }
+  .blog-content a {
+    color: var(--color-olive);
+    text-decoration: underline;
+  }
+  .blog-content blockquote {
+    border-left: 3px solid var(--color-olive);
+    padding-left: 1rem;
+    margin: 1.5rem 0;
+    color: var(--color-secondary);
+    font-style: italic;
+  }
+</style>

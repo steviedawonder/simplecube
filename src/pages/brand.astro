@@ -1,0 +1,20 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import PageHero from '@components/common/PageHero.astro';
+import BrandStory from '@components/brand/BrandStory.astro';
+import BranchOffices from '@components/brand/BranchOffices.astro';
+---
+
+<BaseLayout
+  title="BRAND | 심플큐브"
+  description="심플큐브의 브랜드 스토리와 전국 지사 안내. Simple but Special."
+  transparentNav={true}
+>
+  <PageHero
+    title="BRAND"
+    subtitle="Simple but Special"
+    backgroundImage="https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=1920&h=800&fit=crop&q=80"
+  />
+  <BrandStory />
+  <BranchOffices />
+</BaseLayout>

@@ -1,0 +1,43 @@
+---
+interface Props {
+  question: string;
+  answer: string;
+}
+
+const { question, answer } = Astro.props;
+---
+
+<div class="accordion-item border-b border-border-light">
+  <button
+    class="accordion-trigger flex w-full items-center justify-between py-6 text-left transition-colors duration-200 hover:text-olive"
+    aria-expanded="false"
+  >
+    <span class="pr-4 text-base font-semibold text-primary md:text-lg">{question}</span>
+    <svg
+      class="accordion-icon h-5 w-5 shrink-0 text-secondary transition-transform duration-300"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      stroke-width="2"
+    >
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+    </svg>
+  </button>
+  <div class="accordion-content grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 ease-out">
+    <div class="overflow-hidden">
+      <p class="pb-6 text-secondary leading-relaxed">{answer}</p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .accordion-item[data-open="true"] .accordion-content {
+    grid-template-rows: 1fr;
+  }
+  .accordion-item[data-open="true"] .accordion-icon {
+    transform: rotate(45deg);
+  }
+  .accordion-item[data-open="true"] .accordion-trigger span {
+    color: var(--color-olive);
+  }
+</style>

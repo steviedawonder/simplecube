@@ -1,0 +1,174 @@
+---
+import { navItems } from '@data/navigation';
+
+interface Props {
+  transparent?: boolean;
+}
+
+const { transparent = false } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const currentPath = Astro.url.pathname.replace(base, '/');
+---
+
+<!-- Navbar -->
+<header
+  id="navbar"
+  class:list={[
+    'fixed top-0 left-0 right-0 z-50 transition-all duration-500',
+    transparent ? 'nav-transparent' : 'nav-solid',
+  ]}
+>
+  <nav class="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-8">
+    <!-- Logo -->
+    <a
+      href={`${base}`}
+      class="text-lg font-bold tracking-[0.15em] transition-colors duration-300"
+    >
+      SIMPLE CUBE
+    </a>
+
+    <!-- Desktop Menu -->
+    <ul class="hidden items-center gap-8 md:flex">
+      {navItems.map((item) => (
+        <li>
+          <a
+            href={item.external ? item.href : `${base}${item.href}`}
+            target={item.external ? '_blank' : undefined}
+            rel={item.external ? 'noopener noreferrer' : undefined}
+            class:list={[
+              'text-sm font-medium tracking-[0.1em] transition-colors duration-300 hover:opacity-70',
+              currentPath === item.href && 'border-b border-current pb-0.5',
+            ]}
+          >
+            {item.label}
+          </a>
+        </li>
+      ))}
+    </ul>
+
+    <!-- Mobile Hamburger -->
+    <button
+      id="mobile-menu-btn"
+      class="flex flex-col gap-1.5 md:hidden"
+      aria-label="메뉴 열기"
+      aria-expanded="false"
+    >
+      <span class="hamburger-line block h-[2px] w-6 transition-all duration-300"></span>
+      <span class="hamburger-line block h-[2px] w-6 transition-all duration-300"></span>
+      <span class="hamburger-line block h-[2px] w-4 transition-all duration-300 ml-auto"></span>
+    </button>
+  </nav>
+</header>
+
+<!-- Mobile Menu Overlay -->
+<div
+  id="mobile-menu"
+  class="fixed inset-0 z-[60] flex translate-x-full flex-col bg-white transition-transform duration-500 ease-in-out"
+>
+  <div class="flex items-center justify-between px-6 py-5">
+    <a href={`${base}`} class="text-lg font-bold tracking-[0.15em] text-primary">
+      SIMPLE CUBE
+    </a>
+    <button id="mobile-menu-close" class="p-2" aria-label="메뉴 닫기">
+      <svg class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+
+  <nav class="flex flex-1 flex-col items-center justify-center gap-8">
+    {navItems.map((item) => (
+      <a
+        href={item.external ? item.href : `${base}${item.href}`}
+        target={item.external ? '_blank' : undefined}
+        rel={item.external ? 'noopener noreferrer' : undefined}
+        class="mobile-nav-link text-2xl font-semibold tracking-[0.15em] text-primary transition-colors duration-300 hover:text-olive"
+      >
+        {item.label}
+      </a>
+    ))}
+  </nav>
+</div>
+
+<style>
+  /* Transparent navbar (hero pages) */
+  .nav-transparent {
+    background: transparent;
+    color: white;
+  }
+  .nav-transparent .hamburger-line {
+    background-color: white;
+  }
+
+  /* Solid navbar */
+  .nav-solid {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(210, 210, 215, 0.3);
+    color: var(--color-primary);
+  }
+  .nav-solid .hamburger-line {
+    background-color: var(--color-primary);
+  }
+
+  /* Scrolled state */
+  .nav-scrolled {
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-bottom: 1px solid rgba(210, 210, 215, 0.3) !important;
+    color: var(--color-primary) !important;
+  }
+  .nav-scrolled .hamburger-line {
+    background-color: var(--color-primary) !important;
+  }
+</style>
+
+<script>
+  // Navbar scroll behavior
+  const navbar = document.getElementById('navbar');
+  const isTransparent = navbar?.classList.contains('nav-transparent');
+
+  if (isTransparent && navbar) {
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 80) {
+        navbar.classList.add('nav-scrolled');
+      } else {
+        navbar.classList.remove('nav-scrolled');
+      }
+    });
+  }
+
+  // Mobile menu toggle
+  const menuBtn = document.getElementById('mobile-menu-btn');
+  const closeBtn = document.getElementById('mobile-menu-close');
+  const mobileMenu = document.getElementById('mobile-menu');
+
+  function openMenu() {
+    mobileMenu?.classList.remove('translate-x-full');
+    mobileMenu?.classList.add('translate-x-0');
+    document.body.style.overflow = 'hidden';
+    menuBtn?.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeMenu() {
+    mobileMenu?.classList.add('translate-x-full');
+    mobileMenu?.classList.remove('translate-x-0');
+    document.body.style.overflow = '';
+    menuBtn?.setAttribute('aria-expanded', 'false');
+  }
+
+  menuBtn?.addEventListener('click', openMenu);
+  closeBtn?.addEventListener('click', closeMenu);
+
+  // Close menu on link click
+  document.querySelectorAll('.mobile-nav-link').forEach((link) => {
+    link.addEventListener('click', closeMenu);
+  });
+
+  // Close on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeMenu();
+  });
+</script>

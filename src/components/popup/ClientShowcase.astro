@@ -1,0 +1,27 @@
+---
+import SectionHeading from '@components/common/SectionHeading.astro';
+
+const clients = [
+  'Client A', 'Client B', 'Client C',
+  'Client D', 'Client E', 'Client F',
+];
+---
+
+<section class="bg-bg-light py-24 lg:py-32">
+  <div class="mx-auto max-w-7xl px-6 lg:px-8">
+    <SectionHeading
+      title="고객사"
+      subtitle="다양한 브랜드와 함께했습니다."
+    />
+
+    <div class="gs-stagger grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-6">
+      {clients.map((client) => (
+        <div class="flex h-24 items-center justify-center rounded-xl bg-white px-4 shadow-sm transition-all duration-300 hover:shadow-md">
+          <span class="text-sm font-semibold tracking-wide text-secondary-light transition-colors duration-300 hover:text-primary">
+            {client}
+          </span>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

@@ -1,0 +1,58 @@
+---
+import SectionHeading from '@components/common/SectionHeading.astro';
+
+const packages = [
+  {
+    name: 'Basic',
+    items: ['포토부스 장비 설치', '기본 포토 템플릿 1종', '현장 즉석 출력', '운영 스태프 1인', '2시간 운영'],
+  },
+  {
+    name: 'Premium',
+    items: ['포토부스 장비 설치', '커스텀 포토 템플릿 2종', '현장 즉석 출력 (무제한)', '운영 스태프 2인', '3시간 운영', '디지털 파일 전체 제공', '포토 앨범 제작'],
+    featured: true,
+  },
+  {
+    name: 'Custom',
+    items: ['맞춤형 부스 디자인', '커스텀 템플릿 무제한', '현장 즉석 출력 (무제한)', '전담 운영팀', '시간 맞춤 조정', '디지털 파일 전체 제공', '포토 앨범 + 영상 제작'],
+  },
+];
+---
+
+<section class="bg-bg-light py-24 lg:py-32">
+  <div class="mx-auto max-w-7xl px-6 lg:px-8">
+    <SectionHeading
+      title="패키지 구성"
+      subtitle="웨딩에 맞춘 다양한 패키지를 준비했습니다."
+    />
+
+    <div class="gs-stagger grid gap-8 md:grid-cols-3">
+      {packages.map((pkg) => (
+        <div
+          class:list={[
+            'rounded-2xl p-8 transition-shadow duration-300 hover:shadow-lg',
+            pkg.featured
+              ? 'border-2 border-olive bg-white shadow-md'
+              : 'border border-border-light bg-white shadow-sm',
+          ]}
+        >
+          {pkg.featured && (
+            <span class="mb-4 inline-block rounded-full bg-olive px-3 py-1 text-xs font-medium text-white">
+              인기
+            </span>
+          )}
+          <h3 class="text-xl font-bold text-primary">{pkg.name}</h3>
+          <ul class="mt-6 space-y-3">
+            {pkg.items.map((item) => (
+              <li class="flex items-start gap-3 text-sm text-secondary">
+                <svg class="mt-0.5 h-4 w-4 shrink-0 text-olive" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

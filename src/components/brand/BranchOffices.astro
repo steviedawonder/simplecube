@@ -1,0 +1,53 @@
+---
+import SectionHeading from '@components/common/SectionHeading.astro';
+
+const branches = [
+  {
+    name: '서울 본사',
+    address: '서울특별시 강남구',
+    phone: '02-1234-5678',
+    image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&h=400&fit=crop&q=80',
+  },
+  {
+    name: '부산 지사',
+    address: '부산광역시 해운대구',
+    phone: '051-1234-5678',
+    image: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=600&h=400&fit=crop&q=80',
+  },
+  {
+    name: '제주 지사',
+    address: '제주특별자치도 제주시',
+    phone: '064-1234-5678',
+    image: 'https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?w=600&h=400&fit=crop&q=80',
+  },
+];
+---
+
+<section class="bg-bg-light py-24 lg:py-32">
+  <div class="mx-auto max-w-7xl px-6 lg:px-8">
+    <SectionHeading
+      title="지점 안내"
+      subtitle="전국 어디서든 심플큐브를 만나보세요."
+    />
+
+    <div class="gs-stagger grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+      {branches.map((branch) => (
+        <div class="group overflow-hidden rounded-2xl bg-white shadow-sm transition-shadow duration-300 hover:shadow-lg">
+          <div class="overflow-hidden">
+            <img
+              src={branch.image}
+              alt={branch.name}
+              class="h-48 w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              loading="lazy"
+            />
+          </div>
+          <div class="p-6">
+            <h3 class="text-lg font-bold text-primary">{branch.name}</h3>
+            <p class="mt-2 text-sm text-secondary">{branch.address}</p>
+            <p class="mt-1 text-sm text-secondary">{branch.phone}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

@@ -1,0 +1,27 @@
+---
+import SectionHeading from '@components/common/SectionHeading.astro';
+
+const partners = [
+  'Partner A', 'Partner B', 'Partner C',
+  'Partner D', 'Partner E', 'Partner F',
+];
+---
+
+<section class="py-24 lg:py-32">
+  <div class="mx-auto max-w-7xl px-6 lg:px-8">
+    <SectionHeading
+      title="파트너"
+      subtitle="함께하는 웨딩 파트너사"
+    />
+
+    <div class="gs-stagger grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-6">
+      {partners.map((partner) => (
+        <div class="flex h-24 items-center justify-center rounded-xl bg-bg-light px-4 transition-all duration-300 hover:bg-olive-tint hover:shadow-sm">
+          <span class="text-sm font-semibold tracking-wide text-secondary-light transition-colors duration-300 hover:text-olive">
+            {partner}
+          </span>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
