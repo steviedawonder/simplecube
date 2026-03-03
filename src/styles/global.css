@@ -34,15 +34,17 @@
   --color-primary: #1d1d1f;
   --color-primary-light: #424245;
   --color-secondary: #6e6e73;
-  --color-secondary-light: #86868b;
-  --color-olive: #556B2F;
-  --color-olive-hover: #6B7F3B;
-  --color-olive-light: #8B956D;
-  --color-olive-tint: #f5f6f2;
+  --color-secondary-light: #8c8c8c;
+  --color-olive: #D4AA45;
+  --color-olive-hover: #C49A2F;
+  --color-olive-light: #E0BE6A;
+  --color-olive-tint: #FDF8EE;
   --color-bg-light: #f5f5f7;
-  --color-bg-dark: #1d1d1f;
+  --color-bg-dark: #141416;
+  --color-bg-charcoal: #1C1C1E;
   --color-border: #d2d2d7;
   --color-border-light: #e8e8ed;
+  --color-border-dark: rgba(255,255,255,0.08);
 
   /* Spacing */
   --spacing-18: 4.5rem;
@@ -87,6 +89,7 @@ body {
   color: var(--color-primary);
   line-height: 1.6;
   overflow-x: hidden;
+  background-color: #141416;
 }
 
 /* Korean text breathing room */
@@ -107,7 +110,21 @@ p, li, dd {
 /* Selection color */
 ::selection {
   background-color: var(--color-olive);
+  color: #141416;
+}
+
+/* Dark section utility */
+.section-dark {
+  background-color: var(--color-bg-dark);
   color: white;
+}
+
+/* Gold accent line */
+.gold-line {
+  width: 3rem;
+  height: 2px;
+  background-color: var(--color-olive);
+  display: block;
 }
 
 /* Scroll reveal default state */

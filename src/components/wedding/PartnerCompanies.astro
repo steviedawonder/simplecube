@@ -7,17 +7,18 @@ const partners = [
 ];
 ---
 
-<section class="py-24 lg:py-32">
+<section class="bg-bg-dark py-24 lg:py-32">
   <div class="mx-auto max-w-7xl px-6 lg:px-8">
-    <SectionHeading
-      title="파트너"
-      subtitle="함께하는 웨딩 파트너사"
-    />
+    <div class="mb-16">
+      <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">PARTNERS</span>
+      <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-white">파트너</h2>
+      <p class="mt-4 text-sm text-white/40">함께하는 웨딩 파트너사</p>
+    </div>
 
-    <div class="gs-stagger grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-6">
+    <div class="gs-stagger grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
       {partners.map((partner) => (
-        <div class="flex h-24 items-center justify-center rounded-xl bg-bg-light px-4 transition-all duration-300 hover:bg-olive-tint hover:shadow-sm">
-          <span class="text-sm font-semibold tracking-wide text-secondary-light transition-colors duration-300 hover:text-olive">
+        <div class="flex h-24 items-center justify-center border border-white/8 px-4 transition-all duration-300 hover:border-olive/40">
+          <span class="text-sm font-semibold tracking-wide text-white/25 transition-colors duration-300 hover:text-white/60">
             {partner}
           </span>
         </div>

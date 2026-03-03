@@ -7,17 +7,18 @@ const clients = [
 ];
 ---
 
-<section class="bg-bg-light py-24 lg:py-32">
+<section class="bg-bg-charcoal py-24 lg:py-32">
   <div class="mx-auto max-w-7xl px-6 lg:px-8">
-    <SectionHeading
-      title="고객사"
-      subtitle="다양한 브랜드와 함께했습니다."
-    />
+    <div class="mb-16">
+      <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">CLIENTS</span>
+      <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-white">고객사</h2>
+      <p class="mt-4 text-sm text-white/40">다양한 브랜드와 함께했습니다.</p>
+    </div>
 
-    <div class="gs-stagger grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-6">
+    <div class="gs-stagger grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
       {clients.map((client) => (
-        <div class="flex h-24 items-center justify-center rounded-xl bg-white px-4 shadow-sm transition-all duration-300 hover:shadow-md">
-          <span class="text-sm font-semibold tracking-wide text-secondary-light transition-colors duration-300 hover:text-primary">
+        <div class="flex h-24 items-center justify-center border border-white/8 px-4 transition-all duration-300 hover:border-olive/40">
+          <span class="text-sm font-semibold tracking-wide text-white/25 transition-colors duration-300 hover:text-white/60">
             {client}
           </span>
         </div>
