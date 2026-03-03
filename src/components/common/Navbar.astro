@@ -63,7 +63,7 @@ const currentPath = Astro.url.pathname.replace(base, '/');
 <!-- Mobile Menu Overlay -->
 <div
   id="mobile-menu"
-  class="fixed inset-0 z-[60] flex translate-x-full flex-col bg-bg-dark transition-transform duration-500 ease-in-out"
+  class="fixed inset-0 z-[60] flex translate-x-full flex-col bg-bg-dark transition-transform duration-500 ease-in-out overflow-hidden"
 >
   <div class="flex items-center justify-between px-6 py-5 border-b border-white/10">
     <a href={`${base}`} class="text-lg font-bold tracking-[0.15em] text-white">
