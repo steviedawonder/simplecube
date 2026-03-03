@@ -7,7 +7,7 @@ import sitemap from '@astrojs/sitemap';
 // https://astro.build/config
 export default defineConfig({
   site: 'https://steviedawonder.github.io',
-  base: '/simplecube-web',
+  base: '/simplecube',
 
   vite: {
     plugins: [tailwindcss()],
