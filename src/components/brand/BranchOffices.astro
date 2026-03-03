@@ -23,28 +23,29 @@ const branches = [
 ];
 ---
 
-<section class="bg-bg-light py-24 lg:py-32">
+<section class="bg-bg-charcoal py-24 lg:py-32">
   <div class="mx-auto max-w-7xl px-6 lg:px-8">
-    <SectionHeading
-      title="지점 안내"
-      subtitle="전국 어디서든 심플큐브를 만나보세요."
-    />
+    <div class="mb-16">
+      <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">LOCATIONS</span>
+      <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-white">지점 안내</h2>
+      <p class="mt-4 text-sm text-white/40">전국 어디서든 심플큐브를 만나보세요.</p>
+    </div>
 
-    <div class="gs-stagger grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+    <div class="gs-stagger grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {branches.map((branch) => (
-        <div class="group overflow-hidden rounded-2xl bg-white shadow-sm transition-shadow duration-300 hover:shadow-lg">
+        <div class="group overflow-hidden border border-white/8 transition-all duration-300 hover:border-olive/40">
           <div class="overflow-hidden">
             <img
               src={branch.image}
               alt={branch.name}
-              class="h-48 w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              class="h-48 w-full object-cover opacity-70 transition-all duration-500 group-hover:scale-105 group-hover:opacity-90"
               loading="lazy"
             />
           </div>
           <div class="p-6">
-            <h3 class="text-lg font-bold text-primary">{branch.name}</h3>
-            <p class="mt-2 text-sm text-secondary">{branch.address}</p>
-            <p class="mt-1 text-sm text-secondary">{branch.phone}</p>
+            <h3 class="text-base font-bold text-white">{branch.name}</h3>
+            <p class="mt-2 text-sm text-white/40">{branch.address}</p>
+            <p class="mt-1 text-sm text-white/30">{branch.phone}</p>
           </div>
         </div>
       ))}
