@@ -22,7 +22,10 @@ const currentPath = Astro.url.pathname.replace(base, '/');
     <!-- Logo -->
     <a
       href={`${base}`}
-      class="text-lg font-bold tracking-[0.15em] text-white transition-colors duration-300 hover:text-olive"
+      class:list={[
+        'nav-logo text-lg font-bold tracking-[0.15em] transition-colors duration-300 hover:text-olive',
+        transparent ? 'text-white' : 'text-primary',
+      ]}
     >
       SIMPLE CUBE
     </a>
@@ -36,8 +39,12 @@ const currentPath = Astro.url.pathname.replace(base, '/');
             target={item.external ? '_blank' : undefined}
             rel={item.external ? 'noopener noreferrer' : undefined}
             class:list={[
-              'text-sm font-medium tracking-[0.1em] transition-colors duration-300 text-white/70 hover:text-white',
-              currentPath === item.href && 'text-white border-b border-olive pb-0.5',
+              'nav-link text-sm font-medium tracking-[0.1em] transition-colors duration-300',
+              transparent
+                ? 'text-white/70 hover:text-white'
+                : 'text-primary/60 hover:text-primary',
+              currentPath === item.href && transparent && 'text-white border-b border-olive pb-0.5',
+              currentPath === item.href && !transparent && 'text-primary border-b border-olive pb-0.5',
             ]}
           >
             {item.label}
@@ -53,9 +60,9 @@ const currentPath = Astro.url.pathname.replace(base, '/');
       aria-label="메뉴 열기"
       aria-expanded="false"
     >
-      <span class="hamburger-line block h-[2px] w-6 bg-white transition-all duration-300"></span>
-      <span class="hamburger-line block h-[2px] w-6 bg-white transition-all duration-300"></span>
-      <span class="hamburger-line block h-[2px] w-4 bg-white transition-all duration-300 ml-auto"></span>
+      <span class:list={['hamburger-line block h-[2px] w-6 transition-all duration-300', transparent ? 'bg-white' : 'bg-primary']}></span>
+      <span class:list={['hamburger-line block h-[2px] w-6 transition-all duration-300', transparent ? 'bg-white' : 'bg-primary']}></span>
+      <span class:list={['hamburger-line block h-[2px] w-4 transition-all duration-300 ml-auto', transparent ? 'bg-white' : 'bg-primary']}></span>
     </button>
   </nav>
 </header>
@@ -65,12 +72,12 @@ const currentPath = Astro.url.pathname.replace(base, '/');
   id="mobile-menu"
   class="fixed inset-0 z-[60] flex translate-x-full flex-col bg-bg-dark transition-transform duration-500 ease-in-out overflow-hidden"
 >
-  <div class="flex items-center justify-between px-6 py-5 border-b border-white/10">
-    <a href={`${base}`} class="text-lg font-bold tracking-[0.15em] text-white">
+  <div class="flex items-center justify-between px-6 py-5 border-b border-black/8">
+    <a href={`${base}`} class="text-lg font-bold tracking-[0.15em] text-primary">
       SIMPLE CUBE
     </a>
     <button id="mobile-menu-close" class="p-2" aria-label="메뉴 닫기">
-      <svg class="h-6 w-6 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <svg class="h-6 w-6 text-primary/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
       </svg>
     </button>
@@ -82,15 +89,15 @@ const currentPath = Astro.url.pathname.replace(base, '/');
         href={item.external ? item.href : `${base}${item.href}`}
         target={item.external ? '_blank' : undefined}
         rel={item.external ? 'noopener noreferrer' : undefined}
-        class="mobile-nav-link text-2xl font-semibold tracking-[0.15em] text-white/60 transition-colors duration-300 hover:text-white"
+        class="mobile-nav-link text-2xl font-semibold tracking-[0.15em] text-primary/50 transition-colors duration-300 hover:text-primary"
       >
         {item.label}
       </a>
     ))}
   </nav>
 
-  <div class="px-6 py-8 border-t border-white/10">
-    <p class="text-xs text-white/30 tracking-widest text-center">SIMPLE CUBE</p>
+  <div class="px-6 py-8 border-t border-black/8">
+    <p class="text-xs text-primary/25 tracking-widest text-center">SIMPLE CUBE</p>
   </div>
 </div>
 
@@ -101,22 +108,36 @@ const currentPath = Astro.url.pathname.replace(base, '/');
     color: white;
   }
 
-  /* Solid navbar - dark from the start */
+  /* Solid navbar - light background */
   .nav-solid {
-    background: rgba(20, 20, 22, 0.97);
+    background: rgba(250, 250, 248, 0.97);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    color: white;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    color: var(--color-primary);
   }
 
-  /* Scrolled state - same dark style */
+  /* Scrolled state - light background with dark text */
   .nav-scrolled {
-    background: rgba(20, 20, 22, 0.97) !important;
+    background: rgba(250, 250, 248, 0.97) !important;
     backdrop-filter: blur(20px) !important;
     -webkit-backdrop-filter: blur(20px) !important;
     border-bottom: 1px solid rgba(212, 170, 69, 0.25) !important;
-    color: white !important;
+    color: var(--color-primary) !important;
+  }
+
+  /* When transparent nav scrolls, switch to dark text */
+  .nav-scrolled .nav-logo {
+    color: var(--color-primary) !important;
+  }
+  .nav-scrolled .nav-link {
+    color: rgba(29, 29, 31, 0.6) !important;
+  }
+  .nav-scrolled .nav-link:hover {
+    color: var(--color-primary) !important;
+  }
+  .nav-scrolled .hamburger-line {
+    background-color: var(--color-primary) !important;
   }
 </style>
 

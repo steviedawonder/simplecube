@@ -12,7 +12,7 @@ import Button from '@components/common/Button.astro';
   <section class="flex min-h-[40vh] items-end bg-bg-dark pt-24">
     <div class="mx-auto max-w-7xl w-full px-8 pb-16 md:px-16 lg:px-24">
       <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">FAQ</span>
-      <h1 class="mt-4 text-[clamp(2rem,4.5vw,4rem)] font-bold tracking-tight text-white">
+      <h1 class="mt-4 text-[clamp(2rem,4.5vw,4rem)] font-bold tracking-tight text-primary">
         자주 묻는 질문
       </h1>
       <div class="mt-5 h-[2px] w-10 bg-olive"></div>
@@ -20,24 +20,24 @@ import Button from '@components/common/Button.astro';
   </section>
 
   <!-- FAQ List -->
-  <section class="bg-bg-dark py-16 lg:py-24 border-t border-white/6">
+  <section class="bg-bg-dark py-16 lg:py-24 border-t border-black/6">
     <div class="mx-auto max-w-3xl px-6 lg:px-8">
       <AccordionList />
     </div>
   </section>
 
   <!-- Contact CTA -->
-  <section class="bg-bg-charcoal py-16 lg:py-24 border-t border-white/6">
+  <section class="bg-bg-charcoal py-16 lg:py-24 border-t border-black/6">
     <div class="mx-auto max-w-2xl px-6 text-center lg:px-8">
-      <h2 class="text-2xl font-bold text-white">궁금한 점이 더 있으신가요?</h2>
-      <p class="mt-4 text-white/45">
+      <h2 class="text-2xl font-bold text-primary">궁금한 점이 더 있으신가요?</h2>
+      <p class="mt-4 text-secondary">
         언제든 편하게 문의해 주세요. 친절하게 안내드리겠습니다.
       </p>
       <div class="mt-8 flex flex-wrap justify-center gap-4">
         <Button href="mailto:hello@simplecube.net" variant="primary" external>
           이메일 문의
         </Button>
-        <Button href="https://www.instagram.com/simplecube" variant="outline-white" external>
+        <Button href="https://www.instagram.com/simplecube" variant="outline" external>
           Instagram DM
         </Button>
       </div>

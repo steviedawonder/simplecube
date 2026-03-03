@@ -21,24 +21,24 @@ const machines = [
   <div class="mx-auto max-w-7xl px-6 lg:px-8">
     <div class="mb-16">
       <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">EQUIPMENT</span>
-      <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-white">장비 소개</h2>
-      <p class="mt-4 text-sm text-white/40">최신 장비로 최고의 결과물을 만들어냅니다.</p>
+      <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">장비 소개</h2>
+      <p class="mt-4 text-sm text-secondary">최신 장비로 최고의 결과물을 만들어냅니다.</p>
     </div>
 
     <div class="gs-stagger grid gap-6 md:grid-cols-2">
       {machines.map((machine) => (
-        <div class="group overflow-hidden border border-white/8 transition-all duration-300 hover:border-olive/40">
+        <div class="group overflow-hidden border border-black/8 transition-all duration-300 hover:border-olive/40">
           <div class="overflow-hidden">
             <img
               src={machine.image}
               alt={machine.name}
-              class="h-72 w-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-80 group-hover:opacity-100"
+              class="h-72 w-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-90 group-hover:opacity-100"
               loading="lazy"
             />
           </div>
           <div class="p-8">
-            <h3 class="text-xl font-bold text-white">{machine.name}</h3>
-            <p class="mt-2 text-sm text-white/50">{machine.desc}</p>
+            <h3 class="text-xl font-bold text-primary">{machine.name}</h3>
+            <p class="mt-2 text-sm text-secondary">{machine.desc}</p>
             <ul class="mt-5 flex flex-wrap gap-2">
               {machine.specs.map((spec) => (
                 <li class="border border-olive/30 px-3 py-1 text-xs font-medium text-olive/80">
