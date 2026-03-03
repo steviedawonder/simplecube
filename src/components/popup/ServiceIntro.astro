@@ -2,7 +2,7 @@
 
 ---
 
-<section class="bg-bg-dark py-24 lg:py-32">
+<section class="bg-bg-dark py-24 lg:py-32 overflow-hidden">
   <div class="mx-auto max-w-7xl px-6 lg:px-8">
     <div class="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
       <div class="gs-slide-left">
@@ -36,8 +36,9 @@
         { icon: '✦', title: '디지털 공유', desc: 'QR코드를 통한 즉시 디지털 파일 다운로드' },
       ].map((feature, i) => (
         <div class:list={[
-          'p-10 transition-colors duration-300 hover:bg-white/4',
-          i < 2 ? 'border-r border-white/8' : '',
+          'p-8 transition-colors duration-300 hover:bg-white/4 border-b border-white/8 md:border-b-0',
+          i < 2 ? 'md:border-r md:border-white/8' : '',
+          i === 2 ? 'border-b-0' : '',
         ]}>
           <span class="text-olive text-xl">{feature.icon}</span>
           <h3 class="mt-4 text-base font-bold text-white">{feature.title}</h3>
