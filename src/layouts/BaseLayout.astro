@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import Navbar from '@components/common/Navbar.astro';
 import Footer from '@components/common/Footer.astro';
+import FloatingContactButton from '@components/common/FloatingContactButton.astro';
 
 interface Props {
   title?: string;
@@ -72,6 +73,8 @@ const base = import.meta.env.BASE_URL;
     </main>
 
     <Footer />
+
+    <FloatingContactButton />
 
     <!-- GSAP Initialization -->
     <script>
