@@ -1,0 +1,60 @@
+---
+const options = [
+  {
+    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.395m3.42 3.42a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.146 6.32a15.996 15.996 0 00-4.649 4.763m3.42 3.42a6.776 6.776 0 00-3.42-3.42" /></svg>`,
+    title: '외관 랩핑',
+    desc: '브랜드 디자인 시안을 기반으로 기기 외관에 맞춤 랩핑을 적용합니다. 팝업부스, 모듈부스, 우드모델 모두 랩핑이 가능합니다.',
+    note: '행사일 기준 최소 10일 전 디자인 확정 필요',
+  },
+  {
+    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25" /></svg>`,
+    title: '메인화면 커스텀',
+    desc: '포토부스 촬영 전 가장 먼저 보이는 UI 화면을 브랜드 무드에 맞춰 커스텀합니다. 로고, 이미지, 색상, 영상 적용이 가능합니다.',
+    note: '사이즈: 1920 × 1080 px',
+  },
+  {
+    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" /><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" /></svg>`,
+    title: '백드롭 & 백월',
+    desc: '촬영 배경으로 사용될 백드롭을 선택하거나, 브랜드에 맞는 백월을 맞춤 제작합니다. 기본형과 와이드형을 제공합니다.',
+    note: '백월 제작 시 약 10일 소요',
+  },
+  {
+    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18.75 12h.008v.008h-.008V12zm-2.25 0h.008v.008H16.5V12z" /></svg>`,
+    title: '인화지 옵션',
+    desc: '기본 용지, 분할 용지, 스티커 용지 등 다양한 인화지 옵션을 제공합니다. 행사 컨셉에 맞는 용지를 선택할 수 있습니다.',
+    note: '2×6 inch / 4×6 inch 사이즈',
+  },
+];
+---
+
+<section class="bg-white py-24 lg:py-32">
+  <div class="mx-auto max-w-7xl px-6 lg:px-8">
+    <div class="mb-16">
+      <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">CUSTOMIZATION</span>
+      <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">커스텀 범위</h2>
+      <p class="mt-4 text-sm text-secondary max-w-xl">
+        기기 외관부터 UI 화면, 촬영 배경까지.<br />
+        브랜드에 맞춘 자유로운 커스텀이 가능합니다.
+      </p>
+    </div>
+
+    <div class="gs-stagger grid gap-6 md:grid-cols-2">
+      {options.map((option) => (
+        <div class="group rounded-2xl border border-border-light bg-bg-light p-8 transition-all duration-300 hover:border-olive/40 hover:bg-white hover:shadow-lg">
+          <div class="flex items-start gap-5">
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-olive/10 text-olive transition-colors duration-300 group-hover:bg-olive group-hover:text-white">
+              <Fragment set:html={option.icon} />
+            </div>
+            <div>
+              <h3 class="text-lg font-bold text-primary">{option.title}</h3>
+              <p class="mt-2 text-sm leading-relaxed text-secondary">{option.desc}</p>
+              <span class="mt-3 inline-block text-xs text-olive/70 bg-olive/5 px-3 py-1 rounded-full">
+                {option.note}
+              </span>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

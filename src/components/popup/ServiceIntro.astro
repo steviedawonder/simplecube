@@ -1,50 +1,60 @@
 ---
+const base = import.meta.env.BASE_URL;
 
+const strengths = [
+  { number: 'Since 2019', label: '1세대 포토부스', desc: '2019년 설립, 업계를 이끌어온 노하우' },
+  { number: '1,600+', label: '연간 진행 건수', desc: '웨딩 및 브랜드 행사 연 1,600건 이상' },
+  { number: '전국', label: '서비스 지역', desc: '서울, 수도권, 부산, 대전까지 전국 대응' },
+];
 ---
 
-<section class="bg-bg-dark py-24 lg:py-32 overflow-hidden">
+<section class="bg-white py-24 lg:py-32 overflow-hidden">
   <div class="mx-auto max-w-7xl px-6 lg:px-8">
+
+    <!-- Intro -->
     <div class="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
       <div class="gs-slide-left">
-        <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">SERVICE</span>
+        <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">ABOUT</span>
         <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold leading-tight text-primary">
           브랜드를 위한<br />맞춤형 포토부스
         </h2>
         <div class="mt-6 h-[2px] w-10 bg-olive"></div>
         <p class="mt-8 text-base leading-relaxed text-secondary">
-          팝업스토어, 기업 행사, 제품 런칭, 페스티벌 등
-          다양한 행사에 최적화된 포토부스 서비스를 제공합니다.
-          브랜드 아이덴티티에 맞춘 커스텀 디자인부터
-          현장 운영까지 원스톱으로 진행합니다.
+          심플큐브는 2019년에 설립된 1세대 포토부스 업체입니다.<br />
+          국내 최초로 원목 부스를 자체 설계·제작하여
+          모던하고 럭셔리한 포토부스 서비스를 제공하고 있습니다.
+        </p>
+        <p class="mt-4 text-base leading-relaxed text-secondary">
+          브랜드 팝업스토어, 기업 행사, 제품 런칭, 페스티벌 등
+          다양한 현장에 최적화된 맞춤형 서비스를 제공하며,
+          기기 외관 랩핑부터 UI 화면, 포토 템플릿까지
+          브랜드 아이덴티티에 맞춘 커스텀이 가능합니다.
         </p>
       </div>
-      <div class="gs-slide-right overflow-hidden">
+      <div class="gs-slide-right overflow-hidden rounded-2xl">
         <img
-          src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=600&fit=crop&q=80"
-          alt="팝업 포토부스 서비스"
+          src={`${base}/images/popup/booth.jpg`}
+          alt="심플큐브 팝업 포토부스"
           class="h-full w-full object-cover"
           loading="lazy"
         />
       </div>
     </div>
 
-    <!-- Features -->
-    <div class="gs-stagger mt-20 grid gap-0 md:grid-cols-3 border border-black/8">
-      {[
-        { icon: '✦', title: '커스텀 디자인', desc: '브랜드에 맞춘 맞춤형 포토 프레임과 배경 디자인' },
-        { icon: '✦', title: '즉석 출력', desc: '촬영 즉시 고품질 포토 카드를 현장에서 출력' },
-        { icon: '✦', title: '디지털 공유', desc: 'QR코드를 통한 즉시 디지털 파일 다운로드' },
-      ].map((feature, i) => (
+    <!-- Strength Numbers -->
+    <div class="gs-stagger mt-20 grid gap-0 md:grid-cols-3 border border-border-light">
+      {strengths.map((item, i) => (
         <div class:list={[
-          'p-8 transition-colors duration-300 hover:bg-black/4 border-b border-black/8 md:border-b-0',
-          i < 2 ? 'md:border-r md:border-black/8' : '',
+          'p-8 transition-colors duration-300 hover:bg-bg-light border-b border-border-light md:border-b-0',
+          i < 2 ? 'md:border-r md:border-border-light' : '',
           i === 2 ? 'border-b-0' : '',
         ]}>
-          <span class="text-olive text-xl">{feature.icon}</span>
-          <h3 class="mt-4 text-base font-bold text-primary">{feature.title}</h3>
-          <p class="mt-3 text-sm leading-relaxed text-secondary">{feature.desc}</p>
+          <span class="text-olive text-2xl font-bold tracking-tight">{item.number}</span>
+          <h3 class="mt-3 text-base font-bold text-primary">{item.label}</h3>
+          <p class="mt-2 text-sm leading-relaxed text-secondary">{item.desc}</p>
         </div>
       ))}
     </div>
+
   </div>
 </section>

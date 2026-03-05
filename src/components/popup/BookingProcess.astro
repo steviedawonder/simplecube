@@ -1,0 +1,100 @@
+---
+const steps = [
+  {
+    step: '01',
+    title: '예약 문의',
+    desc: '카카오톡 채널을 통해 예약 가능 여부를 확인합니다.',
+    detail: '행사 장소, 날짜, 사용 시간 안내',
+  },
+  {
+    step: '02',
+    title: '계약 진행',
+    desc: '견적서 확인 후 렌탈 계약서를 작성합니다.',
+    detail: '전자 계약서 날인 후 예약 완료',
+  },
+  {
+    step: '03',
+    title: '옵션 선택',
+    desc: '기기 선택, 메인화면 제작, 백드롭 선택 등 옵션을 결정합니다.',
+    detail: '브랜드에 맞는 커스텀 옵션 협의',
+  },
+  {
+    step: '04',
+    title: '디자인 확인',
+    desc: '디자인 시안과 샘플을 확인하고 최종 점검합니다.',
+    detail: '포토 템플릿 행사 3일 전, 백월 10일 전 전달',
+  },
+  {
+    step: '05',
+    title: '행사 진행',
+    desc: '일정에 맞춰 설치 완료 후 행사를 진행합니다.',
+    detail: '현장 설치 및 운영 지원',
+  },
+];
+---
+
+<section class="bg-bg-light py-24 lg:py-32">
+  <div class="mx-auto max-w-7xl px-6 lg:px-8">
+    <div class="mb-16">
+      <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">PROCESS</span>
+      <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">예약 진행 순서</h2>
+      <p class="mt-4 text-sm text-secondary">
+        문의부터 행사 당일까지, 심플큐브가 함께합니다.
+      </p>
+    </div>
+
+    <!-- Steps -->
+    <div class="gs-stagger relative">
+      <!-- Connection line -->
+      <div class="absolute left-6 top-0 bottom-0 w-[1px] bg-border-light hidden md:block md:left-1/2 md:-translate-x-1/2"></div>
+
+      <div class="space-y-6">
+        {steps.map((item, i) => (
+          <div class:list={[
+            'relative flex flex-col md:flex-row md:items-center gap-6',
+            i % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse',
+          ]}>
+            <!-- Step number (center on desktop) -->
+            <div class="hidden md:flex absolute left-1/2 -translate-x-1/2 z-10 h-12 w-12 items-center justify-center rounded-full border border-olive/40 bg-bg-light">
+              <span class="text-sm font-bold text-olive">{item.step}</span>
+            </div>
+
+            <!-- Content card -->
+            <div class:list={[
+              'flex-1',
+              i % 2 === 0 ? 'md:pr-20 md:text-right' : 'md:pl-20',
+            ]}>
+              <div class="rounded-xl border border-border-light bg-white p-6 transition-all duration-300 hover:border-olive/30 hover:shadow-sm">
+                <div class="flex items-center gap-3 md:hidden mb-3">
+                  <span class="flex h-8 w-8 items-center justify-center rounded-full border border-olive/40 text-xs font-bold text-olive">{item.step}</span>
+                  <h3 class="text-base font-bold text-primary">{item.title}</h3>
+                </div>
+                <h3 class="hidden md:block text-base font-bold text-primary">{item.title}</h3>
+                <p class="mt-2 text-sm text-secondary">{item.desc}</p>
+                <span class="mt-2 inline-block text-xs text-olive/80">{item.detail}</span>
+              </div>
+            </div>
+
+            <!-- Spacer for the other side -->
+            <div class="hidden md:block flex-1"></div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="mt-16 text-center">
+      <a
+        href="https://pf.kakao.com/_simplecube"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex items-center gap-3 border border-olive px-8 py-4 text-sm font-semibold tracking-wider text-olive transition-all duration-300 hover:bg-olive hover:text-white rounded-full"
+      >
+        카카오톡으로 문의하기
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+        </svg>
+      </a>
+    </div>
+  </div>
+</section>

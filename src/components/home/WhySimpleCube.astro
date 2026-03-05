@@ -23,7 +23,7 @@ const features = [
 ];
 ---
 
-<section class="bg-bg-dark py-24 lg:py-32 overflow-hidden">
+<section class="bg-bg-light py-24 lg:py-32 overflow-hidden">
   <div class="mx-auto max-w-7xl px-6 lg:px-8">
     <div class="grid gap-16 lg:grid-cols-2 lg:gap-24 items-start">
 
@@ -47,12 +47,12 @@ const features = [
             <p class="text-3xl font-bold text-primary">200<span class="text-olive">+</span></p>
             <p class="mt-1 text-xs tracking-[0.2em] text-secondary uppercase">행사 진행</p>
           </div>
-          <div class="hidden w-[1px] bg-black/10 sm:block"></div>
+          <div class="hidden w-[1px] bg-border sm:block"></div>
           <div class="flex-1 min-w-[80px]">
             <p class="text-3xl font-bold text-primary">98<span class="text-olive">%</span></p>
             <p class="mt-1 text-xs tracking-[0.2em] text-secondary uppercase">만족도</p>
           </div>
-          <div class="hidden w-[1px] bg-black/10 sm:block"></div>
+          <div class="hidden w-[1px] bg-border sm:block"></div>
           <div class="flex-1 min-w-[80px]">
             <p class="text-3xl font-bold text-primary">3<span class="text-olive">개</span></p>
             <p class="mt-1 text-xs tracking-[0.2em] text-secondary uppercase">전국 거점</p>
@@ -64,9 +64,9 @@ const features = [
       <div class="gs-slide-right grid grid-cols-1 gap-0 sm:grid-cols-2">
         {features.map((feature, i) => (
           <div class:list={[
-            'feature-card p-8 transition-all duration-300 hover:bg-black/4 border border-transparent',
-            i % 2 === 0 ? 'sm:border-r sm:border-r-black/8' : '',
-            i < 2 ? 'sm:border-b sm:border-b-black/8 border-b border-b-black/8' : '',
+            'feature-card p-8 transition-all duration-300 hover:bg-white/60 border border-transparent',
+            i % 2 === 0 ? 'sm:border-r sm:border-r-border-light' : '',
+            i < 2 ? 'sm:border-b sm:border-b-border-light border-b border-b-border-light' : '',
           ]}
           >
             <span class="text-[3rem] font-bold leading-none text-primary/8">

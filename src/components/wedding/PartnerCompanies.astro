@@ -1,28 +1,85 @@
 ---
-import SectionHeading from '@components/common/SectionHeading.astro';
-
-const partners = [
-  'Partner A', 'Partner B', 'Partner C',
-  'Partner D', 'Partner E', 'Partner F',
+const steps = [
+  {
+    step: '01',
+    title: '예약 문의',
+    desc: '카카오톡 채널을 통해 예약 가능 여부를 확인합니다.',
+    detail: '행사 장소, 날짜, 사용 시간 안내',
+  },
+  {
+    step: '02',
+    title: '계약 진행',
+    desc: '견적서와 대여약관 확인 후 계약서를 작성합니다.',
+    detail: '전자 계약서 날인 후 예약 완료',
+  },
+  {
+    step: '03',
+    title: '옵션 선택',
+    desc: '대기화면, 포토 스트립 디자인, 백드롭을 선택합니다.',
+    detail: '40종+ 포토 스트립 & 7종 백드롭',
+  },
+  {
+    step: '04',
+    title: '디자인 확인',
+    desc: '웨딩이 있는 주간에 디자인 시안을 전달해 드립니다.',
+    detail: '디자인 수정 2회 가능',
+  },
+  {
+    step: '05',
+    title: '행사 진행',
+    desc: '설치 완료 후 전담 스텝 2인이 행사를 진행합니다.',
+    detail: '최종 안내 및 현장 점검',
+  },
 ];
 ---
 
-<section class="bg-bg-dark py-24 lg:py-32">
+<section class="bg-bg-light py-24 lg:py-32">
   <div class="mx-auto max-w-7xl px-6 lg:px-8">
     <div class="mb-16">
-      <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">PARTNERS</span>
-      <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">파트너</h2>
-      <p class="mt-4 text-sm text-secondary">함께하는 웨딩 파트너사</p>
+      <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">PROCESS</span>
+      <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">예약 진행 순서</h2>
+      <p class="mt-4 text-sm text-secondary">
+        문의부터 웨딩 당일까지, 심플큐브가 함께합니다.
+      </p>
     </div>
 
-    <div class="gs-stagger grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
-      {partners.map((partner) => (
-        <div class="flex h-24 items-center justify-center border border-black/8 px-4 transition-all duration-300 hover:border-olive/40">
-          <span class="text-sm font-semibold tracking-wide text-primary/30 transition-colors duration-300 hover:text-primary/60">
-            {partner}
-          </span>
+    <!-- Steps -->
+    <div class="gs-stagger grid gap-3 md:grid-cols-5">
+      {steps.map((item, i) => (
+        <div class="relative group">
+          <div class="rounded-xl border border-border-light bg-white p-6 transition-all duration-300 hover:border-olive/30 hover:shadow-sm h-full">
+            <span class="text-2xl font-bold text-olive/40">{item.step}</span>
+            <h3 class="mt-3 text-base font-bold text-primary">{item.title}</h3>
+            <p class="mt-2 text-xs leading-relaxed text-secondary">{item.desc}</p>
+            <span class="mt-3 inline-block text-[10px] text-olive/70">{item.detail}</span>
+          </div>
+          {i < steps.length - 1 && (
+            <div class="hidden md:flex absolute -right-2 top-1/2 -translate-y-1/2 z-10 text-border">
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          )}
         </div>
       ))}
+    </div>
+
+    <!-- CTA -->
+    <div class="mt-16 text-center">
+      <p class="text-sm text-secondary mb-6">
+        웨딩 포토부스에 관해 궁금한 점이 있으시면 편하게 문의해 주세요.
+      </p>
+      <a
+        href="https://pf.kakao.com/_simplecube"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex items-center gap-3 border border-olive px-8 py-4 text-sm font-semibold tracking-wider text-olive transition-all duration-300 hover:bg-olive hover:text-white rounded-full"
+      >
+        카카오톡으로 문의하기
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+        </svg>
+      </a>
     </div>
   </div>
 </section>

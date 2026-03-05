@@ -1,31 +1,58 @@
 ---
-
+const base = import.meta.env.BASE_URL;
 ---
 
-<section class="bg-bg-dark py-24 lg:py-32">
+<section class="bg-white py-24 lg:py-32">
   <div class="mx-auto max-w-7xl px-6 lg:px-8">
-    <!-- Full-width image -->
-    <div class="gs-scale-in overflow-hidden">
+
+    <!-- Hero image - 웨딩 현장 전체 구성 -->
+    <div class="gs-scale-in overflow-hidden rounded-2xl">
       <img
-        src="https://images.unsplash.com/photo-1519741497674-611481863552?w=1200&h=500&fit=crop&q=80"
-        alt="웨딩 포토부스 현장"
-        class="h-[400px] w-full object-cover opacity-90 lg:h-[520px]"
+        src={`${base}/images/wedding/setup-hall.jpg`}
+        alt="웨딩 포토부스 현장 세팅"
+        class="h-[400px] w-full object-cover lg:h-[520px]"
         loading="lazy"
       />
     </div>
 
     <!-- Text -->
-    <div class="gs-fade-up mx-auto mt-16 max-w-3xl">
+    <div class="gs-fade-up mx-auto mt-16 max-w-3xl text-center">
       <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">WEDDING SERVICE</span>
       <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold leading-tight text-primary">
         가장 아름다운 날의<br />특별한 순간을 담다
       </h2>
-      <div class="mt-6 h-[2px] w-10 bg-olive"></div>
+      <div class="mx-auto mt-6 h-[2px] w-10 bg-olive"></div>
       <p class="mt-8 text-base leading-relaxed text-secondary">
-        결혼식의 감동과 기쁨을 포토부스로 더 특별하게 기록합니다.
-        하객분들과 함께하는 즐거운 순간, 신랑신부의 아름다운 모습까지.
-        심플큐브의 웨딩 포토부스가 소중한 추억을 만들어 드립니다.
+        웨딩 포토부스는 웨딩홀에 설치하는 즉석 사진 서비스로,
+        신랑·신부님은 물론 소중한 하객분들까지 모두 웨딩의 순간을 즐기고 추억을 남길 수 있도록 도와드립니다.
+      </p>
+      <p class="mt-4 text-base leading-relaxed text-secondary">
+        촬영한 사진은 동일한 사진 2장으로 바로 인화되며,
+        한 장은 하객분들께 기념으로 드리고
+        다른 한 장은 축하 메시지를 적어 <strong class="text-primary">포토 방명록</strong>으로 제작해
+        신랑·신부님께 특별한 선물로 전달드립니다.
       </p>
     </div>
+
+    <!-- 2-column image -->
+    <div class="gs-stagger mt-16 grid gap-4 grid-cols-2">
+      <div class="overflow-hidden rounded-2xl">
+        <img
+          src={`${base}/images/wedding/photo-strips.jpg`}
+          alt="웨딩 포토 스트립과 액자"
+          class="h-full w-full object-cover"
+          loading="lazy"
+        />
+      </div>
+      <div class="overflow-hidden rounded-2xl">
+        <img
+          src={`${base}/images/wedding/guest-table.jpg`}
+          alt="방명록 테이블 세팅"
+          class="h-full w-full object-cover"
+          loading="lazy"
+        />
+      </div>
+    </div>
+
   </div>
 </section>

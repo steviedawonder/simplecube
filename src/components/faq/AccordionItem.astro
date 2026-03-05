@@ -7,14 +7,14 @@ interface Props {
 const { question, answer } = Astro.props;
 ---
 
-<div class="accordion-item border-b border-black/8">
+<div class="accordion-item border-b border-border-light">
   <button
     class="accordion-trigger flex w-full items-center justify-between py-6 text-left transition-colors duration-200 hover:text-olive"
     aria-expanded="false"
   >
-    <span class="pr-4 text-base font-semibold text-primary/70 md:text-lg">{question}</span>
+    <span class="pr-4 text-base font-semibold text-primary md:text-lg">{question}</span>
     <svg
-      class="accordion-icon h-5 w-5 shrink-0 text-primary/30 transition-transform duration-300"
+      class="accordion-icon h-5 w-5 shrink-0 text-secondary-light transition-transform duration-300"
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"

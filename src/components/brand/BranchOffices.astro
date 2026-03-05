@@ -6,24 +6,24 @@ const branches = [
     name: '서울 본사',
     address: '서울특별시 강남구',
     phone: '02-1234-5678',
-    image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&h=400&fit=crop&q=80',
+    image: 'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&h=400&fit=crop&q=90',
   },
   {
     name: '부산 지사',
     address: '부산광역시 해운대구',
     phone: '051-1234-5678',
-    image: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=600&h=400&fit=crop&q=80',
+    image: 'https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=600&h=400&fit=crop&q=90',
   },
   {
     name: '제주 지사',
     address: '제주특별자치도 제주시',
     phone: '064-1234-5678',
-    image: 'https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?w=600&h=400&fit=crop&q=80',
+    image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop&q=90',
   },
 ];
 ---
 
-<section class="bg-bg-charcoal py-24 lg:py-32">
+<section class="bg-bg-light py-24 lg:py-32">
   <div class="mx-auto max-w-7xl px-6 lg:px-8">
     <div class="mb-16">
       <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">LOCATIONS</span>
@@ -33,12 +33,12 @@ const branches = [
 
     <div class="gs-stagger grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {branches.map((branch) => (
-        <div class="group overflow-hidden border border-black/8 transition-all duration-300 hover:border-olive/40">
+        <div class="group overflow-hidden rounded-2xl border border-border-light bg-white transition-all duration-300 hover:border-olive/40 hover:shadow-lg">
           <div class="overflow-hidden">
             <img
               src={branch.image}
               alt={branch.name}
-              class="h-48 w-full object-cover opacity-85 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
+              class="h-48 w-full object-cover transition-all duration-500 group-hover:scale-105"
               loading="lazy"
             />
           </div>

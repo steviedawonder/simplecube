@@ -7,7 +7,7 @@ const clients = [
 ];
 ---
 
-<section class="bg-bg-charcoal py-24 lg:py-32">
+<section class="bg-white py-24 lg:py-32">
   <div class="mx-auto max-w-7xl px-6 lg:px-8">
     <div class="mb-16">
       <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">CLIENTS</span>
@@ -17,8 +17,8 @@ const clients = [
 
     <div class="gs-stagger grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
       {clients.map((client) => (
-        <div class="flex h-24 items-center justify-center border border-black/8 px-4 transition-all duration-300 hover:border-olive/40">
-          <span class="text-sm font-semibold tracking-wide text-primary/30 transition-colors duration-300 hover:text-primary/60">
+        <div class="flex h-24 items-center justify-center rounded-lg border border-border-light bg-bg-light px-4 transition-all duration-300 hover:border-olive/40 hover:shadow-sm">
+          <span class="text-sm font-semibold tracking-wide text-secondary-light transition-colors duration-300 hover:text-primary">
             {client}
           </span>
         </div>

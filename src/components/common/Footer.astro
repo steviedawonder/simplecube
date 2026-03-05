@@ -4,16 +4,16 @@ const base = import.meta.env.BASE_URL;
 const year = new Date().getFullYear();
 ---
 
-<footer class="bg-[#2C2926] border-t border-white/6">
+<footer class="bg-bg-light border-t border-border-light">
   <div class="mx-auto max-w-7xl px-6 py-16 lg:px-8 lg:py-20">
     <!-- Top Section -->
     <div class="grid gap-12 md:grid-cols-3 lg:gap-16">
       <!-- Brand -->
       <div>
-        <a href={`${base}`} class="text-xl font-bold tracking-[0.15em] text-white hover:text-olive transition-colors duration-300">
+        <a href={`${base}`} class="text-xl font-bold tracking-[0.15em] text-primary hover:text-olive transition-colors duration-300">
           SIMPLE CUBE
         </a>
-        <p class="mt-4 text-sm leading-relaxed text-white/35">
+        <p class="mt-4 text-sm leading-relaxed text-secondary">
           특별한 순간을 담는 포토부스<br />
           팝업 포토부스 · 웨딩 포토부스
         </p>
@@ -23,7 +23,7 @@ const year = new Date().getFullYear();
 
       <!-- Navigation -->
       <div>
-        <h3 class="mb-5 text-[11px] font-semibold tracking-[0.3em] text-white/30 uppercase">
+        <h3 class="mb-5 text-[11px] font-semibold tracking-[0.3em] text-secondary-light uppercase">
           MENU
         </h3>
         <ul class="space-y-3">
@@ -33,7 +33,7 @@ const year = new Date().getFullYear();
                 href={item.external ? item.href : `${base}${item.href}`}
                 target={item.external ? '_blank' : undefined}
                 rel={item.external ? 'noopener noreferrer' : undefined}
-                class="text-sm text-white/40 transition-colors duration-300 hover:text-white"
+                class="text-sm text-secondary transition-colors duration-300 hover:text-primary"
               >
                 {item.label}
               </a>
@@ -44,17 +44,17 @@ const year = new Date().getFullYear();
 
       <!-- Contact -->
       <div>
-        <h3 class="mb-5 text-[11px] font-semibold tracking-[0.3em] text-white/30 uppercase">
+        <h3 class="mb-5 text-[11px] font-semibold tracking-[0.3em] text-secondary-light uppercase">
           CONTACT
         </h3>
         <ul class="space-y-3 text-sm">
           <li>
-            <a href="mailto:hello@simplecube.net" class="text-white/40 transition-colors hover:text-olive">
+            <a href="mailto:hello@simplecube.net" class="text-secondary transition-colors hover:text-olive">
               hello@simplecube.net
             </a>
           </li>
           <li>
-            <a href="https://www.instagram.com/simplecube" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-white/40 transition-colors hover:text-white">
+            <a href="https://www.instagram.com/simplecube" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-secondary transition-colors hover:text-primary">
               <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
               </svg>
@@ -66,11 +66,11 @@ const year = new Date().getFullYear();
     </div>
 
     <!-- Divider + Copyright -->
-    <div class="mt-14 flex flex-col items-center justify-between gap-4 border-t border-white/6 pt-8 sm:flex-row">
-      <p class="text-xs text-white/20">
+    <div class="mt-14 flex flex-col items-center justify-between gap-4 border-t border-border-light pt-8 sm:flex-row">
+      <p class="text-xs text-secondary-light">
         &copy; {year} SIMPLE CUBE. All rights reserved.
       </p>
-      <p class="text-xs text-white/15 tracking-[0.2em] uppercase">
+      <p class="text-xs text-secondary-light/60 tracking-[0.2em] uppercase">
         Photo Booth Service
       </p>
     </div>
