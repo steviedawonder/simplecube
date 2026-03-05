@@ -1,78 +1,95 @@
 ---
-import { navItems } from '@data/navigation';
 const base = import.meta.env.BASE_URL;
-const year = new Date().getFullYear();
+
+const branches = [
+  {
+    name: '서울 본점',
+    kakao: '심플큐브',
+    instagram: 'simplecube_photobooth',
+    phone: '02-338-9180',
+    phoneType: 'tel',
+  },
+  {
+    name: '부산 지점',
+    kakao: '심플큐브 부산',
+    instagram: 'simplecube_busan',
+    phone: '010-3122-4746',
+    phoneType: 'mobile',
+  },
+  {
+    name: '대전 지점',
+    kakao: '심플큐브 대전',
+    instagram: 'simplecube_daejeon',
+    phone: '010-8838-8122',
+    phoneType: 'mobile',
+  },
+  {
+    name: '전주 지점',
+    kakao: '심플큐브 전주',
+    instagram: 'simplecube_jeonju',
+    phone: '010-5743-8122',
+    phoneType: 'mobile',
+  },
+];
 ---
 
-<footer class="bg-bg-light border-t border-border-light">
-  <div class="mx-auto max-w-7xl px-6 py-16 lg:px-8 lg:py-20">
-    <!-- Top Section -->
-    <div class="grid gap-12 md:grid-cols-3 lg:gap-16">
-      <!-- Brand -->
+<footer class="bg-[#2C2C2E] text-white">
+  <div class="mx-auto max-w-7xl px-6 py-14 lg:px-8 lg:py-16">
+    <div class="grid gap-10 lg:grid-cols-[1fr_3fr]">
+
+      <!-- Left: Brand -->
       <div>
-        <a href={`${base}`} class="text-xl font-bold tracking-[0.15em] text-primary hover:text-olive transition-colors duration-300">
-          SIMPLE CUBE
-        </a>
-        <p class="mt-4 text-sm leading-relaxed text-secondary">
-          특별한 순간을 담는 포토부스<br />
-          팝업 포토부스 · 웨딩 포토부스
+        <p class="text-lg font-bold leading-snug text-white">
+          보다 간결한 즐거움
         </p>
-        <!-- Gold accent line -->
-        <div class="mt-6 h-[1px] w-10 bg-olive opacity-60"></div>
+        <p class="mt-1 text-lg font-bold leading-snug tracking-[0.05em] text-white">
+          SIMPLE CUBE<br />PHOTO BOOTH
+        </p>
+        <div class="mt-6">
+          <a
+            href="mailto:simple_cube@naver.com"
+            class="text-sm text-white/70 transition-colors duration-300 hover:text-olive"
+          >
+            simple_cube@naver.com
+          </a>
+          <div class="mt-2 h-[1px] w-full max-w-[200px] bg-olive/50"></div>
+        </div>
       </div>
 
-      <!-- Navigation -->
-      <div>
-        <h3 class="mb-5 text-[11px] font-semibold tracking-[0.3em] text-secondary-light uppercase">
-          MENU
-        </h3>
-        <ul class="space-y-3">
-          {navItems.map((item) => (
-            <li>
-              <a
-                href={item.external ? item.href : `${base}${item.href}`}
-                target={item.external ? '_blank' : undefined}
-                rel={item.external ? 'noopener noreferrer' : undefined}
-                class="text-sm text-secondary transition-colors duration-300 hover:text-primary"
-              >
-                {item.label}
-              </a>
-            </li>
-          ))}
-        </ul>
+      <!-- Right: Branches grid -->
+      <div class="grid grid-cols-2 gap-8 lg:grid-cols-4">
+        {branches.map((branch) => (
+          <div>
+            <h3 class="text-base font-bold text-white mb-3">{branch.name}</h3>
+            <div class="h-[1px] w-full bg-white/15 mb-4"></div>
+            <ul class="space-y-2.5 text-sm">
+              <li class="flex items-center gap-2 text-white/65">
+                <svg class="h-4 w-4 shrink-0 text-white/40" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 3c-4.97 0-9 3.185-9 7.115 0 2.557 1.707 4.8 4.27 6.054-.188.702-.682 2.545-.78 2.94-.123.496.182.489.382.356.157-.105 2.501-1.7 3.515-2.389.533.078 1.08.12 1.613.12 4.97 0 9-3.186 9-7.115C21 6.185 16.97 3 12 3z"/>
+                </svg>
+                <span>카카오톡 : {branch.kakao}</span>
+              </li>
+              <li class="flex items-center gap-2 text-white/65">
+                <svg class="h-4 w-4 shrink-0 text-white/40" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                </svg>
+                <span>{branch.instagram}</span>
+              </li>
+              <li class="flex items-center gap-2 text-white/65">
+                <svg class="h-4 w-4 shrink-0 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                  {branch.phoneType === 'tel' ? (
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                  ) : (
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
+                  )}
+                </svg>
+                <span>{branch.phone}</span>
+              </li>
+            </ul>
+          </div>
+        ))}
       </div>
 
-      <!-- Contact -->
-      <div>
-        <h3 class="mb-5 text-[11px] font-semibold tracking-[0.3em] text-secondary-light uppercase">
-          CONTACT
-        </h3>
-        <ul class="space-y-3 text-sm">
-          <li>
-            <a href="mailto:hello@simplecube.net" class="text-secondary transition-colors hover:text-olive">
-              hello@simplecube.net
-            </a>
-          </li>
-          <li>
-            <a href="https://www.instagram.com/simplecube" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-secondary transition-colors hover:text-primary">
-              <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-              </svg>
-              @simplecube
-            </a>
-          </li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- Divider + Copyright -->
-    <div class="mt-14 flex flex-col items-center justify-between gap-4 border-t border-border-light pt-8 sm:flex-row">
-      <p class="text-xs text-secondary-light">
-        &copy; {year} SIMPLE CUBE. All rights reserved.
-      </p>
-      <p class="text-xs text-secondary-light/60 tracking-[0.2em] uppercase">
-        Photo Booth Service
-      </p>
     </div>
   </div>
 </footer>
