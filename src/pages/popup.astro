@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
-import PageHero from '@components/common/PageHero.astro';
+import TextHero from '@components/common/TextHero.astro';
 import ServiceIntro from '@components/popup/ServiceIntro.astro';
 import MachineShowcase from '@components/popup/MachineShowcase.astro';
 import CustomOptions from '@components/popup/CustomOptions.astro';
@@ -12,12 +12,11 @@ import ClientShowcase from '@components/popup/ClientShowcase.astro';
 <BaseLayout
   title="POP-UP | 심플큐브"
   description="심플큐브 팝업 포토부스. 브랜드 팝업스토어, 기업 행사, 페스티벌을 위한 맞춤형 포토부스 서비스."
-  transparentNav={true}
+  transparentNav={false}
 >
-  <PageHero
+  <TextHero
     title="POP-UP PHOTO BOOTH"
     subtitle="브랜드를 특별한 경험으로"
-    backgroundImage="/simplecube/images/popup/booth.jpg"
   />
   <ServiceIntro />
   <MachineShowcase />

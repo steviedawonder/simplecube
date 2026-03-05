@@ -1,0 +1,37 @@
+---
+interface Props {
+  title: string;
+  subtitle?: string;
+  description?: string;
+}
+
+const { title, subtitle, description } = Astro.props;
+---
+
+<section class="relative bg-white pt-36 pb-16 lg:pt-44 lg:pb-20 overflow-hidden">
+  <!-- Subtle decorative elements -->
+  <div class="absolute top-20 right-0 w-[400px] h-[400px] bg-olive/[0.03] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+  <div class="absolute bottom-0 left-0 w-[300px] h-[300px] bg-bg-light rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
+
+  <div class="relative z-10 mx-auto max-w-7xl px-6 lg:px-8">
+    <div class="max-w-3xl gs-fade-up">
+      {subtitle && (
+        <p class="mb-4 text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">
+          {subtitle}
+        </p>
+      )}
+      <div class="mb-6 h-[2px] w-10 bg-olive"></div>
+      <h1 class="text-[clamp(2.2rem,5vw,4.5rem)] font-bold tracking-[0.02em] text-primary leading-[1.1]">
+        {title}
+      </h1>
+      {description && (
+        <p class="mt-8 text-base leading-relaxed text-secondary max-w-xl">
+          {description}
+        </p>
+      )}
+    </div>
+  </div>
+
+  <!-- Bottom border -->
+  <div class="absolute bottom-0 left-0 right-0 h-[1px] bg-border-light"></div>
+</section>
