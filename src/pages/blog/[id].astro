@@ -4,7 +4,7 @@ import { getCollection, render } from 'astro:content';
 import Button from '@components/common/Button.astro';
 
 export async function getStaticPaths() {
-  const posts = await getCollection('blog', ({ data }) => !data.draft);
+  const posts = await getCollection('blog', ({ data }) => !data.draft && !data.externalUrl);
   return posts.map((post) => ({
     params: { id: post.id },
     props: { post },
