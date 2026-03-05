@@ -1,24 +1,36 @@
 ---
-import SectionHeading from '@components/common/SectionHeading.astro';
-
 const branches = [
   {
-    name: '서울 본사',
-    address: '서울특별시 강남구',
-    phone: '02-1234-5678',
-    image: 'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&h=400&fit=crop&q=90',
+    name: '서울 본점',
+    kakao: '심플큐브',
+    instagram: 'simplecube_photobooth',
+    phone: '02-338-9180',
+    phoneType: 'tel',
+    isHQ: true,
   },
   {
-    name: '부산 지사',
-    address: '부산광역시 해운대구',
-    phone: '051-1234-5678',
-    image: 'https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=600&h=400&fit=crop&q=90',
+    name: '부산 지점',
+    kakao: '심플큐브 부산',
+    instagram: 'simplecube_busan',
+    phone: '010-3122-4746',
+    phoneType: 'mobile',
+    isHQ: false,
   },
   {
-    name: '제주 지사',
-    address: '제주특별자치도 제주시',
-    phone: '064-1234-5678',
-    image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop&q=90',
+    name: '대전 지점',
+    kakao: '심플큐브 대전',
+    instagram: 'simplecube_daejeon',
+    phone: '010-8838-8122',
+    phoneType: 'mobile',
+    isHQ: false,
+  },
+  {
+    name: '전주 지점',
+    kakao: '심플큐브 전주',
+    instagram: 'simplecube_jeonju',
+    phone: '010-5743-8122',
+    phoneType: 'mobile',
+    isHQ: false,
   },
 ];
 ---
@@ -31,24 +43,76 @@ const branches = [
       <p class="mt-4 text-sm text-secondary">전국 어디서든 심플큐브를 만나보세요.</p>
     </div>
 
-    <div class="gs-stagger grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <div class="gs-stagger grid gap-4 grid-cols-2 lg:grid-cols-4">
       {branches.map((branch) => (
-        <div class="group overflow-hidden rounded-2xl border border-border-light bg-white transition-all duration-300 hover:border-olive/40 hover:shadow-lg">
-          <div class="overflow-hidden">
-            <img
-              src={branch.image}
-              alt={branch.name}
-              class="h-48 w-full object-cover transition-all duration-500 group-hover:scale-105"
-              loading="lazy"
-            />
-          </div>
-          <div class="p-6">
+        <div class="group rounded-2xl border border-border-light bg-white p-6 lg:p-8 transition-all duration-300 hover:border-olive/40 hover:shadow-lg">
+          <!-- Branch name -->
+          <div class="flex items-center gap-2 mb-4">
             <h3 class="text-base font-bold text-primary">{branch.name}</h3>
-            <p class="mt-2 text-sm text-secondary">{branch.address}</p>
-            <p class="mt-1 text-sm text-secondary">{branch.phone}</p>
+            {branch.isHQ && (
+              <span class="text-[9px] font-semibold tracking-wider uppercase bg-olive/10 text-olive px-2 py-0.5 rounded">HQ</span>
+            )}
           </div>
+          <div class="h-[1px] w-full bg-border-light mb-5"></div>
+
+          <!-- Contact info -->
+          <ul class="space-y-3 text-sm">
+            <!-- 카카오톡 -->
+            <li class="flex items-start gap-2.5">
+              <svg class="h-4 w-4 mt-0.5 shrink-0 text-olive/60" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 3c-4.97 0-9 3.185-9 7.115 0 2.557 1.707 4.8 4.27 6.054-.188.702-.682 2.545-.78 2.94-.123.496.182.489.382.356.157-.105 2.501-1.7 3.515-2.389.533.078 1.08.12 1.613.12 4.97 0 9-3.186 9-7.115C21 6.185 16.97 3 12 3z"/>
+              </svg>
+              <div>
+                <span class="text-xs text-secondary-light block mb-0.5">카카오톡</span>
+                <span class="text-primary font-medium">{branch.kakao}</span>
+              </div>
+            </li>
+
+            <!-- 인스타그램 -->
+            <li class="flex items-start gap-2.5">
+              <svg class="h-4 w-4 mt-0.5 shrink-0 text-olive/60" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+              </svg>
+              <div>
+                <span class="text-xs text-secondary-light block mb-0.5">인스타그램</span>
+                <a
+                  href={`https://www.instagram.com/${branch.instagram}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-primary font-medium hover:text-olive transition-colors duration-300"
+                >
+                  @{branch.instagram}
+                </a>
+              </div>
+            </li>
+
+            <!-- 전화번호 -->
+            <li class="flex items-start gap-2.5">
+              <svg class="h-4 w-4 mt-0.5 shrink-0 text-olive/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                {branch.phoneType === 'tel' ? (
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                ) : (
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
+                )}
+              </svg>
+              <div>
+                <span class="text-xs text-secondary-light block mb-0.5">전화번호</span>
+                <a
+                  href={`tel:${branch.phone.replace(/-/g, '')}`}
+                  class="text-primary font-medium hover:text-olive transition-colors duration-300"
+                >
+                  {branch.phone}
+                </a>
+              </div>
+            </li>
+          </ul>
         </div>
       ))}
     </div>
+
+    <!-- Note -->
+    <p class="mt-8 text-center text-xs text-secondary-light">
+      전국 어디서든 출장 서비스가 가능합니다. 자세한 사항은 가까운 지점으로 문의해 주세요.
+    </p>
   </div>
 </section>

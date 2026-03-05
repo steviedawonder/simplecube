@@ -3,17 +3,19 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 import PageHero from '@components/common/PageHero.astro';
 import BrandStory from '@components/brand/BrandStory.astro';
 import BranchOffices from '@components/brand/BranchOffices.astro';
+
+const base = import.meta.env.BASE_URL;
 ---
 
 <BaseLayout
   title="BRAND | 심플큐브"
-  description="심플큐브의 브랜드 스토리와 전국 지사 안내. Simple but Special."
+  description="심플큐브의 브랜드 스토리와 전국 지점 안내. Simple but Special."
   transparentNav={true}
 >
   <PageHero
     title="BRAND"
     subtitle="Simple but Special"
-    backgroundImage="https://images.unsplash.com/photo-1497366216548-37526070297c?w=1920&h=800&fit=crop&q=90"
+    backgroundImage={`${base}/images/popup/booth.jpg`}
   />
   <BrandStory />
   <BranchOffices />

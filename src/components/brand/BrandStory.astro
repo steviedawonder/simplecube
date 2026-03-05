@@ -1,5 +1,5 @@
 ---
-
+const base = import.meta.env.BASE_URL;
 ---
 
 <section class="bg-white py-24 lg:py-32 overflow-hidden">
@@ -13,10 +13,29 @@
       </h2>
       <div class="mt-7 h-[2px] w-12 bg-olive"></div>
       <p class="mt-8 text-base leading-relaxed text-secondary">
-        2020년 시작된 심플큐브는 "Simple but Special"이라는 철학 아래,
-        심플하지만 특별한 포토부스 경험을 만들어 왔습니다.
-        최신 장비와 감각적인 디자인으로 매 순간을 소중하게 담아냅니다.
+        2019년에 설립된 심플큐브는 "Simple but Special"이라는 철학 아래,
+        국내 최초로 원목 부스를 자체 설계·제작하여
+        모던하고 럭셔리한 포토부스 서비스를 제공하고 있습니다.
       </p>
+    </div>
+
+    <!-- Key Numbers -->
+    <div class="gs-stagger mt-16 grid gap-0 md:grid-cols-4 border border-border-light rounded-xl overflow-hidden">
+      {[
+        { number: 'Since 2019', label: '1세대 포토부스', desc: '업계를 이끌어온 노하우' },
+        { number: '1,600+', label: '연간 진행 건수', desc: '웨딩 및 브랜드 행사' },
+        { number: '전국 4개', label: '지점 운영', desc: '서울·부산·대전·전주' },
+        { number: '5종', label: '장비 라인업', desc: '팝업부스·모듈·우드 모델' },
+      ].map((item, i) => (
+        <div class:list={[
+          'p-8 text-center transition-colors duration-300 hover:bg-bg-light',
+          i < 3 ? 'border-b border-border-light md:border-b-0 md:border-r' : '',
+        ]}>
+          <span class="text-olive text-2xl font-bold tracking-tight">{item.number}</span>
+          <h3 class="mt-2 text-sm font-bold text-primary">{item.label}</h3>
+          <p class="mt-1 text-xs text-secondary">{item.desc}</p>
+        </div>
+      ))}
     </div>
 
     <!-- Story Blocks -->
@@ -25,8 +44,8 @@
       <div class="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
         <div class="gs-slide-left overflow-hidden rounded-2xl">
           <img
-            src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&h=600&fit=crop&q=90"
-            alt="심플큐브 팀"
+            src={`${base}/images/popup/booth.jpg`}
+            alt="심플큐브 팝업 포토부스 현장"
             class="h-full w-full object-cover"
             loading="lazy"
           />
@@ -35,9 +54,15 @@
           <h3 class="text-2xl font-bold text-primary">Simple but Special</h3>
           <div class="mt-4 h-[1px] w-8 bg-border"></div>
           <p class="mt-5 text-secondary leading-relaxed">
-            우리는 복잡함 대신 본질에 집중합니다. 깔끔한 디자인, 직관적인 경험,
-            그리고 진심을 담은 서비스. 심플큐브는 이 세 가지를 통해
-            모든 고객에게 특별한 순간을 선사합니다.
+            우리는 복잡함 대신 본질에 집중합니다.
+            깔끔한 디자인, 직관적인 경험, 그리고 진심을 담은 서비스.
+            심플큐브는 이 세 가지를 통해 모든 고객에게 특별한 순간을 선사합니다.
+          </p>
+          <p class="mt-4 text-secondary leading-relaxed">
+            브랜드 팝업스토어, 기업 행사, 제품 런칭, 페스티벌은 물론
+            웨딩까지 — 다양한 현장에 최적화된 맞춤형 서비스를 제공하며,
+            기기 외관 랩핑부터 UI 화면, 포토 템플릿까지
+            브랜드 아이덴티티에 맞춘 커스텀이 가능합니다.
           </p>
         </div>
       </div>
@@ -48,16 +73,22 @@
           <h3 class="text-2xl font-bold text-primary">끊임없는 혁신</h3>
           <div class="mt-4 h-[1px] w-8 bg-border"></div>
           <p class="mt-5 text-secondary leading-relaxed">
-            최신 기술과 트렌드를 반영한 장비를 도입하고,
-            매 시즌 새로운 디자인 템플릿을 개발합니다.
-            고객의 피드백을 바탕으로 끊임없이 서비스를 개선하며,
-            포토부스 경험의 새로운 기준을 만들어 갑니다.
+            국내 최초로 원목 부스를 자체 설계·제작하고,
+            최신 기술과 트렌드를 반영한 장비를 꾸준히 도입하고 있습니다.
+            매 시즌 새로운 디자인 템플릿을 개발하며,
+            고객의 피드백을 바탕으로 서비스를 끊임없이 개선합니다.
+          </p>
+          <p class="mt-4 text-secondary leading-relaxed">
+            팝업부스, 모듈부스, 우드 모델(Edge/Round/랩핑) 등
+            5종의 장비 라인업을 갖추고 있으며,
+            DSLR/4K 촬영과 약 8초의 즉석 출력,
+            QR 디지털 공유까지 원스톱 경험을 제공합니다.
           </p>
         </div>
         <div class="order-1 lg:order-2 gs-slide-right overflow-hidden rounded-2xl">
           <img
-            src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&h=600&fit=crop&q=90"
-            alt="심플큐브 혁신"
+            src={`${base}/images/wedding/setup-hall.jpg`}
+            alt="심플큐브 웨딩 포토부스 세팅 현장"
             class="h-full w-full object-cover"
             loading="lazy"
           />
