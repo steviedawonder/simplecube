@@ -61,7 +61,8 @@ const base = import.meta.env.BASE_URL;
         </h2>
         <div class="mt-6 h-[2px] w-10 bg-olive"></div>
         <p class="mt-8 text-base leading-relaxed text-secondary">
-          사진 배경으로 사용될 백드롭을 7가지 중 선택하실 수 있습니다.
+          사진 배경으로 사용될 백드롭을 선택하실 수 있습니다.
+          시퀸 백드롭 2종과 화이트 커튼 백드롭 4종, 총 6가지 옵션을 제공합니다.
           백드롭을 사용하지 않고 웨딩홀 벽면을 배경으로 활용하는 것도 가능합니다.
         </p>
         <div class="mt-6 space-y-3">
@@ -91,8 +92,49 @@ const base = import.meta.env.BASE_URL;
       </div>
     </div>
 
+    <!-- Backdrop options showcase -->
+    <div class="gs-fade-up mt-16">
+      <h3 class="mb-8 text-center text-lg font-semibold text-primary">백드롭 6종 옵션</h3>
+      <div class="overflow-hidden rounded-2xl border border-border-light bg-white">
+        <img
+          src={`${base}/images/wedding/backdrop-options.jpg`}
+          alt="백드롭 옵션 - 골드 시퀸, 로즈골드 시퀸, 화이트 커튼 플라워 가랜드 4종"
+          class="w-full object-cover"
+          loading="lazy"
+        />
+      </div>
+      <div class="mt-4 grid grid-cols-2 gap-3 text-center text-xs text-secondary sm:grid-cols-3 lg:grid-cols-6">
+        <span class="rounded-full bg-bg-light px-3 py-1.5">골드 시퀸</span>
+        <span class="rounded-full bg-bg-light px-3 py-1.5">로즈골드 시퀸</span>
+        <span class="rounded-full bg-bg-light px-3 py-1.5">플라워 가랜드 A</span>
+        <span class="rounded-full bg-bg-light px-3 py-1.5">플라워 가랜드 B</span>
+        <span class="rounded-full bg-bg-light px-3 py-1.5">위스테리아</span>
+        <span class="rounded-full bg-bg-light px-3 py-1.5">화이트 로즈</span>
+      </div>
+    </div>
+
+    <!-- Backdrop detail close-ups -->
+    <div class="gs-stagger mt-8 grid grid-cols-2 gap-4">
+      <div class="overflow-hidden rounded-2xl border border-border-light">
+        <img
+          src={`${base}/images/wedding/backdrop-flower-garland.jpg`}
+          alt="화이트 커튼 백드롭 - 플라워 가랜드"
+          class="w-full object-cover"
+          loading="lazy"
+        />
+      </div>
+      <div class="overflow-hidden rounded-2xl border border-border-light">
+        <img
+          src={`${base}/images/wedding/backdrop-wisteria.jpg`}
+          alt="화이트 커튼 백드롭 - 위스테리아"
+          class="w-full object-cover"
+          loading="lazy"
+        />
+      </div>
+    </div>
+
     <!-- Outdoor wedding example -->
-    <div class="gs-scale-in mt-12 overflow-hidden rounded-2xl">
+    <div class="gs-scale-in mt-8 overflow-hidden rounded-2xl">
       <img
         src={`${base}/images/wedding/outdoor-setup.jpg`}
         alt="야외 웨딩 포토부스 세팅"
