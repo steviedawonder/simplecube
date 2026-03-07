@@ -1,13 +1,34 @@
-import { createClient } from '@libsql/client';
+import { createClient, type Client } from '@libsql/client';
 
-const client = createClient({
-  url: import.meta.env.TURSO_DATABASE_URL || 'file:local.db',
-  authToken: import.meta.env.TURSO_AUTH_TOKEN || undefined,
+let _client: Client | null = null;
+
+function getClient(): Client {
+  if (!_client) {
+    _client = createClient({
+      url: import.meta.env.TURSO_DATABASE_URL || 'file:local.db',
+      authToken: import.meta.env.TURSO_AUTH_TOKEN || undefined,
+    });
+  }
+  return _client;
+}
+
+// Lazy proxy — DB 클라이언트는 실제 메서드 호출 시에만 생성됨
+// 빌드 타임에 정적 페이지가 이 모듈을 import해도 에러 없음
+const db: Client = new Proxy({} as Client, {
+  get(_target, prop: string) {
+    const client = getClient();
+    const value = (client as any)[prop];
+    if (typeof value === 'function') {
+      return value.bind(client);
+    }
+    return value;
+  },
 });
 
-export default client;
+export default db;
 
 export async function initDB() {
+  const client = getClient();
   await client.executeMultiple(`
     CREATE TABLE IF NOT EXISTS categories (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -88,6 +109,7 @@ export async function initDB() {
 }
 
 export async function seedSEORules() {
+  const client = getClient();
   const existing = await client.execute('SELECT COUNT(*) as count FROM seo_rules');
   if ((existing.rows[0] as any).count > 0) return;
 
