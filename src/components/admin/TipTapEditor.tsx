@@ -11,6 +11,7 @@ import { useCallback, useEffect } from 'react';
 interface TipTapEditorProps {
   content: string;
   onChange: (html: string) => void;
+  onImageButtonClick?: () => void;
 }
 
 function ToolbarButton({
@@ -71,7 +72,7 @@ function ToolbarSeparator() {
   );
 }
 
-export default function TipTapEditor({ content, onChange }: TipTapEditorProps) {
+export default function TipTapEditor({ content, onChange, onImageButtonClick }: TipTapEditorProps) {
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
@@ -127,10 +128,26 @@ export default function TipTapEditor({ content, onChange }: TipTapEditorProps) {
 
   const addImage = useCallback(() => {
     if (!editor) return;
-    const url = window.prompt('이미지 URL을 입력하세요', 'https://');
-    if (url) {
-      editor.chain().focus().setImage({ src: url }).run();
+    if (onImageButtonClick) {
+      onImageButtonClick();
+    } else {
+      const url = window.prompt('이미지 URL을 입력하세요', 'https://');
+      if (url) {
+        editor.chain().focus().setImage({ src: url }).run();
+      }
     }
+  }, [editor, onImageButtonClick]);
+
+  // Listen for image insertion from ImagePicker
+  useEffect(() => {
+    function handleInsertImage(e: Event) {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.url && editor) {
+        editor.chain().focus().setImage({ src: detail.url }).run();
+      }
+    }
+    window.addEventListener('tiptap-insert-image', handleInsertImage);
+    return () => window.removeEventListener('tiptap-insert-image', handleInsertImage);
   }, [editor]);
 
   if (!editor) return null;

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import TipTapEditor from './TipTapEditor';
 import SEOPanel from './SEOPanel';
+import ImagePicker from './ImagePicker';
 
 interface PostEditorProps {
   post?: any;
@@ -50,6 +51,11 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
   const [error, setError] = useState('');
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(isEditing);
   const [showOgPreview, setShowOgPreview] = useState(false);
+  const [showImagePicker, setShowImagePicker] = useState(false);
+  const [imagePickerTarget, setImagePickerTarget] = useState<'featured' | 'editor'>('featured');
+  const [showRevisions, setShowRevisions] = useState(false);
+  const [revisions, setRevisions] = useState<any[]>([]);
+  const [loadingRevisions, setLoadingRevisions] = useState(false);
 
   // SEO state
   const [seoScore, setSeoScore] = useState(post?.seo_score || 0);
@@ -101,6 +107,41 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
       if (seoTimerRef.current) clearTimeout(seoTimerRef.current);
     };
   }, [analyzeSEO]);
+
+  // Load revisions
+  async function loadRevisions() {
+    if (!isEditing) return;
+    setLoadingRevisions(true);
+    try {
+      const res = await fetch(`/api/posts/${post.id}/revisions`);
+      if (res.ok) {
+        const data = await res.json();
+        setRevisions(data);
+      }
+    } catch {
+      // silently fail
+    }
+    setLoadingRevisions(false);
+  }
+
+  async function restoreRevision(revisionId: number) {
+    if (!window.confirm('이 버전으로 복원하시겠습니까? 현재 내용은 리비전으로 저장됩니다.')) return;
+    try {
+      const res = await fetch(`/api/posts/${post.id}/revisions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ revisionId }),
+      });
+      if (res.ok) {
+        window.location.reload();
+      } else {
+        const data = await res.json();
+        alert(data.error || '복원에 실패했습니다.');
+      }
+    } catch {
+      alert('네트워크 오류가 발생했습니다.');
+    }
+  }
 
   // Tag management
   function handleTagInputKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -241,7 +282,14 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
         </div>
 
         {/* TipTap Editor */}
-        <TipTapEditor content={content} onChange={setContent} />
+        <TipTapEditor
+          content={content}
+          onChange={setContent}
+          onImageButtonClick={() => {
+            setImagePickerTarget('editor');
+            setShowImagePicker(true);
+          }}
+        />
       </div>
 
       {/* Right Column - 30% Sticky Sidebar */}
@@ -570,7 +618,7 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
             대표 이미지
           </h3>
           {image ? (
-            <div style={{ marginBottom: 10 }}>
+            <div style={{ position: 'relative', marginBottom: 10 }}>
               <img
                 src={image}
                 alt="대표 이미지 미리보기"
@@ -582,41 +630,99 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
                   backgroundColor: '#f5f5f7',
                 }}
               />
+              <button
+                type="button"
+                onClick={() => setImage('')}
+                style={{
+                  position: 'absolute',
+                  top: 6,
+                  right: 6,
+                  width: 24,
+                  height: 24,
+                  borderRadius: '50%',
+                  border: 'none',
+                  backgroundColor: 'rgba(0,0,0,0.6)',
+                  color: '#fff',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                title="이미지 제거"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
             </div>
           ) : (
-            <div
+            <button
+              type="button"
+              onClick={() => {
+                setImagePickerTarget('featured');
+                setShowImagePicker(true);
+              }}
               style={{
                 width: '100%',
                 height: 100,
                 borderRadius: 6,
                 border: '2px dashed #e8e8ed',
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
+                gap: 6,
                 marginBottom: 10,
                 color: '#8c8c8c',
                 fontSize: '0.8125rem',
+                backgroundColor: 'transparent',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                transition: 'all 0.15s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = '#D4AA45';
+                e.currentTarget.style.color = '#D4AA45';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = '#e8e8ed';
+                e.currentTarget.style.color = '#8c8c8c';
               }}
             >
-              이미지 없음
-            </div>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <polyline points="21 15 16 10 5 21" />
+              </svg>
+              이미지 선택
+            </button>
           )}
-          <input
-            type="text"
-            value={image}
-            onChange={(e) => setImage(e.target.value)}
-            placeholder="이미지 URL을 입력하세요"
-            style={{
-              width: '100%',
-              padding: '8px 10px',
-              borderRadius: 6,
-              border: '1px solid #e8e8ed',
-              fontSize: '0.8125rem',
-              fontFamily: 'inherit',
-              color: '#1d1d1f',
-              outline: 'none',
-            }}
-          />
+          {image && (
+            <button
+              type="button"
+              onClick={() => {
+                setImagePickerTarget('featured');
+                setShowImagePicker(true);
+              }}
+              style={{
+                width: '100%',
+                padding: '6px 10px',
+                borderRadius: 6,
+                border: '1px solid #e8e8ed',
+                backgroundColor: '#ffffff',
+                color: '#6e6e73',
+                fontSize: '0.8125rem',
+                fontFamily: 'inherit',
+                cursor: 'pointer',
+                transition: 'all 0.15s',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#D4AA45')}
+              onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#e8e8ed')}
+            >
+              이미지 변경
+            </button>
+          )}
         </div>
 
         {/* SEO Settings */}
@@ -821,7 +927,133 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
             </div>
           )}
         </div>
+
+        {/* Revisions Panel (only for editing) */}
+        {isEditing && (
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              border: '1px solid #e8e8ed',
+              borderRadius: 10,
+              padding: 16,
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                setShowRevisions(!showRevisions);
+                if (!showRevisions && revisions.length === 0) {
+                  loadRevisions();
+                }
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                width: '100%',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                color: '#1d1d1f',
+                padding: 0,
+              }}
+            >
+              <span>버전 기록</span>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                style={{ transform: showRevisions ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }}
+              >
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+            {showRevisions && (
+              <div style={{ marginTop: 12 }}>
+                {loadingRevisions ? (
+                  <div style={{ fontSize: '0.8125rem', color: '#8c8c8c', padding: '8px 0' }}>
+                    불러오는 중...
+                  </div>
+                ) : revisions.length === 0 ? (
+                  <div style={{ fontSize: '0.8125rem', color: '#8c8c8c', padding: '8px 0' }}>
+                    저장된 버전이 없습니다.
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {revisions.map((rev: any) => (
+                      <div
+                        key={rev.id}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '8px 10px',
+                          backgroundColor: '#f5f5f7',
+                          borderRadius: 6,
+                          fontSize: '0.75rem',
+                        }}
+                      >
+                        <div>
+                          <div style={{ color: '#1d1d1f', fontWeight: 500, marginBottom: 2 }}>
+                            {rev.title?.substring(0, 30)}{rev.title?.length > 30 ? '...' : ''}
+                          </div>
+                          <div style={{ color: '#8c8c8c' }}>
+                            {rev.created_at
+                              ? new Date(rev.created_at).toLocaleString('ko-KR', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })
+                              : '-'}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => restoreRevision(rev.id)}
+                          style={{
+                            background: 'none',
+                            border: '1px solid #e8e8ed',
+                            borderRadius: 4,
+                            padding: '3px 8px',
+                            fontSize: '0.6875rem',
+                            color: '#D4AA45',
+                            cursor: 'pointer',
+                            fontFamily: 'inherit',
+                            fontWeight: 500,
+                          }}
+                        >
+                          복원
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
+
+      {/* Image Picker Modal */}
+      <ImagePicker
+        isOpen={showImagePicker}
+        onClose={() => setShowImagePicker(false)}
+        onSelect={(url) => {
+          if (imagePickerTarget === 'featured') {
+            setImage(url);
+          } else {
+            // Insert into TipTap editor - dispatch custom event
+            window.dispatchEvent(new CustomEvent('tiptap-insert-image', { detail: { url } }));
+          }
+        }}
+      />
     </div>
   );
 }

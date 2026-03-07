@@ -1,0 +1,481 @@
+import { useState, useEffect, useCallback, useRef } from 'react';
+
+interface MediaItem {
+  id: number;
+  url: string;
+  filename: string;
+  width: number;
+  height: number;
+}
+
+interface ImagePickerProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSelect: (url: string) => void;
+}
+
+export default function ImagePicker({ isOpen, onClose, onSelect }: ImagePickerProps) {
+  const [media, setMedia] = useState<MediaItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState('');
+  const [selected, setSelected] = useState<string | null>(null);
+  const [tab, setTab] = useState<'library' | 'url'>('library');
+  const [urlInput, setUrlInput] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const dragCounterRef = useRef(0);
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Fetch media on open
+  useEffect(() => {
+    if (isOpen) {
+      fetchMedia();
+      setSelected(null);
+      setUrlInput('');
+    }
+  }, [isOpen]);
+
+  async function fetchMedia() {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/media');
+      if (res.ok) {
+        const data = await res.json();
+        setMedia(data);
+      }
+    } catch {
+      // silently fail
+    }
+    setLoading(false);
+  }
+
+  async function handleUpload(files: FileList | File[]) {
+    setUploading(true);
+    const total = Array.from(files).length;
+    let uploaded = 0;
+
+    for (const file of Array.from(files)) {
+      setUploadProgress(`업로드 중... (${uploaded + 1}/${total})`);
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const res = await fetch('/api/media/upload', { method: 'POST', body: formData });
+        if (res.ok) {
+          uploaded++;
+        }
+      } catch {
+        // continue
+      }
+    }
+
+    setUploadProgress(`${uploaded}/${total}개 완료`);
+    setUploading(false);
+    await fetchMedia();
+    setTimeout(() => setUploadProgress(''), 2000);
+  }
+
+  // Drag and drop
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    dragCounterRef.current++;
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    dragCounterRef.current--;
+    if (dragCounterRef.current === 0) setIsDragging(false);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    dragCounterRef.current = 0;
+    setIsDragging(false);
+    if (e.dataTransfer?.files.length) {
+      handleUpload(e.dataTransfer.files);
+    }
+  }, []);
+
+  function handleSelectAndInsert() {
+    if (tab === 'url' && urlInput.trim()) {
+      onSelect(urlInput.trim());
+      onClose();
+    } else if (tab === 'library' && selected) {
+      onSelect(selected);
+      onClose();
+    }
+  }
+
+  if (!isOpen) return null;
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 1000,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        style={{
+          width: '90%',
+          maxWidth: 800,
+          maxHeight: '85vh',
+          backgroundColor: '#ffffff',
+          borderRadius: 12,
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+      >
+        {/* Header */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '16px 20px',
+            borderBottom: '1px solid #e8e8ed',
+          }}
+        >
+          <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#1d1d1f', margin: 0 }}>
+            이미지 선택
+          </h3>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: '#6e6e73',
+              padding: 4,
+              display: 'flex',
+            }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Tabs */}
+        <div style={{ display: 'flex', borderBottom: '1px solid #e8e8ed' }}>
+          <button
+            type="button"
+            onClick={() => setTab('library')}
+            style={{
+              flex: 1,
+              padding: '10px 16px',
+              background: 'none',
+              border: 'none',
+              borderBottom: tab === 'library' ? '2px solid #D4AA45' : '2px solid transparent',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              fontSize: '0.875rem',
+              fontWeight: tab === 'library' ? 600 : 400,
+              color: tab === 'library' ? '#1d1d1f' : '#6e6e73',
+            }}
+          >
+            미디어 라이브러리
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab('url')}
+            style={{
+              flex: 1,
+              padding: '10px 16px',
+              background: 'none',
+              border: 'none',
+              borderBottom: tab === 'url' ? '2px solid #D4AA45' : '2px solid transparent',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              fontSize: '0.875rem',
+              fontWeight: tab === 'url' ? 600 : 400,
+              color: tab === 'url' ? '#1d1d1f' : '#6e6e73',
+            }}
+          >
+            URL 직접 입력
+          </button>
+        </div>
+
+        {/* Content */}
+        <div style={{ flex: 1, overflow: 'auto', padding: 20, position: 'relative' }}>
+          {/* Drag overlay */}
+          {isDragging && (
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                zIndex: 10,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: 'rgba(212, 170, 69, 0.1)',
+                border: '3px dashed #D4AA45',
+                borderRadius: 8,
+              }}
+            >
+              <div style={{ textAlign: 'center' }}>
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#D4AA45" strokeWidth="1.5">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+                <p style={{ marginTop: 8, fontSize: '0.875rem', fontWeight: 600, color: '#D4AA45' }}>
+                  이미지를 놓으세요
+                </p>
+              </div>
+            </div>
+          )}
+
+          {tab === 'library' && (
+            <>
+              {/* Upload button */}
+              <div style={{ display: 'flex', gap: 8, marginBottom: 16, alignItems: 'center' }}>
+                <label
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '8px 14px',
+                    backgroundColor: '#1d1d1f',
+                    color: '#ffffff',
+                    borderRadius: 6,
+                    fontSize: '0.8125rem',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                  </svg>
+                  업로드
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    style={{ display: 'none' }}
+                    onChange={(e) => {
+                      if (e.target.files?.length) handleUpload(e.target.files);
+                    }}
+                  />
+                </label>
+                {uploadProgress && (
+                  <span style={{ fontSize: '0.8125rem', color: '#D4AA45' }}>
+                    {uploadProgress}
+                  </span>
+                )}
+                {uploading && (
+                  <span style={{ fontSize: '0.8125rem', color: '#6e6e73' }}>처리 중...</span>
+                )}
+              </div>
+
+              {/* Media Grid */}
+              {loading ? (
+                <div style={{ padding: '40px 0', textAlign: 'center', color: '#8c8c8c' }}>
+                  불러오는 중...
+                </div>
+              ) : media.length === 0 ? (
+                <div style={{ padding: '40px 0', textAlign: 'center', color: '#8c8c8c' }}>
+                  <p style={{ fontSize: '0.875rem' }}>업로드된 이미지가 없습니다</p>
+                  <p style={{ fontSize: '0.8125rem', marginTop: 4, color: '#aaa' }}>
+                    이미지를 드래그하거나 업로드 버튼을 클릭하세요
+                  </p>
+                </div>
+              ) : (
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+                    gap: 10,
+                  }}
+                >
+                  {media.map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => setSelected(item.url)}
+                      style={{
+                        position: 'relative',
+                        aspectRatio: '1',
+                        borderRadius: 8,
+                        overflow: 'hidden',
+                        cursor: 'pointer',
+                        border: selected === item.url ? '3px solid #D4AA45' : '2px solid transparent',
+                        boxShadow: selected === item.url ? '0 0 0 2px rgba(212, 170, 69, 0.3)' : 'none',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      <img
+                        src={item.url}
+                        alt={item.filename}
+                        loading="lazy"
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          backgroundColor: '#f5f5f7',
+                        }}
+                      />
+                      {selected === item.url && (
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: 6,
+                            right: 6,
+                            width: 22,
+                            height: 22,
+                            borderRadius: '50%',
+                            backgroundColor: '#D4AA45',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {tab === 'url' && (
+            <div style={{ maxWidth: 500 }}>
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: '0.8125rem',
+                  fontWeight: 500,
+                  color: '#6e6e73',
+                  marginBottom: 6,
+                }}
+              >
+                이미지 URL
+              </label>
+              <input
+                type="text"
+                value={urlInput}
+                onChange={(e) => setUrlInput(e.target.value)}
+                placeholder="https://example.com/image.jpg"
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  borderRadius: 6,
+                  border: '1px solid #e8e8ed',
+                  fontSize: '0.875rem',
+                  fontFamily: 'inherit',
+                  color: '#1d1d1f',
+                  outline: 'none',
+                }}
+                onFocus={(e) => (e.currentTarget.style.borderColor = '#D4AA45')}
+                onBlur={(e) => (e.currentTarget.style.borderColor = '#e8e8ed')}
+              />
+              {urlInput && (
+                <div style={{ marginTop: 16 }}>
+                  <p style={{ fontSize: '0.75rem', color: '#6e6e73', marginBottom: 8 }}>미리보기</p>
+                  <img
+                    src={urlInput}
+                    alt="미리보기"
+                    style={{
+                      maxWidth: '100%',
+                      maxHeight: 200,
+                      borderRadius: 6,
+                      backgroundColor: '#f5f5f7',
+                    }}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                    onLoad={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'block';
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            gap: 8,
+            padding: '12px 20px',
+            borderTop: '1px solid #e8e8ed',
+            backgroundColor: '#fafafa',
+          }}
+        >
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              padding: '8px 16px',
+              borderRadius: 6,
+              border: '1px solid #e8e8ed',
+              backgroundColor: '#ffffff',
+              color: '#6e6e73',
+              fontSize: '0.8125rem',
+              fontFamily: 'inherit',
+              cursor: 'pointer',
+            }}
+          >
+            취소
+          </button>
+          <button
+            type="button"
+            onClick={handleSelectAndInsert}
+            disabled={
+              (tab === 'library' && !selected) ||
+              (tab === 'url' && !urlInput.trim())
+            }
+            style={{
+              padding: '8px 16px',
+              borderRadius: 6,
+              border: 'none',
+              backgroundColor:
+                (tab === 'library' && selected) || (tab === 'url' && urlInput.trim())
+                  ? '#1d1d1f'
+                  : '#d2d2d7',
+              color: '#ffffff',
+              fontSize: '0.8125rem',
+              fontWeight: 600,
+              fontFamily: 'inherit',
+              cursor:
+                (tab === 'library' && selected) || (tab === 'url' && urlInput.trim())
+                  ? 'pointer'
+                  : 'not-allowed',
+            }}
+          >
+            선택
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
