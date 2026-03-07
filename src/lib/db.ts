@@ -4,9 +4,10 @@ let _client: Client | null = null;
 
 function getClient(): Client {
   if (!_client) {
+    const url = (import.meta.env.TURSO_DATABASE_URL || 'file:local.db').trim();
     _client = createClient({
-      url: import.meta.env.TURSO_DATABASE_URL || 'file:local.db',
-      authToken: import.meta.env.TURSO_AUTH_TOKEN || undefined,
+      url,
+      authToken: import.meta.env.TURSO_AUTH_TOKEN?.trim() || undefined,
     });
   }
   return _client;

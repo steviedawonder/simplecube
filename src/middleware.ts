@@ -5,8 +5,12 @@ import { initDB, seedSEORules } from './lib/db';
 let dbInitialized = false;
 
 export const onRequest = defineMiddleware(async (context, next) => {
-  // Initialize database on first request
-  if (!dbInitialized) {
+  const { pathname } = context.url;
+
+  // 정적 페이지는 DB 초기화 불필요 — admin/api/blog 경로만 DB 사용
+  const needsDB = pathname.startsWith('/admin') || pathname.startsWith('/api/') || pathname.startsWith('/blog');
+
+  if (needsDB && !dbInitialized) {
     try {
       await initDB();
       await seedSEORules();
@@ -15,8 +19,6 @@ export const onRequest = defineMiddleware(async (context, next) => {
       console.error('DB init error:', e);
     }
   }
-
-  const { pathname } = context.url;
 
   // Protect admin routes (except login page)
   if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
