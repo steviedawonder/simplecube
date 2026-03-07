@@ -1,0 +1,25 @@
+---
+export const prerender = false;
+
+import AdminLayout from '@layouts/AdminLayout.astro';
+import PostEditor from '@components/admin/PostEditor';
+import db from '@lib/db';
+
+const categoriesResult = await db.execute('SELECT id, name, slug FROM categories ORDER BY name');
+const tagsResult = await db.execute('SELECT id, name, slug FROM tags ORDER BY name');
+
+const categories = categoriesResult.rows as any[];
+const tags = tagsResult.rows as any[];
+---
+
+<AdminLayout title="새 글 작성">
+  <div style="margin-bottom: 24px;">
+    <a href="/admin/posts" style="display: inline-flex; align-items: center; gap: 4px; color: #6e6e73; text-decoration: none; font-size: 0.8125rem;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="15 18 9 12 15 6" />
+      </svg>
+      글 목록으로
+    </a>
+  </div>
+  <PostEditor categories={categories} tags={tags} client:load />
+</AdminLayout>

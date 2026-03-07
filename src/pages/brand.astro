@@ -4,7 +4,6 @@ import PageHero from '@components/common/PageHero.astro';
 import BrandStory from '@components/brand/BrandStory.astro';
 import BranchOffices from '@components/brand/BranchOffices.astro';
 
-const base = import.meta.env.BASE_URL;
 ---
 
 <BaseLayout
@@ -15,7 +14,7 @@ const base = import.meta.env.BASE_URL;
   <PageHero
     title="BRAND"
     subtitle="Simple but Special"
-    backgroundImage={`${base}/images/hero/main.jpg`}
+    backgroundImage="/images/hero/main.jpg"
   />
   <BrandStory />
   <BranchOffices />

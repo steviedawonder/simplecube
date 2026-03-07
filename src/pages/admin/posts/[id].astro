@@ -1,0 +1,63 @@
+---
+export const prerender = false;
+
+import AdminLayout from '@layouts/AdminLayout.astro';
+import PostEditor from '@components/admin/PostEditor';
+import db from '@lib/db';
+
+const { id } = Astro.params;
+const postId = Number(id);
+
+if (isNaN(postId)) {
+  return Astro.redirect('/admin/posts');
+}
+
+// Fetch post
+const postResult = await db.execute({
+  sql: `
+    SELECT p.*
+    FROM posts p
+    WHERE p.id = ? AND p.deleted_at IS NULL
+  `,
+  args: [postId],
+});
+
+if (postResult.rows.length === 0) {
+  return Astro.redirect('/admin/posts');
+}
+
+const post = postResult.rows[0] as any;
+
+// Fetch post tags
+const postTagsResult = await db.execute({
+  sql: `
+    SELECT t.id, t.name, t.slug
+    FROM post_tags pt
+    JOIN tags t ON pt.tag_id = t.id
+    WHERE pt.post_id = ?
+    ORDER BY t.name
+  `,
+  args: [postId],
+});
+
+post.tags = postTagsResult.rows as any[];
+
+// Fetch all categories and tags
+const categoriesResult = await db.execute('SELECT id, name, slug FROM categories ORDER BY name');
+const tagsResult = await db.execute('SELECT id, name, slug FROM tags ORDER BY name');
+
+const categories = categoriesResult.rows as any[];
+const tags = tagsResult.rows as any[];
+---
+
+<AdminLayout title="글 수정">
+  <div style="margin-bottom: 24px;">
+    <a href="/admin/posts" style="display: inline-flex; align-items: center; gap: 4px; color: #6e6e73; text-decoration: none; font-size: 0.8125rem;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="15 18 9 12 15 6" />
+      </svg>
+      글 목록으로
+    </a>
+  </div>
+  <PostEditor post={post} categories={categories} tags={tags} client:load />
+</AdminLayout>

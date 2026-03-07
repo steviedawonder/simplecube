@@ -15,8 +15,7 @@ const {
   external = false,
 } = Astro.props;
 
-const base = import.meta.env.BASE_URL;
-const resolvedHref = href && !external && !href.startsWith('http') ? `${base}${href}` : href;
+const resolvedHref = href;
 
 const variantClasses = {
   primary: 'bg-olive text-black hover:bg-olive-hover font-semibold',

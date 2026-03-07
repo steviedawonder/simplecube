@@ -1,0 +1,181 @@
+---
+export const prerender = false;
+---
+
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+    />
+    <title>관리자 로그인 | SIMPLE CUBE</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        font-family: 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+        background-color: #1d1d1f;
+        color: #ffffff;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .login-container {
+        width: 100%;
+        max-width: 400px;
+        padding: 2rem;
+      }
+      .login-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+      }
+      .login-header h1 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        color: #D4AA45;
+        margin-bottom: 0.5rem;
+      }
+      .login-header p {
+        font-size: 0.875rem;
+        color: #8c8c8c;
+      }
+      .login-card {
+        background-color: #2a2a2c;
+        border-radius: 12px;
+        padding: 2rem;
+        border: 1px solid #3a3a3c;
+      }
+      .form-group {
+        margin-bottom: 1.5rem;
+      }
+      .form-group label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #d2d2d7;
+        margin-bottom: 0.5rem;
+      }
+      .form-group input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        background-color: #1d1d1f;
+        border: 1px solid #3a3a3c;
+        border-radius: 8px;
+        color: #ffffff;
+        font-size: 1rem;
+        font-family: inherit;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .form-group input:focus {
+        border-color: #D4AA45;
+      }
+      .submit-btn {
+        width: 100%;
+        padding: 0.75rem;
+        background-color: #D4AA45;
+        color: #1d1d1f;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        font-family: inherit;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+      .submit-btn:hover {
+        background-color: #C49A2F;
+      }
+      .submit-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      .error-message {
+        background-color: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #ef4444;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        margin-bottom: 1.5rem;
+        display: none;
+      }
+      .error-message.visible {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-container">
+      <div class="login-header">
+        <h1>SIMPLE CUBE</h1>
+        <p>관리자 로그인</p>
+      </div>
+
+      <div class="login-card">
+        <div id="error-msg" class="error-message"></div>
+
+        <form id="login-form">
+          <div class="form-group">
+            <label for="password">비밀번호</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="관리자 비밀번호를 입력하세요"
+              required
+              autocomplete="current-password"
+            />
+          </div>
+
+          <button type="submit" class="submit-btn" id="submit-btn">
+            로그인
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      const form = document.getElementById('login-form') as HTMLFormElement;
+      const errorMsg = document.getElementById('error-msg') as HTMLDivElement;
+      const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+      const passwordInput = document.getElementById('password') as HTMLInputElement;
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errorMsg.classList.remove('visible');
+        submitBtn.disabled = true;
+        submitBtn.textContent = '로그인 중...';
+
+        try {
+          const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: passwordInput.value }),
+          });
+
+          const data = await res.json();
+
+          if (res.ok) {
+            window.location.href = '/admin/';
+          } else {
+            errorMsg.textContent = data.error || '로그인에 실패했습니다.';
+            errorMsg.classList.add('visible');
+          }
+        } catch {
+          errorMsg.textContent = '서버에 연결할 수 없습니다.';
+          errorMsg.classList.add('visible');
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = '로그인';
+        }
+      });
+    </script>
+  </body>
+</html>

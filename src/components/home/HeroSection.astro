@@ -1,12 +1,11 @@
 ---
-const base = import.meta.env.BASE_URL;
 ---
 
 <section id="hero" class="relative flex h-screen min-h-[700px] items-end overflow-hidden">
   <!-- Background Image -->
   <div class="absolute inset-0">
     <img
-      src={`${base}/images/hero/main.jpg`}
+      src="/images/hero/main.jpg"
       alt="심플큐브 포토부스 이벤트"
       class="hero-bg h-full w-full object-cover"
       loading="eager"
@@ -42,7 +41,7 @@ const base = import.meta.env.BASE_URL;
       <!-- CTA Buttons -->
       <div class="mt-10 flex flex-wrap gap-4">
         <a
-          href={`${base}/popup`}
+          href="/popup"
           class="inline-flex items-center gap-2 bg-olive px-7 py-3.5 text-sm font-semibold tracking-[0.08em] text-black transition-all duration-300 hover:bg-olive-hover hover:gap-3"
         >
           POP-UP BOOTH
@@ -51,7 +50,7 @@ const base = import.meta.env.BASE_URL;
           </svg>
         </a>
         <a
-          href={`${base}/wedding`}
+          href="/wedding"
           class="inline-flex items-center gap-2 border border-white/40 px-7 py-3.5 text-sm font-semibold tracking-[0.08em] text-white/80 transition-all duration-300 hover:border-white hover:text-white hover:gap-3"
         >
           WEDDING BOOTH

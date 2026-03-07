@@ -1,0 +1,108 @@
+---
+export const prerender = false;
+
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Button from '@components/common/Button.astro';
+import db from '@lib/db';
+
+const { slug } = Astro.params;
+
+const result = await db.execute({
+  sql: `SELECT p.*, c.name as category_name
+        FROM posts p LEFT JOIN categories c ON p.category_id = c.id
+        WHERE p.slug = ? AND p.deleted_at IS NULL`,
+  args: [slug],
+});
+
+if (result.rows.length === 0) {
+  return Astro.redirect('/blog');
+}
+
+const post = result.rows[0] as any;
+
+// Redirect external URL posts
+if (post.external_url) {
+  return Astro.redirect(post.external_url);
+}
+
+// Don't show drafts publicly
+if (post.draft) {
+  return Astro.redirect('/blog');
+}
+
+// Get tags
+const tagsResult = await db.execute({
+  sql: 'SELECT t.name FROM tags t JOIN post_tags pt ON t.id = pt.tag_id WHERE pt.post_id = ?',
+  args: [post.id],
+});
+const tags = tagsResult.rows.map((t: any) => t.name);
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: post.seo_title || post.title,
+  description: post.seo_description || post.description,
+  datePublished: post.created_at,
+  dateModified: post.updated_at,
+  image: post.image,
+  author: { '@type': 'Organization', name: '심플큐브' },
+  publisher: { '@type': 'Organization', name: '심플큐브' },
+};
+---
+
+<BaseLayout
+  title={`${post.seo_title || post.title} | 심플큐브 블로그`}
+  description={post.seo_description || post.description}
+  ogImage={post.image}
+>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <article class="pt-28 pb-16 lg:pt-32 lg:pb-24">
+    <div class="mx-auto max-w-3xl px-6 lg:px-8">
+      <div class="flex items-center gap-3">
+        {post.category_name && (
+          <span class="rounded-full bg-olive-tint px-3 py-1 text-xs font-medium text-olive">{post.category_name}</span>
+        )}
+        <time class="text-sm text-secondary-light" datetime={post.created_at}>
+          {new Date(post.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
+        </time>
+      </div>
+
+      <h1 class="mt-4 text-[clamp(1.75rem,3.5vw,2.5rem)] font-bold leading-tight text-primary">{post.title}</h1>
+      <p class="mt-4 text-lg text-secondary">{post.description}</p>
+
+      {post.image && (
+        <div class="mt-8 overflow-hidden rounded-2xl">
+          <img src={post.image} alt={post.title} class="w-full object-cover" loading="eager" />
+        </div>
+      )}
+
+      <div class="blog-content mt-12" set:html={post.content} />
+
+      {tags.length > 0 && (
+        <div class="mt-12 flex flex-wrap gap-2 border-t border-border-light pt-6">
+          {tags.map((tag: string) => (
+            <span class="rounded-full bg-bg-light px-3 py-1 text-xs text-secondary">#{tag}</span>
+          ))}
+        </div>
+      )}
+
+      <div class="mt-12">
+        <Button href="/blog" variant="outline" size="sm">← 목록으로 돌아가기</Button>
+      </div>
+    </div>
+  </article>
+</BaseLayout>
+
+<style is:global>
+  .blog-content h2 { font-size: 1.5rem; font-weight: 700; margin-top: 2.5rem; margin-bottom: 1rem; color: var(--color-primary); }
+  .blog-content h3 { font-size: 1.25rem; font-weight: 600; margin-top: 2rem; margin-bottom: 0.75rem; color: var(--color-primary); }
+  .blog-content p { margin-bottom: 1.25rem; line-height: 1.8; color: var(--color-secondary); }
+  .blog-content ul, .blog-content ol { margin-bottom: 1.25rem; padding-left: 1.5rem; color: var(--color-secondary); }
+  .blog-content li { margin-bottom: 0.5rem; line-height: 1.8; }
+  .blog-content strong { color: var(--color-primary); font-weight: 600; }
+  .blog-content hr { margin: 2rem 0; border-color: var(--color-border-light); }
+  .blog-content a { color: var(--color-olive); text-decoration: underline; }
+  .blog-content blockquote { border-left: 3px solid var(--color-olive); padding-left: 1rem; margin: 1.5rem 0; color: var(--color-secondary); font-style: italic; }
+  .blog-content img { max-width: 100%; height: auto; border-radius: 0.75rem; margin: 1.5rem 0; }
+</style>

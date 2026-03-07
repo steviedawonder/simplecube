@@ -1,0 +1,226 @@
+---
+export const prerender = false;
+
+import AdminLayout from '@layouts/AdminLayout.astro';
+import db from '@lib/db';
+
+// Fetch stats
+const totalResult = await db.execute(
+  'SELECT COUNT(*) as count FROM posts WHERE deleted_at IS NULL'
+);
+const publishedResult = await db.execute(
+  'SELECT COUNT(*) as count FROM posts WHERE deleted_at IS NULL AND draft = 0'
+);
+const draftResult = await db.execute(
+  'SELECT COUNT(*) as count FROM posts WHERE deleted_at IS NULL AND draft = 1'
+);
+
+const totalPosts = Number((totalResult.rows[0] as any).count);
+const publishedPosts = Number((publishedResult.rows[0] as any).count);
+const draftPosts = Number((draftResult.rows[0] as any).count);
+
+// Fetch recent posts
+const recentPostsResult = await db.execute(`
+  SELECT p.id, p.title, p.slug, p.draft, p.created_at, p.updated_at,
+         c.name as category_name
+  FROM posts p
+  LEFT JOIN categories c ON p.category_id = c.id
+  WHERE p.deleted_at IS NULL
+  ORDER BY p.created_at DESC
+  LIMIT 5
+`);
+const recentPosts = recentPostsResult.rows as any[];
+---
+
+<AdminLayout title="대시보드">
+  <div>
+    <h2 class="page-title">대시보드</h2>
+    <p class="page-desc">SIMPLE CUBE 관리자 페이지에 오신 것을 환영합니다.</p>
+
+    <!-- Stats cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">전체 글</div>
+        <div class="stat-value">{totalPosts}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">발행된 글</div>
+        <div class="stat-value published">{publishedPosts}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">임시저장</div>
+        <div class="stat-value draft">{draftPosts}</div>
+      </div>
+    </div>
+
+    <!-- Recent posts -->
+    <div class="recent-section">
+      <h3 class="section-title">최근 글</h3>
+      {recentPosts.length === 0 ? (
+        <div class="empty-state">
+          <p>아직 작성된 글이 없습니다.</p>
+        </div>
+      ) : (
+        <div class="posts-table-wrapper">
+          <table class="posts-table">
+            <thead>
+              <tr>
+                <th>제목</th>
+                <th>카테고리</th>
+                <th>상태</th>
+                <th>작성일</th>
+              </tr>
+            </thead>
+            <tbody>
+              {recentPosts.map((post) => (
+                <tr>
+                  <td>
+                    <a href={`/admin/posts/${post.id}`} class="post-link">
+                      {post.title}
+                    </a>
+                  </td>
+                  <td class="text-secondary">
+                    {post.category_name || '-'}
+                  </td>
+                  <td>
+                    <span class:list={['status-badge', post.draft ? 'draft' : 'published']}>
+                      {post.draft ? '임시저장' : '발행됨'}
+                    </span>
+                  </td>
+                  <td class="text-secondary">
+                    {post.created_at ? new Date(post.created_at).toLocaleDateString('ko-KR') : '-'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  </div>
+
+  <style>
+    .page-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1d1d1f;
+      margin-bottom: 0.25rem;
+    }
+    .page-desc {
+      font-size: 0.9rem;
+      color: #6e6e73;
+      margin-bottom: 2rem;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+    @media (max-width: 640px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .stat-card {
+      background-color: #ffffff;
+      border: 1px solid #e8e8ed;
+      border-radius: 10px;
+      padding: 1.5rem;
+    }
+    .stat-label {
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: #6e6e73;
+      margin-bottom: 0.5rem;
+    }
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #1d1d1f;
+    }
+    .stat-value.published {
+      color: #22c55e;
+    }
+    .stat-value.draft {
+      color: #D4AA45;
+    }
+
+    .recent-section {
+      background-color: #ffffff;
+      border: 1px solid #e8e8ed;
+      border-radius: 10px;
+      padding: 1.5rem;
+    }
+    .section-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #1d1d1f;
+      margin-bottom: 1rem;
+    }
+
+    .empty-state {
+      padding: 2rem 0;
+      text-align: center;
+      color: #8c8c8c;
+      font-size: 0.9rem;
+    }
+
+    .posts-table-wrapper {
+      overflow-x: auto;
+    }
+    .posts-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+    .posts-table th {
+      text-align: left;
+      font-weight: 500;
+      color: #6e6e73;
+      padding: 0.625rem 0.75rem;
+      border-bottom: 1px solid #e8e8ed;
+      white-space: nowrap;
+    }
+    .posts-table td {
+      padding: 0.75rem;
+      border-bottom: 1px solid #f3f3f5;
+      vertical-align: middle;
+    }
+    .posts-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .post-link {
+      color: #1d1d1f;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .post-link:hover {
+      color: #D4AA45;
+    }
+
+    .text-secondary {
+      color: #8c8c8c;
+      font-size: 0.8125rem;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 0.2rem 0.625rem;
+      border-radius: 100px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    .status-badge.published {
+      background-color: #dcfce7;
+      color: #166534;
+    }
+    .status-badge.draft {
+      background-color: #fef3c7;
+      color: #92400e;
+    }
+  </style>
+</AdminLayout>

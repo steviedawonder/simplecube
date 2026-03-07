@@ -1,17 +1,18 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
-
 import sitemap from '@astrojs/sitemap';
+import react from '@astrojs/react';
+import vercel from '@astrojs/vercel';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://steviedawonder.github.io',
-  base: '/simplecube',
+  site: 'https://simplecube.vercel.app',
+  adapter: vercel(),
 
   vite: {
     plugins: [tailwindcss()],
   },
 
-  integrations: [sitemap()],
+  integrations: [sitemap(), react()],
 });

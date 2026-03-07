@@ -1,0 +1,22 @@
+---
+export const prerender = false;
+
+import AdminLayout from '@layouts/AdminLayout.astro';
+import PostList from '@components/admin/PostList';
+import db from '@lib/db';
+
+const result = await db.execute(`
+  SELECT p.id, p.title, p.slug, p.draft, p.seo_score, p.created_at, p.updated_at,
+         c.name as category_name
+  FROM posts p
+  LEFT JOIN categories c ON p.category_id = c.id
+  WHERE p.deleted_at IS NULL
+  ORDER BY p.created_at DESC
+`);
+
+const posts = result.rows as any[];
+---
+
+<AdminLayout title="글 관리">
+  <PostList initialPosts={posts} client:load />
+</AdminLayout>
