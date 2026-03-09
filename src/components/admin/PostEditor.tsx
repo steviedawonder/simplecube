@@ -45,7 +45,7 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
   const [focusKeyword, setFocusKeyword] = useState(post?.focus_keyword || '');
   const [seoTitle, setSeoTitle] = useState(post?.seo_title || '');
   const [seoDescription, setSeoDescription] = useState(post?.seo_description || '');
-  const [draft, setDraft] = useState(post ? Boolean(post.draft) : true);
+  const [draft, setDraft] = useState(post ? Boolean(post.draft) : false);
   const [scheduledAt, setScheduledAt] = useState(post?.scheduled_at || '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');

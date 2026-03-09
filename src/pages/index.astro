@@ -2,11 +2,13 @@
 import BaseLayout from '@layouts/BaseLayout.astro';
 import HeroSection from '@components/home/HeroSection.astro';
 import ServicesSection from '@components/home/ServicesSection.astro';
-import WhySimpleCube from '@components/home/WhySimpleCube.astro';
+import CTASection from '@components/home/CTASection.astro';
+import InstagramSection from '@components/home/InstagramSection.astro';
 ---
 
-<BaseLayout transparentNav={true}>
+<BaseLayout>
   <HeroSection />
   <ServicesSection />
-  <WhySimpleCube />
+  <CTASection />
+  <InstagramSection />
 </BaseLayout>

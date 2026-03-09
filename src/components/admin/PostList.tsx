@@ -143,6 +143,43 @@ export default function PostList({ initialPosts, viewMode = 'active' }: PostList
     setActionInProgress(null);
   }
 
+  async function handleQuickPublish(postId: number) {
+    setActionInProgress(postId);
+    try {
+      // Fetch full post data first
+      const getRes = await fetch(`/api/posts/${postId}`);
+      if (!getRes.ok) {
+        alert('글 데이터를 불러올 수 없습니다.');
+        setActionInProgress(null);
+        return;
+      }
+      const postData = await getRes.json();
+
+      // Update with draft = 0 (published)
+      const res = await fetch(`/api/posts/${postId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...postData,
+          draft: 0,
+          tags: postData.tags?.map((t: any) => t.id) || [],
+        }),
+      });
+
+      if (res.ok) {
+        setPosts((prev) =>
+          prev.map((p) => (p.id === postId ? { ...p, draft: 0 } : p))
+        );
+      } else {
+        const data = await res.json();
+        alert(data.error || '발행에 실패했습니다.');
+      }
+    } catch {
+      alert('네트워크 오류가 발생했습니다.');
+    }
+    setActionInProgress(null);
+  }
+
   async function handlePermanentDelete(postId: number, postTitle: string) {
     if (!window.confirm(`"${postTitle}" 글을 영구 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) return;
 
@@ -424,6 +461,26 @@ export default function PostList({ initialPosts, viewMode = 'active' }: PostList
                     <td style={{ ...tdStyle, textAlign: 'right', whiteSpace: 'nowrap' }}>
                       {viewMode === 'active' ? (
                         <>
+                          {Boolean(post.draft) && (
+                            <button
+                              type="button"
+                              onClick={() => handleQuickPublish(post.id)}
+                              disabled={actionInProgress === post.id}
+                              style={{
+                                ...actionBtnStyle,
+                                color: actionInProgress === post.id ? '#8c8c8c' : '#22c55e',
+                                fontWeight: 600,
+                              }}
+                              onMouseEnter={(e) => {
+                                if (actionInProgress !== post.id) e.currentTarget.style.color = '#16a34a';
+                              }}
+                              onMouseLeave={(e) => {
+                                if (actionInProgress !== post.id) e.currentTarget.style.color = '#22c55e';
+                              }}
+                            >
+                              발행
+                            </button>
+                          )}
                           <a
                             href={`/admin/posts/${post.id}`}
                             style={actionLinkStyle}

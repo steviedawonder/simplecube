@@ -1,59 +1,55 @@
 ---
 ---
 
-<section id="hero" class="relative flex h-screen min-h-[700px] items-end overflow-hidden">
-  <!-- Background Image -->
-  <div class="absolute inset-0">
-    <img
-      src="/images/hero/main.jpg"
-      alt="심플큐브 포토부스 이벤트"
-      class="hero-bg h-full w-full object-cover"
-      loading="eager"
-      fetchpriority="high"
-    />
-    <!-- Light overlay for text readability -->
-    <div class="absolute inset-0 bg-gradient-to-r from-black/50 via-black/20 to-transparent"></div>
-    <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
-  </div>
+<section id="hero" class="relative flex min-h-[80vh] items-center justify-center overflow-hidden bg-white">
+  <!-- Subtle warm gradient overlay -->
+  <div class="absolute inset-0 bg-gradient-to-b from-white via-white to-[#FFF9F2]/30"></div>
 
-  <!-- Content - bottom-left aligned like cheesebox -->
-  <div class="hero-content relative z-10 w-full px-6 pb-16 md:px-16 lg:px-24 lg:pb-28">
-    <div class="max-w-2xl">
+  <!-- Content -->
+  <div class="hero-content relative z-10 w-full px-6 py-24 text-center md:px-16 lg:px-24 lg:py-32">
+    <div class="mx-auto max-w-4xl">
       <!-- Eyebrow label -->
-      <p class="mb-4 text-[10px] font-medium tracking-[0.4em] text-white/50 uppercase md:mb-5 md:text-xs md:tracking-[0.5em]">
-        PHOTO BOOTH SERVICE
+      <p class="mb-6 text-sm font-medium tracking-[0.3em] text-[#8B7E72] md:text-base md:tracking-[0.4em]">
+        국내 오픈형 포토부스 대표 브랜드
       </p>
 
+      <!-- Decorative line -->
+      <div class="mx-auto mb-8 h-[1px] w-20 bg-olive/40"></div>
+
       <!-- Main headline -->
-      <h1 class="text-[clamp(2.5rem,7vw,6.5rem)] font-bold leading-[0.9] tracking-tight text-white">
-        SIMPLE<br/>CUBE
+      <h1 class="text-[clamp(3.5rem,10vw,8rem)] font-bold leading-[0.9] tracking-tight text-[#2E2318]">
+        SIMPLE<br />
+        <span class="relative inline-block">
+          <span class="relative z-10">CUBE</span>
+          <span class="absolute bottom-[0.1em] left-0 right-0 h-[0.35em] bg-olive/30 -z-0"></span>
+        </span>
       </h1>
 
-      <!-- Gold divider -->
-      <div class="mt-7 h-[2px] w-14 bg-olive"></div>
+      <!-- Decorative line -->
+      <div class="mx-auto mt-8 h-[1px] w-20 bg-olive/40"></div>
 
       <!-- Subtitle -->
-      <p class="mt-7 max-w-md text-base font-light leading-relaxed text-white/65 md:text-lg">
+      <p class="mt-8 text-base font-light leading-relaxed text-[#8B7E72] md:text-lg">
         브랜드 팝업부터 웨딩까지,<br />
         특별한 순간을 완성하는 포토부스
       </p>
 
       <!-- CTA Buttons -->
-      <div class="mt-10 flex flex-wrap gap-4">
+      <div class="mt-12 flex flex-wrap justify-center gap-4">
         <a
           href="/popup"
-          class="inline-flex items-center gap-2 bg-olive px-7 py-3.5 text-sm font-semibold tracking-[0.08em] text-black transition-all duration-300 hover:bg-olive-hover hover:gap-3"
+          class="inline-flex items-center gap-2 border border-[#2E2318]/20 px-8 py-3.5 text-sm font-semibold tracking-[0.15em] text-[#2E2318] transition-all duration-300 hover:border-olive hover:bg-olive hover:text-white hover:gap-3"
         >
-          POP-UP BOOTH
+          POP-UP
           <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
           </svg>
         </a>
         <a
           href="/wedding"
-          class="inline-flex items-center gap-2 border border-white/40 px-7 py-3.5 text-sm font-semibold tracking-[0.08em] text-white/80 transition-all duration-300 hover:border-white hover:text-white hover:gap-3"
+          class="inline-flex items-center gap-2 border border-[#2E2318]/20 px-8 py-3.5 text-sm font-semibold tracking-[0.15em] text-[#2E2318] transition-all duration-300 hover:border-olive hover:bg-olive hover:text-white hover:gap-3"
         >
-          WEDDING BOOTH
+          WEDDING
           <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
           </svg>
@@ -62,13 +58,12 @@
     </div>
   </div>
 
-  <!-- Scroll Indicator (bottom right) -->
-  <div class="scroll-indicator absolute bottom-8 right-8 md:right-12 z-10">
+  <!-- Scroll Indicator -->
+  <div class="scroll-indicator absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
     <div class="flex flex-col items-center gap-3">
-      <div class="h-12 w-[1px] bg-white/20 relative overflow-hidden">
-        <div class="scroll-line absolute top-0 left-0 w-full h-full bg-white/60"></div>
+      <div class="h-10 w-[1px] bg-[#2E2318]/20 relative overflow-hidden">
+        <div class="scroll-line absolute top-0 left-0 w-full h-full bg-olive/60"></div>
       </div>
-      <span class="text-[10px] tracking-[0.3em] text-white/40 rotate-90 origin-center mt-2">SCROLL</span>
     </div>
   </div>
 </section>
@@ -89,27 +84,12 @@
 
   gsap.registerPlugin(ScrollTrigger);
 
-  // Hero parallax effect
-  const heroBg = document.querySelector('.hero-bg');
   const heroContent = document.querySelector('.hero-content');
   const scrollIndicator = document.querySelector('.scroll-indicator');
 
-  if (heroBg) {
-    gsap.to(heroBg, {
-      yPercent: 25,
-      ease: 'none',
-      scrollTrigger: {
-        trigger: '#hero',
-        start: 'top top',
-        end: 'bottom top',
-        scrub: true,
-      },
-    });
-  }
-
   if (heroContent) {
     gsap.to(heroContent, {
-      y: 80,
+      y: 60,
       opacity: 0,
       ease: 'none',
       scrollTrigger: {

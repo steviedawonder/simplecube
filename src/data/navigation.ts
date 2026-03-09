@@ -8,6 +8,6 @@ export const navItems: NavItem[] = [
   { label: 'BRAND', href: '/brand' },
   { label: 'POP-UP', href: '/popup' },
   { label: 'WEDDING', href: '/wedding' },
-  { label: 'FAQ', href: '/faq' },
+  { label: 'Q&A', href: '/qna' },
   { label: 'BLOG', href: '/blog' },
 ];
