@@ -2,14 +2,19 @@
 ---
 
 <section id="hero" class="relative flex min-h-screen flex-col overflow-hidden bg-white" data-fullpage-section>
+  <!-- Background Image (subtle) -->
+  <div class="absolute inset-0 z-0">
+    <img src="/images/hero/main.jpg" alt="" class="h-full w-full object-cover opacity-[0.08]" aria-hidden="true" loading="eager" />
+  </div>
+
   <!-- Top spacer -->
   <div class="flex-1"></div>
 
   <!-- Content -->
-  <div class="hero-content relative z-10 w-full px-6 text-center md:px-16 lg:px-24">
+  <div class="hero-content relative z-10 w-full px-6 pt-16 text-center md:px-16 md:pt-0 lg:px-24">
     <div class="mx-auto max-w-4xl">
       <!-- Eyebrow label -->
-      <p class="mb-4 text-base font-medium tracking-[0.3em] text-[#8B7E72] md:text-lg md:tracking-[0.4em]">
+      <p class="mb-4 text-lg font-medium tracking-[0.3em] text-[#8B7E72] md:text-2xl md:tracking-[0.4em]">
         국내 오픈형 포토부스 대표 브랜드
       </p>
 
@@ -17,7 +22,7 @@
       <div class="mx-auto mb-6 h-[1px] w-16 bg-olive/40"></div>
 
       <!-- Main headline -->
-      <h1 class="text-[clamp(3.5rem,10vw,8rem)] leading-[0.9] text-[#2E2318]" style="font-family: 'ONE Mobile Title', sans-serif; letter-spacing: 0.05em;">
+      <h1 class="text-[clamp(4.5rem,12vw,10rem)] leading-[0.9] text-[#2E2318]" style="font-family: 'ONE Mobile Title', sans-serif; letter-spacing: 0.12em;">
         <span class="relative inline-block">
           <span class="relative z-10">심플큐브</span>
           <span class="absolute bottom-[0.1em] left-0 right-0 h-[0.35em] bg-olive/30 -z-0"></span>
@@ -28,17 +33,50 @@
       <div class="mx-auto mt-6 h-[1px] w-16 bg-olive/40"></div>
 
       <!-- Subtitle -->
-      <p class="mt-6 text-lg font-light leading-relaxed text-[#8B7E72] md:text-xl">
+      <p class="mt-6 text-xl font-light leading-relaxed text-[#8B7E72] md:text-2xl">
         브랜드 팝업부터 웨딩까지,<br />
         특별한 순간을 완성하는 포토부스
       </p>
 
-      <!-- Cumulative Events Counter -->
+      <!-- Stats -->
       <div class="mt-10 md:mt-14">
+        <!-- 누적행사 (메인) -->
         <p class="text-sm font-medium tracking-[0.25em] text-[#8B7E72]/70 md:text-base">누적행사</p>
         <p class="mt-2 text-[clamp(2.8rem,8vw,5.5rem)] font-bold leading-none text-[#2E2318]" style="font-family: 'ONE Mobile Title', sans-serif; letter-spacing: 0.03em;">
-          <span id="counter-number">0</span><span class="text-olive">+</span>
+          <span class="counter-number" data-target="12000">0</span><span class="text-olive">+</span>
         </p>
+
+        <!-- 브랜드 협업 / 웨딩 (서브) -->
+        <div class="mt-5 flex items-center justify-center gap-6 md:gap-10">
+          <div class="text-center">
+            <p class="text-[10px] font-medium tracking-[0.15em] text-[#8B7E72]/50 md:text-xs">브랜드 협업</p>
+            <p class="mt-0.5 text-[clamp(1.1rem,3vw,1.6rem)] font-bold leading-none text-[#2E2318]/60" style="font-family: 'ONE Mobile Title', sans-serif;">
+              <span class="counter-number" data-target="4000">0</span><span class="text-olive/60">+</span>
+            </p>
+          </div>
+
+          <div class="h-6 w-[1px] bg-[#8B7E72]/15"></div>
+
+          <div class="text-center">
+            <p class="text-[10px] font-medium tracking-[0.15em] text-[#8B7E72]/50 md:text-xs">웨딩</p>
+            <p class="mt-0.5 text-[clamp(1.1rem,3vw,1.6rem)] font-bold leading-none text-[#2E2318]/60" style="font-family: 'ONE Mobile Title', sans-serif;">
+              <span class="counter-number" data-target="8000">0</span><span class="text-olive/60">+</span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Client Logos -->
+      <div class="mt-10 md:mt-14">
+        <p class="mb-5 text-[10px] font-medium tracking-[0.3em] text-[#8B7E72]/40 uppercase md:text-xs">Trusted by</p>
+        <div class="client-logos flex flex-wrap items-center justify-center gap-8 md:gap-12">
+          <img src="/images/logos/samsung.svg" alt="Samsung" class="h-5 opacity-15 transition-opacity duration-300 hover:opacity-30 md:h-7" loading="lazy" />
+          <img src="/images/logos/hyundai.svg" alt="Hyundai" class="h-5 opacity-15 transition-opacity duration-300 hover:opacity-30 md:h-7" loading="lazy" />
+          <img src="/images/logos/nike.svg" alt="Nike" class="h-5 opacity-15 transition-opacity duration-300 hover:opacity-30 md:h-7" loading="lazy" />
+          <img src="/images/logos/cj.svg" alt="CJ" class="h-5 opacity-15 transition-opacity duration-300 hover:opacity-30 md:h-7" loading="lazy" />
+          <img src="/images/logos/shinsegae.svg" alt="Shinsegae" class="h-5 opacity-15 transition-opacity duration-300 hover:opacity-30 md:h-7" loading="lazy" />
+          <img src="/images/logos/honda.svg" alt="Honda" class="h-5 opacity-15 transition-opacity duration-300 hover:opacity-30 md:h-7" loading="lazy" />
+        </div>
       </div>
     </div>
   </div>
@@ -75,21 +113,21 @@
 
   const heroContent = document.querySelector('.hero-content');
   const scrollBtn = document.getElementById('scroll-down-btn');
-  const counterEl = document.getElementById('counter-number');
 
-  // Counter animation: 0 → 12,000
-  if (counterEl) {
+  // Counter animation for all counters
+  document.querySelectorAll('.counter-number').forEach((el) => {
+    const target = parseInt(el.getAttribute('data-target') || '0', 10);
     const obj = { val: 0 };
     gsap.to(obj, {
-      val: 12000,
+      val: target,
       duration: 2.2,
       delay: 0.5,
       ease: 'power2.out',
       onUpdate: () => {
-        counterEl.textContent = Math.floor(obj.val).toLocaleString();
+        el.textContent = Math.floor(obj.val).toLocaleString();
       },
     });
-  }
+  });
 
   // Parallax fade on scroll
   if (heroContent) {

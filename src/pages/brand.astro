@@ -1,6 +1,5 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
-import PageHero from '@components/common/PageHero.astro';
 import BrandStory from '@components/brand/BrandStory.astro';
 import BranchOffices from '@components/brand/BranchOffices.astro';
 
@@ -11,11 +10,39 @@ import BranchOffices from '@components/brand/BranchOffices.astro';
   description="심플큐브의 브랜드 스토리와 전국 지점 안내. Simple but Special."
   transparentNav={true}
 >
-  <PageHero
-    title="BRAND"
-    subtitle="Simple but Special"
-    backgroundImage="/images/hero/main.jpg"
-  />
+  <!-- Custom Hero: 높이 축소 + 한글 메인 타이틀 -->
+  <section class="relative flex min-h-[33vh] items-center overflow-hidden bg-[#6B5B4D]">
+    <div class="absolute inset-0">
+      <img
+        src="/images/hero/main.jpg"
+        alt=""
+        class="h-full w-full object-cover opacity-20 blur-sm"
+        loading="eager"
+        aria-hidden="true"
+      />
+      <div class="absolute inset-0 bg-[#6B5B4D]/70"></div>
+    </div>
+
+    <div class="relative z-10 mx-auto w-full max-w-7xl px-6 pt-28 pb-12 lg:px-8 lg:pt-32 lg:pb-16">
+      <div class="max-w-3xl gs-fade-up">
+        <p class="mb-4 text-sm font-medium tracking-[0.3em] text-[#FFFAF4]/60 md:tracking-[0.4em]">
+          Simple but Special
+        </p>
+        <div class="mb-6 h-[1px] w-12 bg-olive/60"></div>
+        <h1 class="text-[clamp(2.2rem,5vw,4.5rem)] font-bold tracking-[0.02em] text-[#FFFAF4] leading-[1.1]">
+          브랜드
+        </h1>
+        <p class="mt-2 text-[clamp(0.85rem,1.8vw,1.5rem)] font-medium tracking-[0.15em] text-[#FFFAF4]/50">
+          BRAND
+        </p>
+        <p class="mt-6 text-base leading-relaxed text-[#FFFAF4]/60 max-w-xl">
+          심플큐브의 브랜드 스토리와 전국 지점 안내.
+        </p>
+      </div>
+    </div>
+
+    <div class="absolute bottom-0 left-0 right-0 h-px bg-[#FFFAF4]/5"></div>
+  </section>
   <BrandStory />
   <BranchOffices />
 </BaseLayout>

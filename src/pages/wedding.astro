@@ -1,6 +1,5 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
-import DarkTextHero from '@components/common/DarkTextHero.astro';
 import ServiceIntro from '@components/wedding/ServiceIntro.astro';
 import PackageDetails from '@components/wedding/PackageDetails.astro';
 import TemplateGallery from '@components/wedding/TemplateGallery.astro';
@@ -12,12 +11,39 @@ import BookingInquiry from '@components/wedding/BookingInquiry.astro';
   description="심플큐브 웨딩 포토부스. 결혼식을 더 특별하게 만드는 맞춤형 포토부스 서비스."
   transparentNav={true}
 >
-  <DarkTextHero
-    title="WEDDING PHOTO BOOTH"
-    subtitle="가장 아름다운 날의 특별한 순간"
-    description="웨딩홀에 설치하는 즉석 사진 서비스로, 소중한 하객분들과 함께 추억을 남길 수 있습니다."
-    bgImage="/images/wedding/hero.png"
-  />
+  <!-- Custom Hero: 높이 축소 + 한글 메인 타이틀 -->
+  <section class="relative flex min-h-[33vh] items-center overflow-hidden bg-[#6B5B4D]">
+    <div class="absolute inset-0">
+      <img
+        src="/images/wedding/hero.png"
+        alt=""
+        class="h-full w-full object-cover opacity-20 blur-sm"
+        loading="eager"
+        aria-hidden="true"
+      />
+      <div class="absolute inset-0 bg-[#6B5B4D]/70"></div>
+    </div>
+
+    <div class="relative z-10 mx-auto w-full max-w-7xl px-6 pt-28 pb-12 lg:px-8 lg:pt-32 lg:pb-16">
+      <div class="max-w-3xl gs-fade-up">
+        <p class="mb-4 text-sm font-medium tracking-[0.3em] text-[#FFFAF4]/60 md:tracking-[0.4em]">
+          가장 아름다운 날의 특별한 순간
+        </p>
+        <div class="mb-6 h-[1px] w-12 bg-olive/60"></div>
+        <h1 class="text-[clamp(2.2rem,5vw,4.5rem)] font-bold tracking-[0.02em] text-[#FFFAF4] leading-[1.1]">
+          웨딩 포토부스
+        </h1>
+        <p class="mt-2 text-[clamp(0.85rem,1.8vw,1.5rem)] font-medium tracking-[0.15em] text-[#FFFAF4]/50">
+          WEDDING PHOTOBOOTH
+        </p>
+        <p class="mt-6 text-base leading-relaxed text-[#FFFAF4]/60 max-w-xl">
+          웨딩홀에 설치하는 즉석 사진 서비스로, 소중한 하객분들과 함께 추억을 남길 수 있습니다.
+        </p>
+      </div>
+    </div>
+
+    <div class="absolute bottom-0 left-0 right-0 h-px bg-[#FFFAF4]/5"></div>
+  </section>
   <ServiceIntro />
   <PackageDetails />
   <TemplateGallery />
