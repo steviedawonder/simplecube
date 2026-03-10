@@ -2,13 +2,129 @@
 import BaseLayout from '@layouts/BaseLayout.astro';
 import HeroSection from '@components/home/HeroSection.astro';
 import ServicesSection from '@components/home/ServicesSection.astro';
-import CTASection from '@components/home/CTASection.astro';
 import InstagramSection from '@components/home/InstagramSection.astro';
 ---
 
 <BaseLayout>
   <HeroSection />
   <ServicesSection />
-  <CTASection />
   <InstagramSection />
 </BaseLayout>
+
+<script>
+  // ── Fullpage Scroll (PC only, ≥768px) ──
+  function initFullpageScroll() {
+    const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+    const sections = document.querySelectorAll<HTMLElement>('[data-fullpage-section]');
+    const scrollBtn = document.getElementById('scroll-down-btn');
+
+    // Mobile: just wire up the scroll button normally
+    if (!isDesktop) {
+      if (scrollBtn) {
+        scrollBtn.addEventListener('click', () => {
+          const hero = document.getElementById('hero');
+          if (hero && hero.nextElementSibling) {
+            hero.nextElementSibling.scrollIntoView({ behavior: 'smooth' });
+          }
+        });
+      }
+      return;
+    }
+
+    if (sections.length < 2) return;
+
+    let isAnimating = false;
+    const COOLDOWN = 1000; // ms between section jumps
+
+    // Find which section is currently most visible
+    function getCurrentIndex(): number {
+      const scrollY = window.scrollY;
+      const viewportH = window.innerHeight;
+      let best = 0;
+      let bestDist = Infinity;
+      sections.forEach((sec, i) => {
+        const dist = Math.abs(sec.offsetTop - scrollY);
+        if (dist < bestDist) {
+          bestDist = dist;
+          best = i;
+        }
+      });
+      return best;
+    }
+
+    function scrollToSection(index: number) {
+      if (index < 0 || index >= sections.length || isAnimating) return;
+      isAnimating = true;
+
+      const target = sections[index];
+      window.scrollTo({
+        top: target.offsetTop,
+        behavior: 'smooth',
+      });
+
+      setTimeout(() => {
+        isAnimating = false;
+      }, COOLDOWN);
+    }
+
+    // Wheel event → jump sections
+    window.addEventListener(
+      'wheel',
+      (e: WheelEvent) => {
+        if (isAnimating) {
+          e.preventDefault();
+          return;
+        }
+
+        const current = getCurrentIndex();
+
+        // If scrolled past all sections, allow normal scroll
+        const lastSection = sections[sections.length - 1];
+        const lastBottom = lastSection.offsetTop + lastSection.offsetHeight;
+        if (window.scrollY >= lastBottom - window.innerHeight && e.deltaY > 0) {
+          return; // let normal scroll happen (footer etc.)
+        }
+
+        // Only intercept significant wheel movements
+        if (Math.abs(e.deltaY) < 30) return;
+
+        e.preventDefault();
+
+        if (e.deltaY > 0) {
+          scrollToSection(current + 1);
+        } else {
+          scrollToSection(current - 1);
+        }
+      },
+      { passive: false }
+    );
+
+    // Keyboard navigation (arrow keys, Page Up/Down)
+    window.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (isAnimating) return;
+      const current = getCurrentIndex();
+
+      if (e.key === 'ArrowDown' || e.key === 'PageDown') {
+        e.preventDefault();
+        scrollToSection(current + 1);
+      } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+        e.preventDefault();
+        scrollToSection(current - 1);
+      }
+    });
+
+    // Scroll-down button
+    if (scrollBtn) {
+      scrollBtn.addEventListener('click', () => {
+        scrollToSection(1); // always go to second section
+      });
+    }
+  }
+
+  // Run after DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initFullpageScroll);
+  } else {
+    initFullpageScroll();
+  }
+</script>

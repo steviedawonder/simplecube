@@ -1,146 +1,82 @@
 ---
+const popupImages = [
+  '/images/popup/모듈형모델.png',
+  '/images/popup/모듈포토부스_혼다.png',
+  '/images/popup/booth.jpg',
+  '/images/popup/popup-model.jpg',
+  '/images/popup/팝업포토부스_CJ.jpg',
+  '/images/popup/wood-wrapping.jpg',
+  '/images/popup/wood-round.jpg',
+];
 ---
 
-<!-- Popup Section First - Light Beige Background -->
-<section class="bg-[#F5EDE3] py-20 lg:py-28 overflow-hidden">
-  <div class="mx-auto max-w-7xl px-6 lg:px-8">
-    <div class="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
-      <!-- Left: Image Grid -->
-      <div class="gs-slide-left order-2 lg:order-1">
-        <div class="grid grid-cols-2 gap-3">
-          <!-- Large image -->
-          <div class="col-span-2 overflow-hidden rounded-xl">
-            <img
-              src="/images/popup/booth.jpg"
-              alt="심플큐브 팝업 포토부스"
-              class="h-[280px] w-full object-cover transition-transform duration-700 hover:scale-105 lg:h-[340px]"
-              loading="lazy"
-            />
-          </div>
-          <!-- Smaller images -->
-          <div class="overflow-hidden rounded-xl">
-            <img
-              src="/images/popup/popup-model.png"
-              alt="팝업 포토부스 모델"
-              class="h-[180px] w-full object-cover bg-white transition-transform duration-700 hover:scale-105 lg:h-[220px]"
-              loading="lazy"
-            />
-          </div>
-          <div class="overflow-hidden rounded-xl">
-            <img
-              src="/images/popup/module-model.png"
-              alt="모듈형 포토부스"
-              class="h-[180px] w-full object-cover bg-white transition-transform duration-700 hover:scale-105 lg:h-[220px]"
-              loading="lazy"
-            />
-          </div>
-        </div>
-      </div>
-
-      <!-- Right: Text -->
-      <div class="gs-slide-right order-1 lg:order-2">
-        <!-- Icon -->
-        <div class="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-olive/15">
-          <svg class="h-5 w-5 text-olive" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
-          </svg>
-        </div>
-
-        <p class="text-base text-[#8B7E72] leading-relaxed md:text-lg">
-          잊지 못할 브랜드 경험을 위한<br />
-          이벤트 포토부스
-        </p>
-
-        <h2 class="mt-4 text-[clamp(2.2rem,5vw,4rem)] font-bold leading-[1.05] tracking-tight text-[#2E2318]">
-          SIMPLE CUBE<br />
-          <span class="relative inline-block">
-            <span class="relative z-10">POPUP</span>
-            <span class="absolute bottom-[0.05em] left-0 right-0 h-[0.15em] bg-olive/40"></span>
-          </span>
-        </h2>
-
-        <a
-          href="/popup"
-          class="mt-8 inline-flex items-center gap-3 rounded-full border border-[#2E2318]/15 px-6 py-3 text-sm font-medium text-[#2E2318] transition-all duration-300 hover:border-olive hover:text-olive hover:gap-4"
-        >
-          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-          </svg>
-          더 알아보기
-        </a>
+<!-- Two-Column Services: POPUP (left) | WEDDING (right) -->
+<section class="grid grid-cols-1 md:grid-cols-2" data-fullpage-section>
+  <!-- POPUP with slideshow -->
+  <a href="/popup" class="service-card group relative flex items-end overflow-hidden h-[50vh] md:h-screen">
+    <!-- Slideshow images -->
+    {popupImages.map((src, i) => (
+      <img
+        src={src}
+        alt="심플큐브 팝업 포토부스"
+        class:list={[
+          'popup-slide absolute inset-0 h-full w-full object-cover transition-opacity duration-1000',
+          'object-[center_20%] md:object-[center_30%]',
+          i === 0 ? 'opacity-100' : 'opacity-0',
+        ]}
+        loading={i === 0 ? 'eager' : 'lazy'}
+        data-index={i}
+      />
+    ))}
+    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+    <div class="relative z-10 w-full p-8 md:p-10 lg:p-12">
+      <p class="mb-2 text-sm font-medium tracking-[0.2em] text-white/70">BRAND EXPERIENCE</p>
+      <h2 class="text-[clamp(2rem,4vw,3.5rem)] font-bold leading-[1.05] tracking-tight text-white">
+        POP-UP
+      </h2>
+      <div class="mt-4 inline-flex items-center gap-2 text-sm font-medium text-white/80 transition-all duration-300 group-hover:text-olive group-hover:gap-3">
+        더 알아보기
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+        </svg>
       </div>
     </div>
-  </div>
-</section>
+  </a>
 
-<!-- Wedding Section - White Background -->
-<section class="bg-white py-20 lg:py-28 overflow-hidden">
-  <div class="mx-auto max-w-7xl px-6 lg:px-8">
-    <div class="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
-      <!-- Left: Text -->
-      <div class="gs-slide-left">
-        <!-- Icon -->
-        <div class="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-olive/10">
-          <svg class="h-5 w-5 text-olive" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-          </svg>
-        </div>
-
-        <p class="text-base text-[#8B7E72] leading-relaxed md:text-lg">
-          특별한 웨딩을 꿈꾸는<br />
-          신랑, 신부님을 위한 웨딩 포토부스
-        </p>
-
-        <h2 class="mt-4 text-[clamp(2.2rem,5vw,4rem)] font-bold leading-[1.05] tracking-tight text-[#2E2318]">
-          SIMPLE CUBE<br />
-          <span class="relative inline-block">
-            <span class="relative z-10">WEDDING</span>
-            <span class="absolute bottom-[0.05em] left-0 right-0 h-[0.15em] bg-olive/40"></span>
-          </span>
-        </h2>
-
-        <a
-          href="/wedding"
-          class="mt-8 inline-flex items-center gap-3 rounded-full border border-[#2E2318]/15 px-6 py-3 text-sm font-medium text-[#2E2318] transition-all duration-300 hover:border-olive hover:text-olive hover:gap-4"
-        >
-          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-          </svg>
-          더 알아보기
-        </a>
-      </div>
-
-      <!-- Right: Image Grid -->
-      <div class="gs-slide-right">
-        <div class="grid grid-cols-2 gap-3">
-          <!-- Large image spanning full width -->
-          <div class="col-span-2 overflow-hidden rounded-xl">
-            <img
-              src="/images/wedding/hero.png"
-              alt="심플큐브 웨딩 포토부스"
-              class="h-[280px] w-full object-cover transition-transform duration-700 hover:scale-105 lg:h-[340px]"
-              loading="lazy"
-            />
-          </div>
-          <!-- Two smaller images -->
-          <div class="overflow-hidden rounded-xl">
-            <img
-              src="/images/wedding/photo-strips.jpg"
-              alt="웨딩 포토 스트립"
-              class="h-[180px] w-full object-cover transition-transform duration-700 hover:scale-105 lg:h-[220px]"
-              loading="lazy"
-            />
-          </div>
-          <div class="overflow-hidden rounded-xl">
-            <img
-              src="/images/wedding/guest-table.jpg"
-              alt="웨딩 방명록 테이블"
-              class="h-[180px] w-full object-cover transition-transform duration-700 hover:scale-105 lg:h-[220px]"
-              loading="lazy"
-            />
-          </div>
-        </div>
+  <!-- WEDDING -->
+  <a href="/wedding" class="service-card group relative flex items-end overflow-hidden h-[50vh] md:h-screen">
+    <img
+      src="/images/wedding/hero.png"
+      alt="심플큐브 웨딩 포토부스"
+      class="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+      loading="lazy"
+    />
+    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+    <div class="relative z-10 w-full p-8 md:p-10 lg:p-12">
+      <p class="mb-2 text-sm font-medium tracking-[0.2em] text-white/70">SPECIAL MOMENT</p>
+      <h2 class="text-[clamp(2rem,4vw,3.5rem)] font-bold leading-[1.05] tracking-tight text-white">
+        WEDDING
+      </h2>
+      <div class="mt-4 inline-flex items-center gap-2 text-sm font-medium text-white/80 transition-all duration-300 group-hover:text-olive group-hover:gap-3">
+        더 알아보기
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+        </svg>
       </div>
     </div>
-  </div>
+  </a>
 </section>
+
+<script>
+  const slides = document.querySelectorAll<HTMLImageElement>('.popup-slide');
+  if (slides.length > 1) {
+    let current = 0;
+    setInterval(() => {
+      slides[current].classList.remove('opacity-100');
+      slides[current].classList.add('opacity-0');
+      current = (current + 1) % slides.length;
+      slides[current].classList.remove('opacity-0');
+      slides[current].classList.add('opacity-100');
+    }, 2000);
+  }
+</script>

@@ -1,80 +1,69 @@
 ---
 ---
 
-<section id="hero" class="relative flex min-h-[80vh] items-center justify-center overflow-hidden bg-white">
-  <!-- Subtle warm gradient overlay -->
-  <div class="absolute inset-0 bg-gradient-to-b from-white via-white to-[#FFF9F2]/30"></div>
+<section id="hero" class="relative flex min-h-screen flex-col overflow-hidden bg-white" data-fullpage-section>
+  <!-- Top spacer -->
+  <div class="flex-1"></div>
 
   <!-- Content -->
-  <div class="hero-content relative z-10 w-full px-6 py-24 text-center md:px-16 lg:px-24 lg:py-32">
+  <div class="hero-content relative z-10 w-full px-6 text-center md:px-16 lg:px-24">
     <div class="mx-auto max-w-4xl">
       <!-- Eyebrow label -->
-      <p class="mb-6 text-sm font-medium tracking-[0.3em] text-[#8B7E72] md:text-base md:tracking-[0.4em]">
+      <p class="mb-4 text-base font-medium tracking-[0.3em] text-[#8B7E72] md:text-lg md:tracking-[0.4em]">
         국내 오픈형 포토부스 대표 브랜드
       </p>
 
       <!-- Decorative line -->
-      <div class="mx-auto mb-8 h-[1px] w-20 bg-olive/40"></div>
+      <div class="mx-auto mb-6 h-[1px] w-16 bg-olive/40"></div>
 
       <!-- Main headline -->
-      <h1 class="text-[clamp(3.5rem,10vw,8rem)] font-bold leading-[0.9] tracking-tight text-[#2E2318]">
-        SIMPLE<br />
+      <h1 class="text-[clamp(3.5rem,10vw,8rem)] leading-[0.9] text-[#2E2318]" style="font-family: 'ONE Mobile Title', sans-serif; letter-spacing: 0.05em;">
         <span class="relative inline-block">
-          <span class="relative z-10">CUBE</span>
+          <span class="relative z-10">심플큐브</span>
           <span class="absolute bottom-[0.1em] left-0 right-0 h-[0.35em] bg-olive/30 -z-0"></span>
         </span>
       </h1>
 
       <!-- Decorative line -->
-      <div class="mx-auto mt-8 h-[1px] w-20 bg-olive/40"></div>
+      <div class="mx-auto mt-6 h-[1px] w-16 bg-olive/40"></div>
 
       <!-- Subtitle -->
-      <p class="mt-8 text-base font-light leading-relaxed text-[#8B7E72] md:text-lg">
+      <p class="mt-6 text-lg font-light leading-relaxed text-[#8B7E72] md:text-xl">
         브랜드 팝업부터 웨딩까지,<br />
         특별한 순간을 완성하는 포토부스
       </p>
 
-      <!-- CTA Buttons -->
-      <div class="mt-12 flex flex-wrap justify-center gap-4">
-        <a
-          href="/popup"
-          class="inline-flex items-center gap-2 border border-[#2E2318]/20 px-8 py-3.5 text-sm font-semibold tracking-[0.15em] text-[#2E2318] transition-all duration-300 hover:border-olive hover:bg-olive hover:text-white hover:gap-3"
-        >
-          POP-UP
-          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-          </svg>
-        </a>
-        <a
-          href="/wedding"
-          class="inline-flex items-center gap-2 border border-[#2E2318]/20 px-8 py-3.5 text-sm font-semibold tracking-[0.15em] text-[#2E2318] transition-all duration-300 hover:border-olive hover:bg-olive hover:text-white hover:gap-3"
-        >
-          WEDDING
-          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-          </svg>
-        </a>
+      <!-- Cumulative Events Counter -->
+      <div class="mt-10 md:mt-14">
+        <p class="text-sm font-medium tracking-[0.25em] text-[#8B7E72]/70 md:text-base">누적행사</p>
+        <p class="mt-2 text-[clamp(2.8rem,8vw,5.5rem)] font-bold leading-none text-[#2E2318]" style="font-family: 'ONE Mobile Title', sans-serif; letter-spacing: 0.03em;">
+          <span id="counter-number">0</span><span class="text-olive">+</span>
+        </p>
       </div>
     </div>
   </div>
 
-  <!-- Scroll Indicator -->
-  <div class="scroll-indicator absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
-    <div class="flex flex-col items-center gap-3">
-      <div class="h-10 w-[1px] bg-[#2E2318]/20 relative overflow-hidden">
-        <div class="scroll-line absolute top-0 left-0 w-full h-full bg-olive/60"></div>
-      </div>
+  <!-- Bottom spacer -->
+  <div class="flex-1"></div>
+
+  <!-- Scroll Down Button -->
+  <button id="scroll-down-btn" class="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 text-[#8B7E72]/60 hover:text-olive transition-colors duration-300 cursor-pointer" aria-label="아래로 스크롤">
+    <span class="text-xs font-medium tracking-[0.2em]">SCROLL</span>
+    <div class="scroll-arrow-wrap w-6 h-10 flex items-center justify-center">
+      <svg class="w-5 h-5 scroll-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3" />
+      </svg>
     </div>
-  </div>
+  </button>
 </section>
 
 <style>
-  @keyframes scroll-line-anim {
-    0% { transform: translateY(-100%); }
-    100% { transform: translateY(100%); }
+  @keyframes bounce-arrow {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(6px); }
   }
-  .scroll-line {
-    animation: scroll-line-anim 2s ease-in-out infinite;
+  .scroll-arrow {
+    animation: bounce-arrow 2s ease-in-out infinite;
   }
 </style>
 
@@ -85,30 +74,47 @@
   gsap.registerPlugin(ScrollTrigger);
 
   const heroContent = document.querySelector('.hero-content');
-  const scrollIndicator = document.querySelector('.scroll-indicator');
+  const scrollBtn = document.getElementById('scroll-down-btn');
+  const counterEl = document.getElementById('counter-number');
 
+  // Counter animation: 0 → 12,000
+  if (counterEl) {
+    const obj = { val: 0 };
+    gsap.to(obj, {
+      val: 12000,
+      duration: 2.2,
+      delay: 0.5,
+      ease: 'power2.out',
+      onUpdate: () => {
+        counterEl.textContent = Math.floor(obj.val).toLocaleString();
+      },
+    });
+  }
+
+  // Parallax fade on scroll
   if (heroContent) {
     gsap.to(heroContent, {
-      y: 60,
+      y: 40,
       opacity: 0,
       ease: 'none',
       scrollTrigger: {
         trigger: '#hero',
         start: 'top top',
-        end: '50% top',
+        end: '80% top',
         scrub: true,
       },
     });
   }
 
-  if (scrollIndicator) {
-    gsap.to(scrollIndicator, {
+  // Hide scroll button on scroll
+  if (scrollBtn) {
+    gsap.to(scrollBtn, {
       opacity: 0,
       ease: 'none',
       scrollTrigger: {
         trigger: '#hero',
-        start: '15% top',
-        end: '35% top',
+        start: '10% top',
+        end: '30% top',
         scrub: true,
       },
     });
