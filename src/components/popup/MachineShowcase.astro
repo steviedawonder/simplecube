@@ -107,13 +107,13 @@ const models = [
 ];
 ---
 
-<section id="machines" class="bg-bg-light py-24 lg:py-20">
+<section id="machines" class="bg-white py-12 lg:py-16">
   <div class="mx-auto max-w-7xl px-6 lg:px-8">
     <!-- Section heading -->
-    <div class="mb-10 lg:mb-16">
+    <div class="mb-6 lg:mb-10">
       <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">MODELS</span>
-      <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">모델 소개</h2>
-      <p class="mt-4 text-sm text-secondary">
+      <h2 class="mt-3 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">모델 소개</h2>
+      <p class="mt-2 text-sm text-secondary">
         행사 목적과 공간에 맞는 최적의 기기를 선택하세요.
       </p>
     </div>
@@ -186,29 +186,24 @@ const models = [
   </div>
 </section>
 
-<!-- ===== Detail Modal (fullscreen on mobile, centered on desktop) ===== -->
-<div id="model-modal" class="fixed inset-0 z-[9998] hidden">
+<!-- ===== Detail Modal: 센터 팝업 (컴팩트) ===== -->
+<div id="model-modal" class="fixed inset-0 z-[9998] hidden" style="pointer-events:none;">
   {/* Backdrop */}
-  <div id="modal-backdrop" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+  <div id="modal-backdrop" class="absolute inset-0 bg-black/0 transition-all duration-400" style="pointer-events:auto;"></div>
 
-  {/* Modal content */}
-  <div class="relative z-10 h-full overflow-y-auto">
-    <div class="min-h-full flex items-start lg:items-center justify-center lg:py-10">
-      <div id="modal-content" class="w-full lg:max-w-5xl lg:mx-6 bg-white lg:rounded-2xl overflow-hidden min-h-screen lg:min-h-0">
-
-        {/* Modal header */}
-        <div class="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-border-light px-4 lg:px-8 py-3 flex items-center justify-between">
-          <h3 id="modal-title" class="text-base lg:text-lg font-bold text-primary"></h3>
-          <button id="modal-close" class="p-1.5 rounded-full hover:bg-[#f5f5f3] transition-colors" aria-label="닫기">
-            <svg class="w-5 h-5 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Modal body — will be populated by JS */}
-        <div id="modal-body"></div>
+  {/* Centered card */}
+  <div class="relative z-10 h-full flex items-center justify-center px-4 lg:px-6" style="pointer-events:none;">
+    <div id="modal-card" class="w-full max-w-sm lg:max-w-md bg-white rounded-2xl overflow-hidden shadow-2xl opacity-0 scale-90 transition-all duration-400 ease-out max-h-[88vh] flex flex-col" style="pointer-events:auto;">
+      {/* Image + close */}
+      <div class="relative flex items-center justify-center bg-[#f5f5f3] p-6 shrink-0">
+        <img id="modal-img" src="" alt="" class="h-[160px] lg:h-[220px] w-auto object-contain" />
+        <button id="modal-close" class="absolute top-3 right-3 p-1.5 rounded-full bg-white/80 hover:bg-white transition-colors shadow-sm" style="pointer-events:auto;cursor:pointer;" aria-label="닫기">
+          <svg class="w-4 h-4 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
       </div>
+
+      {/* Scrollable content */}
+      <div id="modal-body" class="overflow-y-auto flex-1"></div>
     </div>
   </div>
 </div>
@@ -240,7 +235,8 @@ const models = [
     const modelsData = (window as any).__models;
     const modal = document.getElementById('model-modal') as HTMLDivElement;
     const modalBackdrop = document.getElementById('modal-backdrop') as HTMLDivElement;
-    const modalTitle = document.getElementById('modal-title') as HTMLHeadingElement;
+    const modalCard = document.getElementById('modal-card') as HTMLDivElement;
+    const modalImg = document.getElementById('modal-img') as HTMLImageElement;
     const modalBody = document.getElementById('modal-body') as HTMLDivElement;
     const modalClose = document.getElementById('modal-close') as HTMLButtonElement;
     const cards = document.querySelectorAll<HTMLButtonElement>('.model-card');
@@ -250,45 +246,39 @@ const models = [
       const model = modelsData.find((m: any) => m.id === modelId);
       if (!model) return;
 
-      modalTitle.textContent = model.name;
+      // Set image
+      modalImg.src = model.image;
+      modalImg.alt = model.name;
 
-      // Build modal content
+      // Build scrollable content
       modalBody.innerHTML = `
-        <!-- Image -->
-        <div class="flex items-center justify-center bg-[#f5f5f3] p-8 lg:p-14">
-          <img src="${model.image}" alt="${model.name}" class="h-[240px] lg:h-[380px] w-auto object-contain" />
-        </div>
-
         <!-- Specs -->
-        <div class="px-5 lg:px-8 py-6 lg:py-8">
+        <div class="px-5 py-5">
           <p class="text-[10px] font-medium tracking-widest text-secondary/50 uppercase">${model.modelNo}</p>
-          <h4 class="text-xl lg:text-2xl font-bold text-primary mt-1 mb-6">${model.name}</h4>
+          <h4 class="text-lg font-bold text-primary mt-0.5 mb-4">${model.name}</h4>
 
-          <div class="space-y-0">
-            ${model.specs.map((s: any, i: number) => `
-              <div class="flex items-baseline gap-3 py-3 ${i < model.specs.length - 1 ? 'border-b border-dashed border-[#e5e5e3]' : ''}">
-                <span class="shrink-0 text-[12px] font-medium text-[#888] w-[85px] lg:w-[100px]">${s.label}</span>
-                <span class="flex-1 border-b border-dotted border-[#ddd] mb-1 hidden lg:block"></span>
-                <span class="text-[13px] font-semibold text-[#1d1d1f] lg:text-right lg:max-w-[55%]">${s.value}</span>
-              </div>
-            `).join('')}
-          </div>
+          ${model.specs.map((s: any, i: number) => `
+            <div class="flex items-baseline justify-between py-2.5 ${i < model.specs.length - 1 ? 'border-b border-dashed border-[#e5e5e3]' : ''}">
+              <span class="text-[12px] text-[#888]">${s.label}</span>
+              <span class="text-[13px] font-semibold text-[#1d1d1f]">${s.value}</span>
+            </div>
+          `).join('')}
 
-          ${model.note ? `<p class="mt-4 text-[10px] text-[#999] text-right">${model.note}</p>` : ''}
+          ${model.note ? `<p class="mt-3 text-[10px] text-[#999] text-right">${model.note}</p>` : ''}
         </div>
 
         <!-- Portfolio -->
-        <div class="px-5 lg:px-8 pb-8">
-          <div class="flex items-center justify-between mb-4">
-            <h4 class="text-sm font-bold text-[#1d1d1f] tracking-wide uppercase">Portfolio</h4>
-            <span class="text-xs text-[#999]">${model.portfolio.length}건</span>
+        <div class="px-5 pb-5 pt-1">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-xs font-bold text-[#1d1d1f] tracking-wide uppercase">Portfolio</h4>
+            <span class="text-[10px] text-[#999]">${model.portfolio.length}건</span>
           </div>
-          <div class="grid grid-cols-2 lg:grid-cols-3 gap-2 lg:gap-3">
+          <div class="grid grid-cols-3 gap-1.5">
             ${model.portfolio.map((p: any) => `
               <div class="modal-portfolio-thumb cursor-pointer overflow-hidden rounded-lg relative group" data-src="${p.src}" data-alt="${p.alt}">
-                <img src="${p.src}" alt="${p.alt}" class="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" />
+                <img src="${p.src}" alt="${p.alt}" class="aspect-square w-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" />
                 <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
-                  <svg class="w-7 h-7 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                  <svg class="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
                   </svg>
                 </div>
@@ -308,13 +298,26 @@ const models = [
         thumb.addEventListener('click', () => openLightbox(images, idx));
       });
 
+      // Show modal with animation
       modal.classList.remove('hidden');
       document.body.style.overflow = 'hidden';
+
+      requestAnimationFrame(() => {
+        modalBackdrop.classList.replace('bg-black/0', 'bg-black/40');
+        modalCard.classList.remove('opacity-0', 'scale-90');
+        modalCard.classList.add('opacity-100', 'scale-100');
+      });
     }
 
     function closeModal() {
-      modal.classList.add('hidden');
-      document.body.style.overflow = '';
+      if (modal.classList.contains('hidden')) return;
+      modalBackdrop.classList.replace('bg-black/40', 'bg-black/0');
+      modalCard.classList.remove('opacity-100', 'scale-100');
+      modalCard.classList.add('opacity-0', 'scale-90');
+      setTimeout(() => {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+      }, 400);
     }
 
     // Card clicks
@@ -326,8 +329,10 @@ const models = [
     });
 
     // Close triggers
-    modalClose.addEventListener('click', closeModal);
-    modalBackdrop.addEventListener('click', closeModal);
+    modalClose.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); closeModal(); });
+    modalBackdrop.addEventListener('click', (e) => { if (e.target === modalBackdrop) closeModal(); });
+    modalCard.addEventListener('click', (e) => { e.stopPropagation(); });
+
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
         // If lightbox is open, close lightbox first

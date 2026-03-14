@@ -1,0 +1,342 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="팝업 히어로 테스트" transparentNav={false}>
+  <div class="pt-24 pb-24 bg-bg-light">
+    <div class="mx-auto max-w-6xl px-6">
+      <h1 class="text-3xl font-bold text-primary mb-2">팝업 페이지 히어로 비교</h1>
+      <p class="text-sm text-secondary mb-16">현재 페이지 위치를 알려주는 최소한의 상단 배너 디자인입니다. 총 5가지 버전을 비교합니다.</p>
+
+      <!-- ===== 현재 버전 (참고용) ===== -->
+      <section class="mb-20">
+        <div class="mb-4">
+          <span class="inline-block bg-secondary/10 text-secondary text-[10px] font-bold tracking-wider uppercase px-3 py-1 rounded mb-2">현재 버전</span>
+          <h2 class="text-lg font-bold text-primary mb-1">기존 히어로 (33vh)</h2>
+          <p class="text-xs text-secondary">현재 적용된 큰 사이즈의 히어로. 아래 버전들과 비교 참고용입니다.</p>
+        </div>
+
+        <div class="rounded-2xl overflow-hidden border border-border-light">
+          <section class="relative flex min-h-[33vh] items-center overflow-hidden bg-[#6B5B4D]">
+            <div class="absolute inset-0">
+              <img src="/images/popup/booth.jpg" alt="" class="h-full w-full object-cover opacity-20 blur-sm" aria-hidden="true" />
+              <div class="absolute inset-0 bg-[#6B5B4D]/70"></div>
+            </div>
+            <div class="relative z-10 mx-auto w-full max-w-7xl px-6 pt-28 pb-12 lg:px-8 lg:pt-32 lg:pb-16">
+              <div class="max-w-3xl">
+                <p class="mb-4 text-sm font-medium tracking-[0.3em] text-[#FFFAF4]/60 md:tracking-[0.4em]">브랜드를 특별한 경험으로</p>
+                <div class="mb-6 h-[1px] w-12 bg-olive/60"></div>
+                <h1 class="text-[clamp(2.2rem,5vw,4.5rem)] font-bold tracking-[0.02em] text-[#FFFAF4] leading-[1.1]">팝업 포토부스</h1>
+                <p class="mt-2 text-[clamp(0.85rem,1.8vw,1.5rem)] font-medium tracking-[0.15em] text-[#FFFAF4]/50">POP-UP PHOTOBOOTH</p>
+                <p class="mt-6 text-base leading-relaxed text-[#FFFAF4]/60 max-w-xl">브랜드 팝업스토어, 기업 행사, 페스티벌까지. 맞춤형 디자인으로 브랜드를 특별하게 만듭니다.</p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <!-- ===== Version A: 미니멀 바 (한 줄) ===== -->
+      <section class="mb-20">
+        <div class="mb-4">
+          <h2 class="text-lg font-bold text-primary mb-1">A. 미니멀 바</h2>
+          <p class="text-xs text-secondary">Navbar 바로 아래 한 줄 바 형태. 배경색 + 페이지명만 표시. 가장 컴팩트합니다.</p>
+        </div>
+
+        <div class="rounded-2xl overflow-hidden border border-border-light">
+          <div class="bg-[#6B5B4D] px-6 lg:px-8 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="h-4 w-[2px] bg-olive"></div>
+              <h1 class="text-base font-bold text-[#FFFAF4] tracking-wide">팝업 포토부스</h1>
+              <span class="text-[11px] font-medium tracking-[0.15em] text-[#FFFAF4]/40 hidden sm:inline">POP-UP PHOTOBOOTH</span>
+            </div>
+            <p class="text-[11px] text-[#FFFAF4]/30 tracking-wider hidden md:block">SIMPLE CUBE</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== Version B: 브레드크럼 스타일 ===== -->
+      <section class="mb-20">
+        <div class="mb-4">
+          <h2 class="text-lg font-bold text-primary mb-1">B. 브레드크럼 스타일</h2>
+          <p class="text-xs text-secondary">배경 이미지를 아주 얇게 유지하고, 브레드크럼 네비게이션 + 타이틀. 컨텍스트 제공에 최적화.</p>
+        </div>
+
+        <div class="rounded-2xl overflow-hidden border border-border-light">
+          <div class="relative overflow-hidden bg-[#6B5B4D]">
+            <div class="absolute inset-0">
+              <img src="/images/popup/booth.jpg" alt="" class="h-full w-full object-cover opacity-10 blur-sm" aria-hidden="true" />
+              <div class="absolute inset-0 bg-[#6B5B4D]/80"></div>
+            </div>
+            <div class="relative z-10 mx-auto max-w-7xl px-6 lg:px-8 py-5">
+              <nav class="flex items-center gap-1.5 text-[11px] text-[#FFFAF4]/40 mb-2">
+                <span>홈</span>
+                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                <span class="text-[#FFFAF4]/70">행사 서비스</span>
+              </nav>
+              <div class="flex items-center gap-3">
+                <h1 class="text-xl font-bold text-[#FFFAF4]">팝업 포토부스</h1>
+                <span class="text-[11px] font-medium tracking-[0.12em] text-[#FFFAF4]/35 mt-0.5">POP-UP PHOTOBOOTH</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== Version C: 골드 라인 액센트 ===== -->
+      <section class="mb-20">
+        <div class="mb-4">
+          <h2 class="text-lg font-bold text-primary mb-1">C. 골드 라인 액센트</h2>
+          <p class="text-xs text-secondary">상단에 골드 라인, 중앙 정렬 타이틀. 고급스러운 느낌을 유지하면서 콤팩트.</p>
+        </div>
+
+        <div class="rounded-2xl overflow-hidden border border-border-light">
+          <div class="relative overflow-hidden bg-[#6B5B4D]">
+            <div class="absolute inset-0">
+              <img src="/images/popup/booth.jpg" alt="" class="h-full w-full object-cover opacity-10 blur-sm" aria-hidden="true" />
+              <div class="absolute inset-0 bg-[#6B5B4D]/80"></div>
+            </div>
+            <!-- Gold top line -->
+            <div class="absolute top-0 left-0 right-0 h-[2px] bg-olive"></div>
+            <div class="relative z-10 mx-auto max-w-7xl px-6 lg:px-8 py-6 text-center">
+              <p class="text-[10px] font-medium tracking-[0.4em] text-olive/70 uppercase mb-1.5">POP-UP PHOTOBOOTH</p>
+              <h1 class="text-2xl font-bold text-[#FFFAF4] tracking-wide">팝업 포토부스</h1>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== Version D: 좌측 골드 보더 ===== -->
+      <section class="mb-20">
+        <div class="mb-4">
+          <h2 class="text-lg font-bold text-primary mb-1">D. 좌측 골드 보더</h2>
+          <p class="text-xs text-secondary">좌측에 골드 세로선 + 좌측 정렬 타이틀. 서브텍스트 한 줄 포함. 정보 전달과 콤팩트함의 균형.</p>
+        </div>
+
+        <div class="rounded-2xl overflow-hidden border border-border-light">
+          <div class="relative overflow-hidden bg-[#6B5B4D]">
+            <div class="absolute inset-0">
+              <img src="/images/popup/booth.jpg" alt="" class="h-full w-full object-cover opacity-10 blur-sm" aria-hidden="true" />
+              <div class="absolute inset-0 bg-[#6B5B4D]/80"></div>
+            </div>
+            <div class="relative z-10 mx-auto max-w-7xl px-6 lg:px-8 py-6">
+              <div class="flex items-start gap-4">
+                <div class="w-[3px] h-12 bg-olive rounded-full shrink-0 mt-0.5"></div>
+                <div>
+                  <div class="flex items-baseline gap-3">
+                    <h1 class="text-2xl font-bold text-[#FFFAF4]">팝업 포토부스</h1>
+                    <span class="text-[11px] font-medium tracking-[0.12em] text-[#FFFAF4]/35">POP-UP</span>
+                  </div>
+                  <p class="text-[12px] text-[#FFFAF4]/40 mt-1">브랜드 팝업스토어 · 기업 행사 · 페스티벌</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== Version E: 투톤 컴팩트 ===== -->
+      <section class="mb-20">
+        <div class="mb-4">
+          <h2 class="text-lg font-bold text-primary mb-1">E. 투톤 컴팩트</h2>
+          <p class="text-xs text-secondary">갈색 배경 없이, 페이지 바디 위에 깔끔한 타이포그래피로 위치 표시. 가장 미니멀한 접근.</p>
+        </div>
+
+        <div class="rounded-2xl overflow-hidden border border-border-light bg-white">
+          <div class="mx-auto max-w-7xl px-6 lg:px-8 py-5 border-b border-border-light">
+            <div class="flex items-center gap-4">
+              <div class="flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-olive"></div>
+                <h1 class="text-lg font-bold text-primary">팝업 포토부스</h1>
+              </div>
+              <div class="h-4 w-px bg-border-light"></div>
+              <span class="text-[11px] font-medium tracking-[0.15em] text-secondary/50 uppercase">Pop-up Photobooth</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 네비바 아래에서의 실제 느낌 시뮬레이션 ===== -->
+      <div class="mt-10 mb-6">
+        <h2 class="text-2xl font-bold text-primary mb-2">실제 적용 시뮬레이션</h2>
+        <p class="text-sm text-secondary mb-10">Navbar 포함, 실제 페이지처럼 보이는 시뮬레이션입니다. 스크롤 없이 바로 콘텐츠가 보이는지 확인하세요.</p>
+      </div>
+
+      <!-- Simulation A -->
+      <section class="mb-16">
+        <p class="text-xs font-bold text-olive mb-3 tracking-wider">A. 미니멀 바</p>
+        <div class="rounded-2xl overflow-hidden border border-border-light shadow-lg">
+          <!-- Fake Navbar -->
+          <div class="bg-white px-6 py-4 flex items-center justify-between border-b border-border-light">
+            <span class="text-lg font-extrabold tracking-[0.08em] text-primary">SIMPLE CUBE</span>
+            <div class="flex gap-1"><span class="block w-5 h-[2px] bg-primary"></span><span class="block w-5 h-[2px] bg-primary mt-1.5"></span></div>
+          </div>
+          <!-- Hero A -->
+          <div class="bg-[#6B5B4D] px-6 lg:px-8 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="h-4 w-[2px] bg-olive"></div>
+              <h2 class="text-base font-bold text-[#FFFAF4] tracking-wide">팝업 포토부스</h2>
+              <span class="text-[11px] font-medium tracking-[0.15em] text-[#FFFAF4]/40 hidden sm:inline">POP-UP PHOTOBOOTH</span>
+            </div>
+          </div>
+          <!-- Fake content -->
+          <div class="bg-white p-8">
+            <div class="h-4 w-32 bg-olive/20 rounded mb-3"></div>
+            <div class="h-8 w-48 bg-primary/10 rounded mb-4"></div>
+            <div class="h-3 w-full bg-secondary/10 rounded mb-2"></div>
+            <div class="h-3 w-4/5 bg-secondary/10 rounded mb-6"></div>
+            <div class="grid grid-cols-3 gap-3">
+              <div class="h-32 bg-bg-light rounded-lg"></div>
+              <div class="h-32 bg-bg-light rounded-lg"></div>
+              <div class="h-32 bg-bg-light rounded-lg"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Simulation B -->
+      <section class="mb-16">
+        <p class="text-xs font-bold text-olive mb-3 tracking-wider">B. 브레드크럼 스타일</p>
+        <div class="rounded-2xl overflow-hidden border border-border-light shadow-lg">
+          <div class="bg-white px-6 py-4 flex items-center justify-between border-b border-border-light">
+            <span class="text-lg font-extrabold tracking-[0.08em] text-primary">SIMPLE CUBE</span>
+            <div class="flex gap-1"><span class="block w-5 h-[2px] bg-primary"></span><span class="block w-5 h-[2px] bg-primary mt-1.5"></span></div>
+          </div>
+          <div class="relative overflow-hidden bg-[#6B5B4D]">
+            <div class="absolute inset-0">
+              <img src="/images/popup/booth.jpg" alt="" class="h-full w-full object-cover opacity-10 blur-sm" aria-hidden="true" />
+              <div class="absolute inset-0 bg-[#6B5B4D]/80"></div>
+            </div>
+            <div class="relative z-10 mx-auto max-w-7xl px-6 lg:px-8 py-5">
+              <nav class="flex items-center gap-1.5 text-[11px] text-[#FFFAF4]/40 mb-2">
+                <span>홈</span>
+                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                <span class="text-[#FFFAF4]/70">행사 서비스</span>
+              </nav>
+              <div class="flex items-center gap-3">
+                <h2 class="text-xl font-bold text-[#FFFAF4]">팝업 포토부스</h2>
+                <span class="text-[11px] font-medium tracking-[0.12em] text-[#FFFAF4]/35 mt-0.5">POP-UP PHOTOBOOTH</span>
+              </div>
+            </div>
+          </div>
+          <div class="bg-white p-8">
+            <div class="h-4 w-32 bg-olive/20 rounded mb-3"></div>
+            <div class="h-8 w-48 bg-primary/10 rounded mb-4"></div>
+            <div class="h-3 w-full bg-secondary/10 rounded mb-2"></div>
+            <div class="h-3 w-4/5 bg-secondary/10 rounded mb-6"></div>
+            <div class="grid grid-cols-3 gap-3">
+              <div class="h-32 bg-bg-light rounded-lg"></div>
+              <div class="h-32 bg-bg-light rounded-lg"></div>
+              <div class="h-32 bg-bg-light rounded-lg"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Simulation C -->
+      <section class="mb-16">
+        <p class="text-xs font-bold text-olive mb-3 tracking-wider">C. 골드 라인 액센트</p>
+        <div class="rounded-2xl overflow-hidden border border-border-light shadow-lg">
+          <div class="bg-white px-6 py-4 flex items-center justify-between border-b border-border-light">
+            <span class="text-lg font-extrabold tracking-[0.08em] text-primary">SIMPLE CUBE</span>
+            <div class="flex gap-1"><span class="block w-5 h-[2px] bg-primary"></span><span class="block w-5 h-[2px] bg-primary mt-1.5"></span></div>
+          </div>
+          <div class="relative overflow-hidden bg-[#6B5B4D]">
+            <div class="absolute inset-0">
+              <img src="/images/popup/booth.jpg" alt="" class="h-full w-full object-cover opacity-10 blur-sm" aria-hidden="true" />
+              <div class="absolute inset-0 bg-[#6B5B4D]/80"></div>
+            </div>
+            <div class="absolute top-0 left-0 right-0 h-[2px] bg-olive"></div>
+            <div class="relative z-10 mx-auto max-w-7xl px-6 lg:px-8 py-6 text-center">
+              <p class="text-[10px] font-medium tracking-[0.4em] text-olive/70 uppercase mb-1.5">POP-UP PHOTOBOOTH</p>
+              <h2 class="text-2xl font-bold text-[#FFFAF4] tracking-wide">팝업 포토부스</h2>
+            </div>
+          </div>
+          <div class="bg-white p-8">
+            <div class="h-4 w-32 bg-olive/20 rounded mb-3"></div>
+            <div class="h-8 w-48 bg-primary/10 rounded mb-4"></div>
+            <div class="h-3 w-full bg-secondary/10 rounded mb-2"></div>
+            <div class="h-3 w-4/5 bg-secondary/10 rounded mb-6"></div>
+            <div class="grid grid-cols-3 gap-3">
+              <div class="h-32 bg-bg-light rounded-lg"></div>
+              <div class="h-32 bg-bg-light rounded-lg"></div>
+              <div class="h-32 bg-bg-light rounded-lg"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Simulation D -->
+      <section class="mb-16">
+        <p class="text-xs font-bold text-olive mb-3 tracking-wider">D. 좌측 골드 보더</p>
+        <div class="rounded-2xl overflow-hidden border border-border-light shadow-lg">
+          <div class="bg-white px-6 py-4 flex items-center justify-between border-b border-border-light">
+            <span class="text-lg font-extrabold tracking-[0.08em] text-primary">SIMPLE CUBE</span>
+            <div class="flex gap-1"><span class="block w-5 h-[2px] bg-primary"></span><span class="block w-5 h-[2px] bg-primary mt-1.5"></span></div>
+          </div>
+          <div class="relative overflow-hidden bg-[#6B5B4D]">
+            <div class="absolute inset-0">
+              <img src="/images/popup/booth.jpg" alt="" class="h-full w-full object-cover opacity-10 blur-sm" aria-hidden="true" />
+              <div class="absolute inset-0 bg-[#6B5B4D]/80"></div>
+            </div>
+            <div class="relative z-10 mx-auto max-w-7xl px-6 lg:px-8 py-6">
+              <div class="flex items-start gap-4">
+                <div class="w-[3px] h-12 bg-olive rounded-full shrink-0 mt-0.5"></div>
+                <div>
+                  <div class="flex items-baseline gap-3">
+                    <h2 class="text-2xl font-bold text-[#FFFAF4]">팝업 포토부스</h2>
+                    <span class="text-[11px] font-medium tracking-[0.12em] text-[#FFFAF4]/35">POP-UP</span>
+                  </div>
+                  <p class="text-[12px] text-[#FFFAF4]/40 mt-1">브랜드 팝업스토어 · 기업 행사 · 페스티벌</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="bg-white p-8">
+            <div class="h-4 w-32 bg-olive/20 rounded mb-3"></div>
+            <div class="h-8 w-48 bg-primary/10 rounded mb-4"></div>
+            <div class="h-3 w-full bg-secondary/10 rounded mb-2"></div>
+            <div class="h-3 w-4/5 bg-secondary/10 rounded mb-6"></div>
+            <div class="grid grid-cols-3 gap-3">
+              <div class="h-32 bg-bg-light rounded-lg"></div>
+              <div class="h-32 bg-bg-light rounded-lg"></div>
+              <div class="h-32 bg-bg-light rounded-lg"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Simulation E -->
+      <section class="mb-16">
+        <p class="text-xs font-bold text-olive mb-3 tracking-wider">E. 투톤 컴팩트 (배경색 없음)</p>
+        <div class="rounded-2xl overflow-hidden border border-border-light shadow-lg">
+          <div class="bg-white px-6 py-4 flex items-center justify-between border-b border-border-light">
+            <span class="text-lg font-extrabold tracking-[0.08em] text-primary">SIMPLE CUBE</span>
+            <div class="flex gap-1"><span class="block w-5 h-[2px] bg-primary"></span><span class="block w-5 h-[2px] bg-primary mt-1.5"></span></div>
+          </div>
+          <div class="bg-white px-6 lg:px-8 py-5 border-b border-border-light">
+            <div class="flex items-center gap-4">
+              <div class="flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-olive"></div>
+                <h2 class="text-lg font-bold text-primary">팝업 포토부스</h2>
+              </div>
+              <div class="h-4 w-px bg-border-light"></div>
+              <span class="text-[11px] font-medium tracking-[0.15em] text-secondary/50 uppercase">Pop-up Photobooth</span>
+            </div>
+          </div>
+          <div class="bg-white p-8">
+            <div class="h-4 w-32 bg-olive/20 rounded mb-3"></div>
+            <div class="h-8 w-48 bg-primary/10 rounded mb-4"></div>
+            <div class="h-3 w-full bg-secondary/10 rounded mb-2"></div>
+            <div class="h-3 w-4/5 bg-secondary/10 rounded mb-6"></div>
+            <div class="grid grid-cols-3 gap-3">
+              <div class="h-32 bg-bg-light rounded-lg"></div>
+              <div class="h-32 bg-bg-light rounded-lg"></div>
+              <div class="h-32 bg-bg-light rounded-lg"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</BaseLayout>

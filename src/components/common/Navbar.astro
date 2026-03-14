@@ -32,19 +32,38 @@ const currentPath = Astro.url.pathname;
     <!-- Desktop Menu -->
     <ul class="hidden items-center gap-8 md:flex">
       {navItems.map((item) => (
-        <li>
+        <li class="nav-parent relative">
           <a
             href={item.href}
             target={item.external ? '_blank' : undefined}
             rel={item.external ? 'noopener noreferrer' : undefined}
             class:list={[
-              'text-sm font-medium tracking-[0.1em] transition-colors duration-300',
+              'nav-parent-link text-sm font-medium tracking-[0.1em] transition-colors duration-300 py-2',
               transparent ? 'text-white/70 hover:text-white' : 'text-secondary hover:text-primary',
               currentPath === item.href && (transparent ? 'text-white border-b border-olive pb-0.5' : 'text-primary border-b border-olive pb-0.5'),
             ]}
           >
             {item.label}
           </a>
+
+          {/* Desktop Dropdown */}
+          {item.children && item.children.length > 0 && (
+            <div class="nav-dropdown absolute top-full pt-2 opacity-0 invisible translate-y-1 transition-all duration-300" style="pointer-events:none;left:-1rem;">
+              <div class="rounded-xl py-2 min-w-[160px]" style="pointer-events:auto;background:rgba(255,255,255,0.45);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);box-shadow:0 4px 24px rgba(0,0,0,0.06);border:1px solid rgba(255,255,255,0.3);">
+                {item.children.map((child) => (
+                  <a
+                    href={child.href}
+                    class="block px-4 py-2 text-[13px] text-secondary hover:text-primary transition-colors duration-200 whitespace-nowrap"
+                    style="background:transparent;"
+                    onmouseover="this.style.background='rgba(0,0,0,0.04)'"
+                    onmouseout="this.style.background='transparent'"
+                  >
+                    {child.label}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
         </li>
       ))}
     </ul>
@@ -79,16 +98,46 @@ const currentPath = Astro.url.pathname;
     </button>
   </div>
 
-  <nav class="flex flex-1 flex-col items-center justify-center gap-10">
+  <nav class="flex flex-1 flex-col overflow-y-auto py-8 px-6">
     {navItems.map((item) => (
-      <a
-        href={item.href}
-        target={item.external ? '_blank' : undefined}
-        rel={item.external ? 'noopener noreferrer' : undefined}
-        class="mobile-nav-link text-2xl font-semibold tracking-[0.15em] text-secondary transition-colors duration-300 hover:text-primary"
-      >
-        {item.label}
-      </a>
+      <div class="mobile-nav-group border-b border-border-light/60">
+        {item.children && item.children.length > 0 ? (
+          <>
+            {/* Parent with toggle */}
+            <button
+              class="mobile-nav-toggle w-full flex items-center justify-between py-5 text-xl font-semibold tracking-[0.1em] text-secondary transition-colors duration-300 hover:text-primary"
+              data-href={item.href}
+            >
+              <span>{item.label}</span>
+              <svg class="mobile-nav-arrow w-4 h-4 text-secondary/40 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {/* Submenu */}
+            <div class="mobile-submenu overflow-hidden" style="max-height:0;transition:max-height 0.35s ease-out;">
+              <div class="pb-4 pl-3 flex flex-col gap-2.5">
+                {item.children.map((child) => (
+                  <a
+                    href={child.href}
+                    class="mobile-nav-link text-[15px] text-secondary/70 hover:text-primary transition-colors duration-200"
+                  >
+                    {child.label}
+                  </a>
+                ))}
+              </div>
+            </div>
+          </>
+        ) : (
+          <a
+            href={item.href}
+            target={item.external ? '_blank' : undefined}
+            rel={item.external ? 'noopener noreferrer' : undefined}
+            class="mobile-nav-link block py-5 text-xl font-semibold tracking-[0.1em] text-secondary transition-colors duration-300 hover:text-primary"
+          >
+            {item.label}
+          </a>
+        )}
+      </div>
     ))}
   </nav>
 
@@ -130,6 +179,19 @@ const currentPath = Astro.url.pathname;
   }
   .nav-scrolled .hamburger-line {
     background-color: #1d1d1f !important;
+  }
+
+  /* Desktop dropdown: show on parent hover */
+  .nav-parent:hover .nav-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto !important;
+  }
+
+  /* Dropdown inner container also needs pointer-events on hover */
+  .nav-parent:hover .nav-dropdown > div {
+    pointer-events: auto !important;
   }
 </style>
 
@@ -173,6 +235,33 @@ const currentPath = Astro.url.pathname;
   // Close menu on link click
   document.querySelectorAll('.mobile-nav-link').forEach((link) => {
     link.addEventListener('click', closeMenu);
+  });
+
+  // Mobile submenu toggle (accordion)
+  document.querySelectorAll('.mobile-nav-toggle').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const group = btn.closest('.mobile-nav-group');
+      if (!group) return;
+      const submenu = group.querySelector('.mobile-submenu') as HTMLElement | null;
+      const arrow = group.querySelector('.mobile-nav-arrow') as HTMLElement | null;
+      if (!submenu) return;
+
+      const isOpen = submenu.style.maxHeight && submenu.style.maxHeight !== '0px';
+
+      // Close all others
+      document.querySelectorAll('.mobile-submenu').forEach((sm) => {
+        (sm as HTMLElement).style.maxHeight = '0px';
+      });
+      document.querySelectorAll('.mobile-nav-arrow').forEach((a) => {
+        (a as HTMLElement).style.transform = '';
+      });
+
+      // Toggle current
+      if (!isOpen) {
+        submenu.style.maxHeight = submenu.scrollHeight + 'px';
+        if (arrow) arrow.style.transform = 'rotate(180deg)';
+      }
+    });
   });
 
   // Close on Escape key

@@ -28,20 +28,34 @@ const categories = [...new Set(posts.map((p) => p.category_name).filter(Boolean)
 <BaseLayout
   title="BLOG | 심플큐브"
   description="심플큐브의 포토부스 이야기. 팝업, 웨딩 포토부스 트렌드와 유용한 가이드를 만나보세요."
+  transparentNav={false}
 >
-  <section class="bg-white pt-28 pb-12 lg:pt-32 lg:pb-16 border-b border-border-light">
-    <div class="mx-auto max-w-5xl px-6 lg:px-8">
-      <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">BLOG</span>
-      <h1 class="mt-4 text-[clamp(2rem,4vw,3rem)] font-bold tracking-tight text-primary">포토부스 이야기</h1>
-      <div class="mt-8">
-        <div class="relative">
-          <svg class="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-secondary-light" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <input id="blog-search" type="text" placeholder="검색어를 입력하세요..." class="w-full rounded-lg border border-border-light bg-bg-light py-3 pl-12 pr-4 text-sm text-primary placeholder-secondary-light outline-none transition-all focus:border-olive/60 focus:bg-white" />
+  <!-- 좌측 골드 보더 히어로 (투명 배경) -->
+  <section class="pt-20 lg:pt-22">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8 py-6 border-b border-border-light">
+      <div class="flex items-start gap-4">
+        <div class="w-[3px] h-12 bg-olive rounded-full shrink-0 mt-0.5"></div>
+        <div>
+          <div class="flex items-baseline gap-3">
+            <h1 class="text-2xl font-bold text-primary">블로그</h1>
+            <span class="text-[11px] font-medium tracking-[0.12em] text-secondary/40">BLOG</span>
+          </div>
+          <p class="text-[12px] text-secondary/50 mt-1">포토부스 트렌드 · 가이드 · 소식</p>
         </div>
       </div>
-      <div class="mt-6 flex flex-wrap gap-2">
+    </div>
+  </section>
+
+  <!-- 검색 & 카테고리 필터 -->
+  <section class="bg-white pt-8 pb-4">
+    <div class="mx-auto max-w-5xl px-6 lg:px-8">
+      <div class="relative">
+        <svg class="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-secondary-light" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <input id="blog-search" type="text" placeholder="검색어를 입력하세요..." class="w-full rounded-lg border border-border-light bg-bg-light py-3 pl-12 pr-4 text-sm text-primary placeholder-secondary-light outline-none transition-all focus:border-olive/60 focus:bg-white" />
+      </div>
+      <div class="mt-4 flex flex-wrap gap-2">
         <button class="category-btn active rounded-full px-4 py-1.5 text-xs font-semibold tracking-wider text-white transition-all bg-olive" data-category="all">전체</button>
         {categories.map((cat) => (
           <button class="category-btn rounded-full px-4 py-1.5 text-xs font-medium text-secondary border border-border-light transition-all hover:border-olive/60 hover:text-olive" data-category={cat}>{cat}</button>

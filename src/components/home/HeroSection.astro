@@ -1,57 +1,41 @@
 ---
-const sliderImages = [
-  { src: '/images/popup/booth.jpg', cls: '' },
-  { src: '/images/wedding/hero.png', cls: '' },
-  { src: '/images/popup/wood-round.jpg', cls: '' },
-  { src: '/images/popup/모듈형모델.png', cls: 'object-[center_30%]' },
-  { src: '/images/wedding/setup-hall.jpg', cls: '' },
-];
 ---
 
-<section id="hero" class="relative flex h-screen min-h-screen overflow-hidden bg-[#FAF8F5]" data-fullpage-section>
-  <!-- Grid background -->
-  <div class="absolute inset-0 opacity-[0.03]" style="background-image: linear-gradient(#2E2318 1px, transparent 1px), linear-gradient(90deg, #2E2318 1px, transparent 1px); background-size: 60px 60px;"></div>
-
-  <div class="flex flex-col md:flex-row w-full h-full">
-    <!-- Left: Typography -->
-    <div class="relative flex flex-1 flex-col items-center justify-center px-8 py-20 md:px-20 lg:px-28">
-      <div class="max-w-lg w-full">
-        <div class="flex items-center gap-3 mb-8">
-          <div class="h-[1px] w-8 bg-[#D4AA45]"></div>
-          <p class="text-[10px] font-medium tracking-[0.5em] text-[#D4AA45] uppercase">Est. 2015</p>
-        </div>
-        <h1 class="text-[clamp(3.5rem,9vw,7rem)] leading-[1.05] text-[#2E2318]" style="font-family: 'ONE Mobile Title', sans-serif; letter-spacing: 0.08em;">심플큐브</h1>
-        <p class="mt-6 text-base font-light leading-relaxed text-[#8B7E72] max-w-xs">브랜드 팝업부터 웨딩까지,<br/>특별한 순간을 완성합니다.</p>
-        <div class="mt-8">
-          <p class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-[#2E2318]" style="font-family: 'ONE Mobile Title', sans-serif;">12,000<span class="text-[#D4AA45]">+</span></p>
-          <p class="text-[9px] tracking-[0.2em] text-[#8B7E72]/40 uppercase mt-0.5">Events</p>
-        </div>
-        <div class="mt-10 flex items-center gap-5">
-          <a href="/popup" class="inline-flex items-center gap-2 bg-[#2E2318] px-6 py-3.5 text-[11px] font-medium tracking-[0.15em] text-white uppercase transition-all hover:bg-[#D4AA45]">POP-UP <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg></a>
-          <a href="/wedding" class="inline-flex items-center gap-2 border border-[#2E2318]/15 px-6 py-3.5 text-[11px] font-medium tracking-[0.15em] text-[#2E2318] uppercase transition-all hover:border-[#D4AA45] hover:text-[#D4AA45]">WEDDING <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg></a>
-        </div>
-      </div>
-    </div>
-
-    <!-- Right: Sliding photo (desktop) -->
-    <div class="hidden md:block w-[38%] overflow-hidden relative">
-      <div class="hero-photo-slider absolute inset-x-0 flex flex-col">
-        {sliderImages.map(img => <img src={img.src} alt="심플큐브 포토부스" class={`w-full h-screen object-cover flex-shrink-0 ${img.cls}`} loading="eager" />)}
-        <img src={sliderImages[0].src} alt="" class="w-full h-screen object-cover flex-shrink-0" loading="eager" />
-      </div>
-    </div>
-
-    <!-- Mobile: horizontal slider -->
-    <div class="md:hidden h-[45vh] overflow-hidden relative">
-      <div class="hero-mobile-slider absolute inset-0 flex flex-row">
-        {sliderImages.map(img => <img src={img.src} alt="심플큐브 포토부스" class={`h-full w-full object-cover flex-shrink-0 ${img.cls}`} loading="eager" />)}
-        <img src={sliderImages[0].src} alt="" class="h-full w-full object-cover flex-shrink-0" loading="eager" />
-      </div>
+<section id="hero" class="relative flex h-screen min-h-screen flex-col overflow-hidden bg-[#FAF8F5]" data-fullpage-section>
+  <!-- Top: Typography -->
+  <div class="flex flex-1 flex-col items-center justify-center px-6 pt-24 pb-8">
+    <p class="mb-3 text-[10px] font-medium tracking-[0.5em] text-[#D4AA45] uppercase">Est. 2015</p>
+    <h1 class="text-[clamp(3.5rem,10vw,8rem)] leading-[1.05] text-[#2E2318] text-center" style="font-family: 'ONE Mobile Title', sans-serif; letter-spacing: 0.12em;">심플큐브</h1>
+    <p class="mt-4 text-[clamp(0.8rem,1.3vw,1rem)] font-light tracking-[0.08em] text-[#8B7E72]">특별한 순간을 완성하는 포토부스</p>
+    <div class="mt-6 flex items-center gap-6">
+      <p class="text-2xl font-bold text-[#2E2318]" style="font-family: 'ONE Mobile Title', sans-serif;">12,000<span class="text-[#D4AA45]">+</span></p>
+      <div class="h-5 w-[1px] bg-[#2E2318]/10"></div>
+      <p class="text-[9px] tracking-[0.2em] text-[#8B7E72]/40 uppercase">Events</p>
     </div>
   </div>
 
+  <!-- Bottom: Two photo cards -->
+  <div class="grid grid-cols-2 gap-1 p-1">
+    <a href="/popup" class="group relative h-[35vh] md:h-[40vh] overflow-hidden">
+      <img src="/images/popup/booth.jpg" alt="심플큐브 팝업 포토부스" class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" loading="eager" />
+      <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+      <div class="absolute bottom-4 left-4 md:bottom-6 md:left-6 z-10">
+        <p class="text-[8px] md:text-[9px] tracking-[0.3em] text-white/40 uppercase mb-1">01</p>
+        <p class="text-base md:text-xl font-light tracking-[0.05em] text-white">POP-UP</p>
+      </div>
+    </a>
+    <a href="/wedding" class="group relative h-[35vh] md:h-[40vh] overflow-hidden">
+      <img src="/images/wedding/hero.png" alt="심플큐브 웨딩 포토부스" class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" loading="eager" />
+      <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+      <div class="absolute bottom-4 left-4 md:bottom-6 md:left-6 z-10">
+        <p class="text-[8px] md:text-[9px] tracking-[0.3em] text-white/40 uppercase mb-1">02</p>
+        <p class="text-base md:text-xl font-light tracking-[0.05em] text-white">WEDDING</p>
+      </div>
+    </a>
+  </div>
+
   <!-- Scroll Down Button -->
-  <button id="scroll-down-btn" class="absolute bottom-8 left-8 md:left-1/4 md:-translate-x-1/2 z-10 flex flex-col items-center gap-2 text-[#8B7E72]/40 hover:text-[#D4AA45] transition-colors duration-300 cursor-pointer" aria-label="아래로 스크롤">
+  <button id="scroll-down-btn" class="absolute bottom-2 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 text-[#8B7E72]/40 hover:text-[#D4AA45] transition-colors duration-300 cursor-pointer" aria-label="아래로 스크롤">
     <span class="text-[10px] tracking-[0.3em] uppercase">Scroll</span>
     <div class="h-8 w-[1px] bg-[#8B7E72]/15 relative overflow-hidden"><div class="absolute top-0 left-0 w-full h-1/2 bg-[#8B7E72]/40 animate-hero-scroll-line"></div></div>
   </button>
@@ -66,51 +50,3 @@ const sliderImages = [
     animation: hero-scroll-line 1.8s ease-in-out infinite;
   }
 </style>
-
-<script>
-  // Desktop: vertical slider
-  const heroSlider = document.querySelector('.hero-photo-slider') as HTMLElement;
-  if (heroSlider) {
-    const container = heroSlider.parentElement!;
-    const totalUnique = 5;
-    let currentIndex = 0;
-
-    setInterval(() => {
-      currentIndex++;
-      const slideHeight = container.clientHeight;
-      heroSlider.style.transition = 'transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
-      heroSlider.style.transform = `translateY(-${currentIndex * slideHeight}px)`;
-
-      if (currentIndex >= totalUnique) {
-        setTimeout(() => {
-          heroSlider.style.transition = 'none';
-          heroSlider.style.transform = 'translateY(0)';
-          currentIndex = 0;
-        }, 850);
-      }
-    }, 2000);
-  }
-
-  // Mobile: horizontal slider
-  const heroMobileSlider = document.querySelector('.hero-mobile-slider') as HTMLElement;
-  if (heroMobileSlider) {
-    const container = heroMobileSlider.parentElement!;
-    const totalUnique = 5;
-    let currentIndex = 0;
-
-    setInterval(() => {
-      currentIndex++;
-      const slideWidth = container.clientWidth;
-      heroMobileSlider.style.transition = 'transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
-      heroMobileSlider.style.transform = `translateX(-${currentIndex * slideWidth}px)`;
-
-      if (currentIndex >= totalUnique) {
-        setTimeout(() => {
-          heroMobileSlider.style.transition = 'none';
-          heroMobileSlider.style.transform = 'translateX(0)';
-          currentIndex = 0;
-        }, 850);
-      }
-    }, 2000);
-  }
-</script>
