@@ -2,12 +2,38 @@ export interface NavItem {
   label: string;
   href: string;
   external?: boolean;
+  children?: NavItem[];
 }
 
 export const navItems: NavItem[] = [
-  { label: 'BRAND', href: '/brand' },
-  { label: 'POP-UP', href: '/popup' },
-  { label: 'WEDDING', href: '/wedding' },
-  { label: 'Q&A', href: '/qna' },
+  {
+    label: '브랜드소개',
+    href: '/brand',
+    children: [
+      { label: '브랜드 소개', href: '/brand' },
+      { label: '지점안내', href: '/brand#branches' },
+    ],
+  },
+  {
+    label: '행사',
+    href: '/popup',
+    children: [
+      { label: '행사 포토부스', href: '/popup' },
+      { label: '모델 소개', href: '/popup#machines' },
+      { label: '브랜드 커스텀', href: '/popup#custom' },
+      { label: '포트폴리오', href: '/popup#portfolio' },
+      { label: 'Q&A', href: '/qna' },
+    ],
+  },
+  {
+    label: '웨딩',
+    href: '/wedding',
+    children: [
+      { label: '웨딩 포토부스', href: '/wedding' },
+      { label: '패키지안내', href: '/wedding#packages' },
+      { label: '포트폴리오', href: '/wedding#gallery' },
+      { label: 'Q&A', href: '/qna' },
+    ],
+  },
   { label: 'BLOG', href: '/blog' },
 ];
