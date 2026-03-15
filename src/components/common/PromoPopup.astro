@@ -1,0 +1,165 @@
+---
+---
+
+<!-- Promo Popup Overlay -->
+<div
+  id="promo-popup"
+  class="fixed inset-0 z-[9999] hidden items-center justify-center p-6"
+>
+  <!-- Backdrop -->
+  <div id="promo-backdrop" class="absolute inset-0 bg-black/0 transition-all duration-400"></div>
+
+  <!-- Popup Card -->
+  <div id="promo-card" class="relative w-full max-w-sm overflow-hidden rounded-2xl bg-white shadow-2xl opacity-0 scale-90 transition-all duration-400" style="max-height: 80vh; overflow-y: auto;">
+
+    <!-- Image -->
+    <div class="relative aspect-video w-full overflow-hidden bg-[#f5f5f3]">
+      <img
+        src="/images/popup/booth.jpg"
+        alt="심플큐브 프로모션"
+        class="h-full w-full object-cover"
+        loading="eager"
+      />
+      <!-- Image overlay gradient -->
+      <div class="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"></div>
+      <!-- Badge on image -->
+      <div class="absolute bottom-4 left-4">
+        <span class="inline-block rounded-full bg-olive px-3 py-1 text-[11px] font-semibold tracking-wider text-white uppercase">
+          Event
+        </span>
+      </div>
+      <!-- Close Button on image -->
+      <button
+        id="promo-close"
+        class="absolute top-3 right-3 z-10 flex h-8 w-8 items-center justify-center rounded-full text-white cursor-pointer"
+        style="background: rgba(0,0,0,0.6);"
+        aria-label="닫기"
+      >
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Content -->
+    <div class="p-6">
+      <h3 class="text-lg font-bold text-primary leading-snug">
+        심플큐브 포토부스<br />상담 예약 안내
+      </h3>
+      <p class="mt-2 text-sm text-secondary leading-relaxed">
+        브랜드 팝업부터 웨딩까지, 특별한 순간을 완성하는 포토부스 서비스를 만나보세요.
+      </p>
+
+      <!-- CTA Button -->
+      <a
+        href="/popup"
+        id="promo-cta"
+        class="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-olive px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-olive-hover"
+      >
+        자세히 보기
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+        </svg>
+      </a>
+    </div>
+
+    <!-- Footer: "오늘 하루 안보기" + 닫기 -->
+    <div class="flex items-center justify-between border-t border-border-light px-6 py-3">
+      <label class="flex items-center gap-2 cursor-pointer select-none">
+        <input
+          type="checkbox"
+          id="promo-hide-today"
+          class="h-4 w-4 rounded border-border-light text-olive accent-olive cursor-pointer"
+        />
+        <span class="text-xs text-secondary">오늘 하루 안보기</span>
+      </label>
+      <button id="promo-close-text" class="text-xs text-secondary hover:text-primary transition-colors cursor-pointer">
+        닫기
+      </button>
+    </div>
+  </div><!-- /Card -->
+</div><!-- /Overlay -->
+
+<script>
+  function initPromoPopup() {
+    // 홈페이지(/)에서만 표시
+    if (window.location.pathname !== '/') return;
+
+    const popup = document.getElementById('promo-popup');
+    const backdrop = document.getElementById('promo-backdrop');
+    const card = document.getElementById('promo-card');
+    const closeBtn = document.getElementById('promo-close');
+    const hideCheckbox = document.getElementById('promo-hide-today') as HTMLInputElement;
+    const ctaBtn = document.getElementById('promo-cta');
+
+    if (!popup || !backdrop || !card || !closeBtn || !hideCheckbox) return;
+
+    // "오늘 하루 안보기" 체크 여부 확인
+    const todayKey = 'promo-popup-hide-date';
+    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    if (localStorage.getItem(todayKey) === today) return;
+
+    // 세션 내 X로 닫은 경우
+    if (sessionStorage.getItem('promo-popup-closed')) return;
+
+    // 1초 후 팝업 표시
+    setTimeout(() => {
+      popup.classList.remove('hidden');
+      popup.classList.add('flex');
+
+      requestAnimationFrame(() => {
+        backdrop.classList.replace('bg-black/0', 'bg-black/40');
+        card.classList.remove('opacity-0', 'scale-90');
+        card.classList.add('opacity-100', 'scale-100');
+      });
+
+      document.body.style.overflow = 'hidden';
+    }, 1000);
+
+    // 닫기 함수
+    function closePopup() {
+      backdrop.classList.replace('bg-black/40', 'bg-black/0');
+      card.classList.remove('opacity-100', 'scale-100');
+      card.classList.add('opacity-0', 'scale-90');
+
+      // "오늘 하루 안보기" 체크 시 localStorage에 오늘 날짜 저장
+      if (hideCheckbox.checked) {
+        localStorage.setItem(todayKey, today);
+      } else {
+        // X만 누르면 세션 내에서만 숨김
+        sessionStorage.setItem('promo-popup-closed', 'true');
+      }
+
+      setTimeout(() => {
+        popup.classList.add('hidden');
+        popup.classList.remove('flex');
+        document.body.style.overflow = '';
+      }, 400);
+    }
+
+    // 이벤트 바인딩
+    const closeTextBtn = document.getElementById('promo-close-text');
+    closeBtn.addEventListener('click', closePopup);
+    closeTextBtn?.addEventListener('click', closePopup);
+    backdrop.addEventListener('click', (e) => {
+      if (e.target === backdrop) closePopup();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !popup.classList.contains('hidden')) {
+        closePopup();
+      }
+    });
+
+    // CTA 클릭 시에도 닫기
+    ctaBtn?.addEventListener('click', () => {
+      sessionStorage.setItem('promo-popup-closed', 'true');
+    });
+  }
+
+  // DOMContentLoaded 또는 이미 로드된 경우
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initPromoPopup);
+  } else {
+    initPromoPopup();
+  }
+</script>

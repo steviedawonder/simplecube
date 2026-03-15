@@ -8,10 +8,10 @@ export interface NavItem {
 export const navItems: NavItem[] = [
   {
     label: '브랜드소개',
-    href: '/brand',
+    href: '/#brand-story',
     children: [
-      { label: '브랜드 소개', href: '/brand' },
-      { label: '지점안내', href: '/brand#branches' },
+      { label: '브랜드 소개', href: '/#brand-story' },
+      { label: '지점안내', href: '/#branches' },
     ],
   },
   {
