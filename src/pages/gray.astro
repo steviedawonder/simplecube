@@ -1,0 +1,439 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+
+const steps = [
+  {
+    step: '01',
+    title: '카카오채널 예약확인',
+    desc: '카카오톡 채널을 통해 예약 가능 여부를 확인합니다.',
+    detail: '행사 날짜, 장소, 시간 안내',
+  },
+  {
+    step: '02',
+    title: '계약서 / 계약금 입금',
+    desc: '계약서 작성 후 계약금을 입금합니다.',
+    detail: '계약 체결일로부터 3일 이내',
+  },
+  {
+    step: '03',
+    title: '옵션사항 선택',
+    desc: '대기화면, 포토 템플릿, 액자, 백드롭을 선택합니다.',
+    detail: '디자인 수정 총 2회 가능',
+  },
+  {
+    step: '04',
+    title: '최종안내 및 점검',
+    desc: '행사 전 최종 안내사항을 점검합니다.',
+    detail: '디자인 시안 확인 및 수정',
+  },
+  {
+    step: '05',
+    title: '행사 진행',
+    desc: '현장 스탭이 설치 및 행사를 진행합니다.',
+    detail: '전담 스탭 1인 배치',
+  },
+];
+
+const packageItems = [
+  '촬영 기기 & 전용 스탠드',
+  '재사용 가능한 보관용 틴케이스',
+  '메시지 액자 방명록',
+  '청첩장 동봉 안내카드 100장',
+  '촬영 소품 20여 가지',
+  '현장 진행 스탭 1인',
+  '무제한 사진 인화 & 인원수 맞춤 인화 서비스',
+  '사진 개별 포장 필름',
+  '웨딩 당일 원본 파일 + 움짤(GIF) USB 제공',
+];
+
+const templates = [
+  {
+    name: 'Wedding Day',
+    desc: '촬영 후 사진 1장을 선택하면, 동일한 사진과 디자인으로 3장이 한 번에 출력됩니다.',
+    variants: ['Black', 'White', 'Beige'],
+    image: '/images/wedding/gray/template-wedding-day.png',
+  },
+  {
+    name: 'Vintage Mood',
+    desc: '촬영 후 사진 1장을 선택하면, 동일한 사진과 디자인으로 3장이 한 번에 출력됩니다.',
+    variants: ['Black', 'White', 'Beige'],
+    image: '/images/wedding/gray/template-vintage-mood.png',
+  },
+  {
+    name: 'Just Married',
+    desc: '촬영 후 사진 2장을 선택하면, 동일한 사진과 디자인으로 3장이 한 번에 출력됩니다.',
+    variants: ['Black', 'White', 'Beige'],
+    image: '/images/wedding/gray/template-just-married.png',
+  },
+  {
+    name: 'Analog Stripe',
+    desc: '촬영 후 사진 2장을 선택하면, 동일한 사진과 디자인으로 3장이 한 번에 출력됩니다.',
+    variants: ['Green', 'Beige', 'Blue'],
+    image: '/images/wedding/gray/template-analog-stripe.png',
+  },
+  {
+    name: 'Share Moment',
+    desc: '촬영 후 사진 1장을 선택하면, 동일한 사진과 디자인으로 3장이 한 번에 출력됩니다.',
+    variants: ['Black', 'White', 'Beige'],
+    image: '/images/wedding/gray/template-share-moment.png',
+  },
+  {
+    name: 'Self Customize',
+    desc: '셀프 디자인의 경우 희망하시는 사진 갯수를 정해주시면 해당하는 레이아웃 가이드파일을 전달 드립니다.',
+    variants: [],
+    image: '/images/wedding/gray/template-self-customize.png',
+  },
+];
+
+const specs = [
+  { label: '크기', value: '330 × 330 × 390 mm' },
+  { label: '모니터', value: '11.6인치' },
+  { label: '카메라', value: '1,500만 화소' },
+  { label: '소비전력', value: '300W (최대 700W)' },
+  { label: '설치방식', value: '스탠드형 / 테이블형' },
+  { label: '출력사이즈', value: '2×4인치 흑백(B&W)' },
+];
+---
+
+<BaseLayout
+  title="GRAY 포토부스 | 심플큐브"
+  description="심플큐브 그레이 포토부스. 모노톤의 깊이 있는 감성을 담은 새로운 컨셉의 웨딩 포토부스."
+  transparentNav={false}
+>
+  <!-- Page Header -->
+  <section class="pt-20 lg:pt-22">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8 py-6 border-b border-border-light">
+      <div class="flex items-start gap-4">
+        <div class="w-[3px] h-12 bg-olive rounded-full shrink-0 mt-0.5"></div>
+        <div>
+          <div class="flex items-baseline gap-3">
+            <h1 class="text-2xl font-bold text-primary">그레이 포토부스</h1>
+            <span class="text-[11px] font-medium tracking-[0.12em] text-secondary/40">GRAY</span>
+          </div>
+          <p class="text-[12px] text-secondary/50 mt-1">Simple Cube Gray · 모노톤 웨딩 포토부스</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Cover Image -->
+  <section class="bg-white py-14 lg:py-20">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      <div class="gs-scale-in overflow-hidden rounded-2xl">
+        <img
+          src="/images/wedding/gray/cover.png"
+          alt="심플큐브 그레이 포토부스"
+          class="h-[400px] w-full object-cover lg:h-[520px]"
+          loading="lazy"
+        />
+      </div>
+
+      <!-- Concept Description -->
+      <div class="gs-fade-up mx-auto mt-10 max-w-3xl text-center">
+        <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">SIMPLE CUBE GRAY</span>
+        <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold leading-tight text-primary">
+          모노톤이 주는<br />깊이 있는 감성
+        </h2>
+        <div class="mx-auto mt-6 h-[2px] w-10 bg-olive"></div>
+        <p class="mt-8 text-base leading-relaxed text-secondary">
+          심플큐브 그레이는 모노톤이 주는 깊이 있는 감성과 차분한 분위기를 담아낸
+          심플큐브의 새로운 컨셉의 웨딩 포토부스입니다.
+        </p>
+        <p class="mt-4 text-base leading-relaxed text-secondary">
+          흑백으로 출력되는 사진은 감성적인 웨딩 포토를 완성하며,
+          고급스러운 액자와 패키지 옵션으로 특별한 웨딩 경험을 선사합니다.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Device Specs -->
+  <section id="device" class="bg-bg-light py-14 lg:py-20">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      <div class="grid gap-10 lg:grid-cols-2 items-center">
+        <div class="gs-fade-up">
+          <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">DEVICE</span>
+          <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold leading-tight text-primary">
+            기기 소개
+          </h2>
+          <div class="mt-6 h-[2px] w-10 bg-olive"></div>
+          <div class="mt-8 grid grid-cols-2 gap-4">
+            {specs.map((spec) => (
+              <div class="rounded-xl border border-border-light bg-white p-4">
+                <span class="text-[10px] font-semibold tracking-wider text-olive uppercase">{spec.label}</span>
+                <p class="mt-1 text-sm font-bold text-primary">{spec.value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div class="gs-scale-in overflow-hidden rounded-2xl">
+          <img
+            src="/images/wedding/gray/device.png"
+            alt="그레이 포토부스 기기"
+            class="w-full object-cover"
+            loading="lazy"
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Package -->
+  <section id="package" class="bg-white py-14 lg:py-20">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      <div class="grid gap-10 lg:grid-cols-2 items-center">
+        <div class="gs-scale-in overflow-hidden rounded-2xl order-2 lg:order-1">
+          <img
+            src="/images/wedding/gray/package.png"
+            alt="그레이 포토부스 패키지 구성품"
+            class="w-full object-cover"
+            loading="lazy"
+          />
+        </div>
+        <div class="gs-fade-up order-1 lg:order-2">
+          <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">PACKAGE</span>
+          <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold leading-tight text-primary">
+            패키지 구성
+          </h2>
+          <div class="mt-6 h-[2px] w-10 bg-olive"></div>
+          <ul class="mt-8 space-y-3">
+            {packageItems.map((item) => (
+              <li class="flex items-start gap-3 text-sm text-secondary">
+                <svg class="mt-0.5 h-4 w-4 shrink-0 text-olive" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                {item}
+              </li>
+            ))}
+          </ul>
+          <p class="mt-4 text-[11px] text-secondary/60">
+            * 추가 안내카드: 100장당 10,000원
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Booking Process -->
+  <section class="bg-bg-light py-14 lg:py-20">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      <div class="mb-10">
+        <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">PROCESS</span>
+        <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">예약 진행 순서</h2>
+        <p class="mt-4 text-sm text-secondary">
+          문의부터 웨딩 당일까지, 심플큐브 그레이가 함께합니다.
+        </p>
+      </div>
+
+      <div class="gs-stagger grid gap-3 md:grid-cols-5">
+        {steps.map((item, i) => (
+          <div class="relative group">
+            <div class="rounded-xl border border-border-light bg-white p-6 transition-all duration-300 hover:border-olive/30 hover:shadow-sm h-full">
+              <span class="text-2xl font-bold text-olive/40">{item.step}</span>
+              <h3 class="mt-3 text-base font-bold text-primary">{item.title}</h3>
+              <p class="mt-2 text-xs leading-relaxed text-secondary">{item.desc}</p>
+              <span class="mt-3 inline-block text-[10px] text-olive/70">{item.detail}</span>
+            </div>
+            {i < steps.length - 1 && (
+              <div class="hidden md:flex absolute -right-2 top-1/2 -translate-y-1/2 z-10 text-border">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div class="mt-6 rounded-xl bg-white border border-border-light p-5">
+        <p class="text-xs text-secondary leading-relaxed">
+          <strong class="text-primary">안내사항</strong><br />
+          · 출장 설치에 따른 배송비가 발생할 수 있습니다.<br />
+          · 해외 행사 진행 시 별도 상담이 필요합니다.<br />
+          · 계약 체결일로부터 3일 이내 계약금 입금이 완료되어야 합니다.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Options Section: Main Screen -->
+  <section id="options" class="bg-white py-14 lg:py-20">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      <div class="gs-fade-up text-center">
+        <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">OPTIONS</span>
+        <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold leading-tight text-primary">
+          옵션사항 선택
+        </h2>
+        <div class="mx-auto mt-6 h-[2px] w-10 bg-olive"></div>
+        <p class="mt-8 text-base leading-relaxed text-secondary">
+          모든 옵션사항 선택 및 최종 편집 완료 후 행사가 진행됩니다.
+        </p>
+      </div>
+
+      <!-- Main Screen -->
+      <div class="mt-14">
+        <h3 class="gs-fade-up text-lg font-bold text-primary mb-6">메인화면 선택</h3>
+        <div class="gs-scale-in overflow-hidden rounded-2xl">
+          <img
+            src="/images/wedding/gray/main-screen.png"
+            alt="메인화면 타입 - 사진 삽입형 / 문구 삽입형"
+            class="w-full object-cover"
+            loading="lazy"
+          />
+        </div>
+        <div class="mt-6 grid gap-4 md:grid-cols-2">
+          <div class="rounded-xl border border-border-light p-5">
+            <h4 class="text-sm font-bold text-primary">A type · 사진 삽입형</h4>
+            <p class="mt-2 text-xs text-secondary leading-relaxed">
+              신랑·신부님의 사진이 들어가는 타입의 메인화면입니다. 가로 혹은 세로형으로 전달해주세요.
+            </p>
+          </div>
+          <div class="rounded-xl border border-border-light p-5">
+            <h4 class="text-sm font-bold text-primary">B type · 문구 삽입형</h4>
+            <p class="mt-2 text-xs text-secondary leading-relaxed">
+              사진을 넣지않고 문구만 삽입하는 타입의 메인화면입니다. 희망하시는 문구를 전달해주세요.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Photo Strip Templates -->
+  <section id="templates" class="bg-bg-light py-14 lg:py-20">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      <div class="gs-fade-up mb-10">
+        <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">TEMPLATES</span>
+        <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">포토 스트립 디자인</h2>
+        <p class="mt-4 text-sm text-secondary">
+          하객분들이 받으실 사진 인화지 디자인을 선택해주세요.
+        </p>
+      </div>
+
+      <div class="gs-stagger space-y-8">
+        {templates.map((template, i) => (
+          <div class="overflow-hidden rounded-2xl bg-white border border-border-light">
+            <img
+              src={template.image}
+              alt={`${template.name} 포토 스트립 템플릿`}
+              class="w-full object-cover"
+              loading="lazy"
+            />
+            <div class="p-5">
+              <div class="flex items-center gap-3">
+                <span class="text-lg font-bold text-olive/40">{String(i + 1).padStart(2, '0')}</span>
+                <h3 class="text-base font-bold text-primary">{template.name}</h3>
+              </div>
+              <p class="mt-2 text-xs text-secondary leading-relaxed">{template.desc}</p>
+              {template.variants.length > 0 && (
+                <div class="mt-3 flex gap-2">
+                  {template.variants.map((v) => (
+                    <span class="rounded-full bg-bg-light px-3 py-1 text-[10px] font-medium text-secondary">{v}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <!-- Design Notes -->
+      <div class="mt-8 rounded-xl bg-white border border-border-light p-5">
+        <p class="text-xs text-secondary leading-relaxed">
+          <strong class="text-primary">디자인 수정 시 주의사항</strong><br />
+          · 대기화면과 스트립 디자인 수정은 총 2회 가능합니다. (오타 수정은 횟수 제외)<br />
+          · 위치, 문구, 구성요소, 스트립 디자인의 종류 변경은 가능합니다.<br />
+          · 폰트 수정시 폰트명과 희망하시는 폰트크기 제공해주세요.<br />
+          · 셀프로 편집을 진행하실 경우 수정 비용이 발생합니다.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Message Photo Frame -->
+  <section id="frame" class="bg-white py-14 lg:py-20">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      <div class="grid gap-10 lg:grid-cols-2 items-center">
+        <div class="gs-fade-up">
+          <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">FRAME</span>
+          <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold leading-tight text-primary">
+            메시지 액자
+          </h2>
+          <div class="mt-6 h-[2px] w-10 bg-olive"></div>
+          <p class="mt-8 text-base leading-relaxed text-secondary">
+            중앙에 위치한 신랑·신부님의 사진 주변에
+            하객분들의 축하 메시지를 담아드리는 액자입니다.
+          </p>
+
+          <div class="mt-8 space-y-4">
+            <div class="rounded-xl border border-border-light p-4">
+              <h4 class="text-sm font-bold text-primary">A3 사이즈</h4>
+              <p class="mt-1 text-xs text-secondary">297 × 420 mm · 블랙 or 우드 색상 중 택 1</p>
+            </div>
+            <div class="rounded-xl border border-border-light p-4">
+              <h4 class="text-sm font-bold text-primary">A2 사이즈</h4>
+              <p class="mt-1 text-xs text-secondary">420 × 594 mm · 블랙 or 우드 색상 중 택 1</p>
+            </div>
+          </div>
+
+          <p class="mt-4 text-[11px] text-secondary/60">
+            * 사진 위치 변경 희망시 사전에 말씀 부탁드립니다.<br />
+            * 사진은 흑백으로 제공되니 선택시 참고 부탁드립니다.
+          </p>
+        </div>
+        <div class="gs-scale-in overflow-hidden rounded-2xl">
+          <img
+            src="/images/wedding/gray/message-frame.png"
+            alt="메시지 액자 프레임"
+            class="w-full object-cover"
+            loading="lazy"
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Booking CTA -->
+  <section class="relative flex min-h-[50vh] items-center justify-center overflow-hidden bg-[#3a3a3a]">
+    <div class="absolute inset-0">
+      <img
+        src="/images/wedding/gray/cover.png"
+        alt="그레이 포토부스"
+        class="h-full w-full object-cover opacity-20"
+        loading="lazy"
+      />
+    </div>
+
+    <div class="relative z-10 px-6 py-20 text-center">
+      <h2 class="text-[clamp(1.5rem,4vw,2.5rem)] font-bold leading-snug text-[#FFFAF4]">
+        그레이 포토부스에 대해<br />궁금한 점이 있으신가요?
+      </h2>
+      <p class="mt-4 text-base text-[#FFFAF4]/60">
+        편하게 문의해 주세요. 친절하게 안내드리겠습니다.
+      </p>
+
+      <div class="mt-10 flex flex-wrap justify-center gap-4">
+        <a
+          href="https://pf.kakao.com/_simplecube"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-3 bg-olive px-8 py-4 text-sm font-semibold tracking-wider text-white transition-all duration-300 hover:bg-olive-hover rounded-full"
+        >
+          <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 3c-4.97 0-9 3.185-9 7.115 0 2.557 1.707 4.8 4.27 6.054-.188.702-.682 2.545-.78 2.94-.123.496.182.489.382.356.157-.105 2.501-1.7 3.515-2.389.533.078 1.08.12 1.613.12 4.97 0 9-3.186 9-7.115C21 6.185 16.97 3 12 3z"/>
+          </svg>
+          카카오톡으로 문의하기
+        </a>
+        <a
+          href="/wedding"
+          class="inline-flex items-center gap-2 rounded-full border border-[#FFFAF4]/30 px-8 py-4 text-sm font-semibold tracking-wider text-[#FFFAF4] transition-all duration-300 hover:bg-[#FFFAF4] hover:text-[#2E2318]"
+        >
+          웨딩 포토부스 보기
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+          </svg>
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

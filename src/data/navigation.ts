@@ -30,7 +30,9 @@ export const navItems: NavItem[] = [
     href: '/wedding',
     children: [
       { label: '웨딩 포토부스', href: '/wedding' },
+      { label: '그레이 포토부스', href: '/gray' },
       { label: '패키지안내', href: '/wedding#packages' },
+      { label: '제휴 웨딩홀', href: '/wedding#partner-halls' },
       { label: '포트폴리오', href: '/wedding#gallery' },
       { label: 'Q&A', href: '/qna' },
     ],
