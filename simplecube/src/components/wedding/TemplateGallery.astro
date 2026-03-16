@@ -1,0 +1,40 @@
+---
+import SectionHeading from '@components/common/SectionHeading.astro';
+
+const templates = [
+  { src: 'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=400&h=600&fit=crop&q=80', name: 'Classic White' },
+  { src: 'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=400&h=600&fit=crop&q=80', name: 'Romantic Blush' },
+  { src: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=400&h=600&fit=crop&q=80', name: 'Modern Minimal' },
+  { src: 'https://images.unsplash.com/photo-1478146059778-26028b07395a?w=400&h=600&fit=crop&q=80', name: 'Floral Garden' },
+  { src: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=400&h=600&fit=crop&q=80', name: 'Vintage Gold' },
+  { src: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop&q=80', name: 'Elegant Black' },
+];
+---
+
+<section class="bg-bg-charcoal py-24 lg:py-32">
+  <div class="mx-auto max-w-7xl px-6 lg:px-8">
+    <div class="mb-16">
+      <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">TEMPLATES</span>
+      <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">포토 템플릿</h2>
+      <p class="mt-4 text-sm text-secondary">웨딩 컨셉에 맞는 다양한 템플릿을 제공합니다.</p>
+    </div>
+
+    <div class="gs-stagger grid grid-cols-2 gap-2 md:grid-cols-3">
+      {templates.map((template) => (
+        <div class="group cursor-pointer overflow-hidden">
+          <div class="relative">
+            <img
+              src={template.src}
+              alt={template.name}
+              class="aspect-[2/3] w-full object-cover opacity-85 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
+              loading="lazy"
+            />
+            <div class="absolute inset-0 flex items-end bg-gradient-to-t from-black/70 to-transparent">
+              <p class="p-5 text-xs font-semibold tracking-[0.15em] text-white/60 group-hover:text-white transition-colors duration-300 uppercase">{template.name}</p>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

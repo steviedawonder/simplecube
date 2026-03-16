@@ -1,0 +1,47 @@
+---
+interface Props {
+  title: string;
+  subtitle?: string;
+  backgroundImage: string;
+  height?: string;
+}
+
+const {
+  title,
+  subtitle,
+  backgroundImage,
+  height = 'h-[55vh] min-h-[420px]',
+} = Astro.props;
+---
+
+<section
+  class:list={[
+    'relative flex items-end overflow-hidden',
+    height,
+  ]}
+>
+  <!-- Background Image -->
+  <div class="absolute inset-0">
+    <img
+      src={backgroundImage}
+      alt=""
+      class="h-full w-full object-cover"
+      loading="eager"
+    />
+    <div class="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent"></div>
+    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
+  </div>
+
+  <!-- Content - bottom-left aligned like cheesebox -->
+  <div class="relative z-10 w-full px-6 pb-14 md:px-16 lg:px-24">
+    {subtitle && (
+      <p class="mb-3 text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">
+        {subtitle}
+      </p>
+    )}
+    <h1 class="text-[clamp(2rem,4.5vw,4rem)] font-bold tracking-[0.05em] text-white leading-tight">
+      {title}
+    </h1>
+    <div class="mt-5 h-[2px] w-10 bg-olive"></div>
+  </div>
+</section>

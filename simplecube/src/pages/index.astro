@@ -1,0 +1,44 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import HeroSection from '@components/home/HeroSection.astro';
+import ServicesSection from '@components/home/ServicesSection.astro';
+import WhySimpleCube from '@components/home/WhySimpleCube.astro';
+
+const base = import.meta.env.BASE_URL;
+---
+
+<BaseLayout transparentNav={true}>
+  <HeroSection />
+  <ServicesSection />
+  <WhySimpleCube />
+
+  <!-- Contact CTA Section -->
+  <section class="bg-bg-charcoal border-t border-black/6 py-24">
+    <div class="mx-auto max-w-3xl px-6 text-center">
+      <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">CONTACT</span>
+      <h2 class="mt-5 text-[clamp(1.8rem,3.5vw,3rem)] font-bold leading-tight text-primary">
+        문의 및 예약 상담
+      </h2>
+      <p class="mt-5 text-base text-secondary leading-relaxed">
+        팝업 포토부스 및 웨딩 포토부스에 대한 상담을 도와드립니다.<br />
+        이메일 또는 인스타그램으로 편하게 문의해 주세요.
+      </p>
+      <div class="mt-10 flex flex-wrap justify-center gap-4">
+        <a
+          href="mailto:hello@simplecube.net"
+          class="inline-flex items-center gap-2 bg-olive px-8 py-3.5 text-sm font-semibold tracking-[0.08em] text-black transition-all duration-300 hover:bg-olive-hover"
+        >
+          이메일 문의
+        </a>
+        <a
+          href="https://www.instagram.com/simplecube"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 border border-black/20 px-8 py-3.5 text-sm font-semibold tracking-[0.08em] text-primary/60 transition-all duration-300 hover:border-black/40 hover:text-primary"
+        >
+          Instagram ↗
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

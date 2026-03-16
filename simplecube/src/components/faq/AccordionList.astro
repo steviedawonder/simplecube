@@ -1,0 +1,36 @@
+---
+import AccordionItem from './AccordionItem.astro';
+import { faqItems } from '@data/faq';
+---
+
+<div class="accordion-list">
+  {faqItems.map((item) => (
+    <AccordionItem question={item.question} answer={item.answer} />
+  ))}
+</div>
+
+<script>
+  // Accordion toggle logic
+  document.addEventListener('DOMContentLoaded', () => {
+    const triggers = document.querySelectorAll('.accordion-trigger');
+
+    triggers.forEach((trigger) => {
+      trigger.addEventListener('click', () => {
+        const item = trigger.closest('.accordion-item') as HTMLElement;
+        const isOpen = item.dataset.open === 'true';
+
+        // Close all other items
+        document.querySelectorAll('.accordion-item').forEach((el) => {
+          (el as HTMLElement).dataset.open = 'false';
+          el.querySelector('.accordion-trigger')?.setAttribute('aria-expanded', 'false');
+        });
+
+        // Toggle current item
+        if (!isOpen) {
+          item.dataset.open = 'true';
+          trigger.setAttribute('aria-expanded', 'true');
+        }
+      });
+    });
+  });
+</script>

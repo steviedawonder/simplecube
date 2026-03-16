@@ -1,0 +1,35 @@
+---
+import SectionHeading from '@components/common/SectionHeading.astro';
+
+const portfolioImages = [
+  { src: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=600&h=400&fit=crop&q=80', alt: '팝업 포트폴리오 1' },
+  { src: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=600&h=400&fit=crop&q=80', alt: '팝업 포트폴리오 2' },
+  { src: 'https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=600&h=400&fit=crop&q=80', alt: '팝업 포트폴리오 3' },
+  { src: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=600&h=400&fit=crop&q=80', alt: '팝업 포트폴리오 4' },
+  { src: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&h=400&fit=crop&q=80', alt: '팝업 포트폴리오 5' },
+  { src: 'https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?w=600&h=400&fit=crop&q=80', alt: '팝업 포트폴리오 6' },
+];
+---
+
+<section class="bg-bg-dark py-24 lg:py-32">
+  <div class="mx-auto max-w-7xl px-6 lg:px-8">
+    <div class="mb-16">
+      <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">PORTFOLIO</span>
+      <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">포트폴리오</h2>
+      <p class="mt-4 text-sm text-secondary">심플큐브가 함께한 특별한 순간들</p>
+    </div>
+
+    <div class="gs-stagger grid grid-cols-2 gap-2 md:grid-cols-3">
+      {portfolioImages.map((img) => (
+        <div class="group cursor-pointer overflow-hidden">
+          <img
+            src={img.src}
+            alt={img.alt}
+            class="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-105 opacity-85 group-hover:opacity-100"
+            loading="lazy"
+          />
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

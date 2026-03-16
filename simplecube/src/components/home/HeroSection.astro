@@ -1,0 +1,137 @@
+---
+const base = import.meta.env.BASE_URL;
+---
+
+<section id="hero" class="relative flex h-screen min-h-[700px] items-end overflow-hidden">
+  <!-- Background Image -->
+  <div class="absolute inset-0">
+    <img
+      src={`${base}/images/hero/main.jpg`}
+      alt="심플큐브 포토부스 이벤트"
+      class="hero-bg h-full w-full object-cover"
+      loading="eager"
+      fetchpriority="high"
+    />
+    <!-- Multi-layer dark overlay like cheesebox -->
+    <div class="absolute inset-0 bg-gradient-to-r from-black/85 via-black/50 to-transparent"></div>
+    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
+  </div>
+
+  <!-- Content - bottom-left aligned like cheesebox -->
+  <div class="hero-content relative z-10 w-full px-6 pb-16 md:px-16 lg:px-24 lg:pb-28">
+    <div class="max-w-2xl">
+      <!-- Eyebrow label -->
+      <p class="mb-4 text-[10px] font-medium tracking-[0.4em] text-white/50 uppercase md:mb-5 md:text-xs md:tracking-[0.5em]">
+        PHOTO BOOTH SERVICE
+      </p>
+
+      <!-- Main headline -->
+      <h1 class="text-[clamp(2.5rem,7vw,6.5rem)] font-bold leading-[0.9] tracking-tight text-white">
+        SIMPLE<br/>CUBE
+      </h1>
+
+      <!-- Gold divider -->
+      <div class="mt-7 h-[2px] w-14 bg-olive"></div>
+
+      <!-- Subtitle -->
+      <p class="mt-7 max-w-md text-base font-light leading-relaxed text-white/65 md:text-lg">
+        브랜드 팝업부터 웨딩까지,<br />
+        특별한 순간을 완성하는 포토부스
+      </p>
+
+      <!-- CTA Buttons -->
+      <div class="mt-10 flex flex-wrap gap-4">
+        <a
+          href={`${base}/popup`}
+          class="inline-flex items-center gap-2 bg-olive px-7 py-3.5 text-sm font-semibold tracking-[0.08em] text-black transition-all duration-300 hover:bg-olive-hover hover:gap-3"
+        >
+          POP-UP BOOTH
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </a>
+        <a
+          href={`${base}/wedding`}
+          class="inline-flex items-center gap-2 border border-white/40 px-7 py-3.5 text-sm font-semibold tracking-[0.08em] text-white/80 transition-all duration-300 hover:border-white hover:text-white hover:gap-3"
+        >
+          WEDDING BOOTH
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scroll Indicator (bottom right) -->
+  <div class="scroll-indicator absolute bottom-8 right-8 md:right-12 z-10">
+    <div class="flex flex-col items-center gap-3">
+      <div class="h-12 w-[1px] bg-white/20 relative overflow-hidden">
+        <div class="scroll-line absolute top-0 left-0 w-full h-full bg-white/60"></div>
+      </div>
+      <span class="text-[10px] tracking-[0.3em] text-white/40 rotate-90 origin-center mt-2">SCROLL</span>
+    </div>
+  </div>
+</section>
+
+<style>
+  @keyframes scroll-line-anim {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
+  }
+  .scroll-line {
+    animation: scroll-line-anim 2s ease-in-out infinite;
+  }
+</style>
+
+<script>
+  import { gsap } from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  // Hero parallax effect
+  const heroBg = document.querySelector('.hero-bg');
+  const heroContent = document.querySelector('.hero-content');
+  const scrollIndicator = document.querySelector('.scroll-indicator');
+
+  if (heroBg) {
+    gsap.to(heroBg, {
+      yPercent: 25,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: '#hero',
+        start: 'top top',
+        end: 'bottom top',
+        scrub: true,
+      },
+    });
+  }
+
+  if (heroContent) {
+    gsap.to(heroContent, {
+      y: 80,
+      opacity: 0,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: '#hero',
+        start: 'top top',
+        end: '50% top',
+        scrub: true,
+      },
+    });
+  }
+
+  if (scrollIndicator) {
+    gsap.to(scrollIndicator, {
+      opacity: 0,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: '#hero',
+        start: '15% top',
+        end: '35% top',
+        scrub: true,
+      },
+    });
+  }
+</script>

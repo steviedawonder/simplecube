@@ -1,0 +1,54 @@
+---
+import SectionHeading from '@components/common/SectionHeading.astro';
+
+const machines = [
+  {
+    name: 'CUBE ONE',
+    desc: '콤팩트한 사이즈의 스탠다드 포토부스. 소규모 행사에 최적화.',
+    specs: ['4컷/6컷 촬영', '즉석 출력', '콤팩트 사이즈'],
+    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=600&h=800&fit=crop&q=80',
+  },
+  {
+    name: 'CUBE PRO',
+    desc: '프리미엄 장비와 넓은 촬영 공간. 대규모 행사에 적합.',
+    specs: ['다양한 촬영 모드', '대형 터치스크린', 'AI 보정'],
+    image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=600&h=800&fit=crop&q=80',
+  },
+];
+---
+
+<section class="bg-bg-charcoal py-24 lg:py-32">
+  <div class="mx-auto max-w-7xl px-6 lg:px-8">
+    <div class="mb-16">
+      <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">EQUIPMENT</span>
+      <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">장비 소개</h2>
+      <p class="mt-4 text-sm text-secondary">최신 장비로 최고의 결과물을 만들어냅니다.</p>
+    </div>
+
+    <div class="gs-stagger grid gap-6 md:grid-cols-2">
+      {machines.map((machine) => (
+        <div class="group overflow-hidden border border-black/8 transition-all duration-300 hover:border-olive/40">
+          <div class="overflow-hidden">
+            <img
+              src={machine.image}
+              alt={machine.name}
+              class="h-72 w-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-90 group-hover:opacity-100"
+              loading="lazy"
+            />
+          </div>
+          <div class="p-8">
+            <h3 class="text-xl font-bold text-primary">{machine.name}</h3>
+            <p class="mt-2 text-sm text-secondary">{machine.desc}</p>
+            <ul class="mt-5 flex flex-wrap gap-2">
+              {machine.specs.map((spec) => (
+                <li class="border border-olive/30 px-3 py-1 text-xs font-medium text-olive/80">
+                  {spec}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

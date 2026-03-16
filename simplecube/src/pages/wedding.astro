@@ -1,0 +1,24 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import PageHero from '@components/common/PageHero.astro';
+import ServiceIntro from '@components/wedding/ServiceIntro.astro';
+import PackageDetails from '@components/wedding/PackageDetails.astro';
+import PartnerCompanies from '@components/wedding/PartnerCompanies.astro';
+import TemplateGallery from '@components/wedding/TemplateGallery.astro';
+---
+
+<BaseLayout
+  title="WEDDING | 심플큐브"
+  description="심플큐브 웨딩 포토부스. 결혼식을 더 특별하게 만드는 맞춤형 포토부스 서비스."
+  transparentNav={true}
+>
+  <PageHero
+    title="WEDDING PHOTO BOOTH"
+    subtitle="가장 아름다운 날의 특별한 순간"
+    backgroundImage="https://images.unsplash.com/photo-1519741497674-611481863552?w=1920&h=800&fit=crop&q=80"
+  />
+  <ServiceIntro />
+  <PackageDetails />
+  <PartnerCompanies />
+  <TemplateGallery />
+</BaseLayout>

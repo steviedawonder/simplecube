@@ -1,0 +1,28 @@
+---
+import SectionHeading from '@components/common/SectionHeading.astro';
+
+const clients = [
+  'Client A', 'Client B', 'Client C',
+  'Client D', 'Client E', 'Client F',
+];
+---
+
+<section class="bg-bg-charcoal py-24 lg:py-32">
+  <div class="mx-auto max-w-7xl px-6 lg:px-8">
+    <div class="mb-16">
+      <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">CLIENTS</span>
+      <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">고객사</h2>
+      <p class="mt-4 text-sm text-secondary">다양한 브랜드와 함께했습니다.</p>
+    </div>
+
+    <div class="gs-stagger grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+      {clients.map((client) => (
+        <div class="flex h-24 items-center justify-center border border-black/8 px-4 transition-all duration-300 hover:border-olive/40">
+          <span class="text-sm font-semibold tracking-wide text-primary/30 transition-colors duration-300 hover:text-primary/60">
+            {client}
+          </span>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
