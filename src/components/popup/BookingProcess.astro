@@ -45,45 +45,50 @@ const steps = [
 
     <!-- Steps -->
     <div class="gs-stagger relative">
-      <!-- Connection line -->
-      <div class="absolute left-6 top-0 bottom-0 w-[1px] bg-border-light hidden md:block md:left-1/2 md:-translate-x-1/2"></div>
-
-      <div class="space-y-6">
-        {steps.map((item, i) => (
-          <div class:list={[
-            'relative flex flex-col md:flex-row md:items-center gap-6',
-            i % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse',
-          ]}>
-            <!-- Step number (center on desktop) -->
-            <div class="hidden md:flex absolute left-1/2 -translate-x-1/2 z-10 h-12 w-12 items-center justify-center rounded-full border border-olive/40 bg-bg-light">
-              <span class="text-sm font-bold text-olive">{item.step}</span>
-            </div>
-
-            <!-- Content card -->
-            <div class:list={[
-              'flex-1',
-              i % 2 === 0 ? 'md:pr-20 md:text-right' : 'md:pl-20',
-            ]}>
-              <div class="rounded-xl border border-border-light bg-white p-6 transition-all duration-300 hover:border-olive/30 hover:shadow-sm">
-                <div class="flex items-center gap-3 md:hidden mb-3">
-                  <span class="flex h-8 w-8 items-center justify-center rounded-full border border-olive/40 text-xs font-bold text-olive">{item.step}</span>
-                  <h3 class="text-base font-bold text-primary">{item.title}</h3>
+      <!-- Mobile: compact timeline -->
+      <div class="md:hidden relative pl-8">
+        <div class="absolute left-[11px] top-1 bottom-1 w-[1px] bg-olive/20"></div>
+        <div class="space-y-4">
+          {steps.map((item, i) => (
+            <button type="button" data-step-idx={i} class="step-card relative text-left w-full cursor-pointer group">
+              <div class="absolute -left-8 top-1 h-[9px] w-[9px] rounded-full bg-olive border-2 border-olive/30 transition-all group-hover:scale-125"></div>
+              <div>
+                <div class="flex items-baseline gap-2">
+                  <span class="text-[10px] font-bold text-olive/50">{item.step}</span>
+                  <h3 class="text-sm font-bold text-primary group-hover:text-olive transition-colors">{item.title}</h3>
                 </div>
-                <h3 class="hidden md:block text-base font-bold text-primary">{item.title}</h3>
-                <p class="mt-2 text-sm text-secondary">{item.desc}</p>
-                <span class="mt-2 inline-block text-xs text-olive/80">{item.detail}</span>
+                <p class="mt-0.5 text-xs text-secondary leading-relaxed">{item.desc}</p>
               </div>
-            </div>
+            </button>
+          ))}
+        </div>
+      </div>
 
-            <!-- Spacer for the other side -->
-            <div class="hidden md:block flex-1"></div>
-          </div>
-        ))}
+      <!-- Desktop: horizontal step bar -->
+      <div class="hidden md:block">
+        <div class="relative flex items-start justify-between">
+          <!-- Connection line -->
+          <div class="absolute top-5 left-[40px] right-[40px] h-[1px] bg-olive/20"></div>
+
+          {steps.map((item, i) => (
+            <button
+              type="button"
+              data-step-idx={i}
+              class="step-card relative flex flex-col items-center text-center cursor-pointer group flex-1"
+            >
+              <div class="relative z-10 flex h-10 w-10 items-center justify-center rounded-full border-2 border-olive/30 bg-bg-light text-sm font-bold text-olive transition-all duration-300 group-hover:bg-olive group-hover:text-white group-hover:border-olive group-hover:scale-110">
+                {item.step}
+              </div>
+              <h3 class="mt-3 text-sm font-bold text-primary group-hover:text-olive transition-colors">{item.title}</h3>
+              <p class="mt-1 text-xs text-secondary/60 max-w-[120px] leading-tight">{item.desc}</p>
+            </button>
+          ))}
+        </div>
       </div>
     </div>
 
     <!-- CTA -->
-    <div class="mt-16 text-center">
+    <div class="mt-12 md:mt-16 text-center">
       <a
         href="https://pf.kakao.com/_simplecube"
         target="_blank"
@@ -98,3 +103,70 @@ const steps = [
     </div>
   </div>
 </section>
+
+<!-- Modal -->
+<div id="stepModal" class="fixed inset-0 z-50 flex items-center justify-center" style="display:none">
+  <div class="step-modal-backdrop absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+  <div class="step-modal-content relative mx-4 w-full max-w-sm rounded-2xl bg-white p-6 md:p-8 shadow-2xl transform scale-95 opacity-0 transition-all duration-300">
+    <button type="button" id="stepModalClose" class="absolute top-4 right-4 text-secondary/40 hover:text-primary transition-colors">
+      <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+    </button>
+    <div class="flex items-center gap-3 mb-4">
+      <div id="stepModalNum" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-olive text-white text-sm font-bold"></div>
+      <h3 id="stepModalTitle" class="text-lg font-bold text-primary"></h3>
+    </div>
+    <p id="stepModalDesc" class="text-sm leading-relaxed text-secondary"></p>
+    <div class="mt-4 flex items-center gap-2 bg-olive/5 rounded-lg px-3 py-2">
+      <svg class="h-4 w-4 text-olive/60 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" /></svg>
+      <span id="stepModalDetail" class="text-xs text-olive/80"></span>
+    </div>
+  </div>
+</div>
+
+<script define:vars={{ steps }}>
+  const cards = document.querySelectorAll('.step-card');
+  const modal = document.getElementById('stepModal');
+  const modalNum = document.getElementById('stepModalNum');
+  const modalTitle = document.getElementById('stepModalTitle');
+  const modalDesc = document.getElementById('stepModalDesc');
+  const modalDetail = document.getElementById('stepModalDetail');
+  const modalClose = document.getElementById('stepModalClose');
+  const modalBackdrop = modal.querySelector('.step-modal-backdrop');
+  const modalContent = modal.querySelector('.step-modal-content');
+
+  function openModal(idx) {
+    const step = steps[idx];
+    modalNum.textContent = step.step;
+    modalTitle.textContent = step.title;
+    modalDesc.textContent = step.desc;
+    modalDetail.textContent = step.detail;
+    modal.style.display = 'flex';
+    requestAnimationFrame(() => {
+      modalContent.classList.remove('scale-95', 'opacity-0');
+      modalContent.classList.add('scale-100', 'opacity-100');
+    });
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    modalContent.classList.remove('scale-100', 'opacity-100');
+    modalContent.classList.add('scale-95', 'opacity-0');
+    setTimeout(() => {
+      modal.style.display = 'none';
+      document.body.style.overflow = '';
+    }, 200);
+  }
+
+  cards.forEach(card => {
+    card.addEventListener('click', () => {
+      const idx = parseInt(card.dataset.stepIdx);
+      openModal(idx);
+    });
+  });
+
+  modalClose.addEventListener('click', closeModal);
+  modalBackdrop.addEventListener('click', closeModal);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.style.display !== 'none') closeModal();
+  });
+</script>
