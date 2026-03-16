@@ -1,92 +1,50 @@
 ---
 const partners = [
-  {
-    name: '더채플 청담',
-    image: '/images/wedding/partners/partner-chaple-cheongdam-500x500.jpg',
-  },
-  {
-    name: '더채플 논현',
-    image: '/images/wedding/partners/partner-chaple-nonhyeon-500x500.jpg',
-  },
-  {
-    name: '아펠가모 반포',
-    image: '/images/wedding/partners/parnter-apelgamo-banpo-500x500.jpg',
-  },
-  {
-    name: '아펠가모 잠실',
-    image: '/images/wedding/partners/parnter-apelgamo-jamsil-500x500.jpg',
-  },
-  {
-    name: '아펠가모 선릉',
-    image: '/images/wedding/partners/parnter-apelgamo-seonreung-500x500.jpg',
-  },
-  {
-    name: '아펠가모 광화문',
-    image: '/images/wedding/partners/parnter-apelgamo-gwanghwamun-500x500.jpg',
-  },
-  {
-    name: '루엘 강동',
-    image: '/images/wedding/partners/parnter-luvel-500x500.jpg',
-  },
-  {
-    name: '소노펠리체',
-    image: '/images/wedding/partners/parnter-sono-felice-500x500.jpg',
-  },
-  {
-    name: '셀럽앤어셈',
-    image: '/images/wedding/partners/parnter-celeb-500x500.jpg',
-  },
-  {
-    name: '라루체',
-    image: '/images/wedding/partners/parnter-laluce-500x500.jpg',
-  },
-  {
-    name: '로프트가든344',
-    image: '/images/wedding/partners/parnter-loftgarden344-500x500.jpg',
-  },
-  {
-    name: 'L65',
-    image: '/images/wedding/partners/parnter-l65-500x500.jpg',
-  },
-  {
-    name: '씨엘드포레',
-    image: '/images/wedding/partners/parnter-cieldeforet-500x500.jpg',
-  },
-  {
-    name: '호텔 선샤인',
-    image: '/images/wedding/partners/parnter-hotel-sunshine-500x500.jpg',
-  },
+  { name: '더채플 청담', image: '/images/wedding/partners/partner-chaple-cheongdam-500x500.jpg' },
+  { name: '더채플 논현', image: '/images/wedding/partners/partner-chaple-nonhyeon-500x500.jpg' },
+  { name: '아펠가모 반포', image: '/images/wedding/partners/parnter-apelgamo-banpo-500x500.jpg' },
+  { name: '아펠가모 잠실', image: '/images/wedding/partners/parnter-apelgamo-jamsil-500x500.jpg' },
+  { name: '아펠가모 선릉', image: '/images/wedding/partners/parnter-apelgamo-seonreung-500x500.jpg' },
+  { name: '아펠가모 광화문', image: '/images/wedding/partners/parnter-apelgamo-gwanghwamun-500x500.jpg' },
+  { name: '루엘 강동', image: '/images/wedding/partners/parnter-luvel-500x500.jpg' },
+  { name: '소노펠리체', image: '/images/wedding/partners/parnter-sono-felice-500x500.jpg' },
+  { name: '셀럽앤어셈', image: '/images/wedding/partners/parnter-celeb-500x500.jpg' },
+  { name: '라루체', image: '/images/wedding/partners/parnter-laluce-500x500.jpg' },
+  { name: '로프트가든344', image: '/images/wedding/partners/parnter-loftgarden344-500x500.jpg' },
+  { name: 'L65', image: '/images/wedding/partners/parnter-l65-500x500.jpg' },
+  { name: '씨엘드포레', image: '/images/wedding/partners/parnter-cieldeforet-500x500.jpg' },
+  { name: '호텔 선샤인', image: '/images/wedding/partners/parnter-hotel-sunshine-500x500.jpg' },
 ];
 ---
 
 <section id="partner-halls" class="bg-white py-14 lg:py-20">
   <div class="mx-auto max-w-7xl px-6 lg:px-8">
     <!-- Header -->
-    <div class="gs-fade-up text-center">
+    <div class="gs-fade-up mb-8 lg:mb-10">
       <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">Partners</span>
-      <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold leading-tight text-primary">
-        제휴 웨딩홀
-      </h2>
-      <div class="mx-auto mt-6 h-[2px] w-10 bg-olive"></div>
-      <p class="mt-8 text-base leading-relaxed text-secondary">
-        심플큐브와 제휴된 웨딩홀에서 더욱 특별한 포토부스 서비스를 만나보세요.
-      </p>
+      <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold leading-tight text-primary">제휴 웨딩홀</h2>
+      <p class="mt-4 text-sm text-secondary">심플큐브와 제휴된 웨딩홀에서 더욱 특별한 서비스를 만나보세요.</p>
     </div>
 
-    <!-- Partner Grid -->
-    <div class="gs-stagger mt-10 grid grid-cols-3 gap-3 lg:grid-cols-4 lg:gap-5">
+    <!-- Partner Grid - name always visible on mobile -->
+    <div class="gs-stagger grid grid-cols-3 gap-2 md:gap-3 lg:grid-cols-4 lg:gap-5">
       {partners.map((partner) => (
-        <div class="group relative overflow-hidden rounded-xl">
-          <img
-            src={partner.image}
-            alt={partner.name}
-            class="aspect-square w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            loading="lazy"
-          />
-          <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
-          <div class="absolute bottom-0 left-0 right-0 p-3 translate-y-2 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-            <p class="text-xs font-semibold text-white lg:text-sm">{partner.name}</p>
+        <div class="group overflow-hidden rounded-xl">
+          <div class="relative">
+            <img
+              src={partner.image}
+              alt={partner.name}
+              class="aspect-square w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              loading="lazy"
+            />
+            {/* Desktop: hover overlay */}
+            <div class="hidden md:block absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+            <div class="hidden md:block absolute bottom-0 left-0 right-0 p-3 translate-y-2 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+              <p class="text-sm font-semibold text-white">{partner.name}</p>
+            </div>
           </div>
+          {/* Mobile: name below image */}
+          <p class="md:hidden text-[11px] font-medium text-primary text-center py-1.5 leading-tight">{partner.name}</p>
         </div>
       ))}
     </div>

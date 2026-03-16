@@ -36,79 +36,138 @@ const steps = [
 <!-- Process -->
 <section class="bg-bg-light py-14 lg:py-20">
   <div class="mx-auto max-w-7xl px-6 lg:px-8">
-    <div class="mb-10">
+    <div class="mb-8 lg:mb-10">
       <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">PROCESS</span>
       <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">예약 진행 순서</h2>
-      <p class="mt-4 text-sm text-secondary">
-        문의부터 웨딩 당일까지, 심플큐브가 함께합니다.
-      </p>
+      <p class="mt-4 text-sm text-secondary">문의부터 웨딩 당일까지, 심플큐브가 함께합니다.</p>
     </div>
 
-    <!-- Steps -->
-    <div class="gs-stagger grid gap-3 md:grid-cols-5">
+    {/* Mobile: compact vertical timeline */}
+    <div class="md:hidden space-y-0">
       {steps.map((item, i) => (
-        <div class="relative group">
-          <div class="rounded-xl border border-border-light bg-white p-6 transition-all duration-300 hover:border-olive/30 hover:shadow-sm h-full">
-            <span class="text-2xl font-bold text-olive/40">{item.step}</span>
-            <h3 class="mt-3 text-base font-bold text-primary">{item.title}</h3>
-            <p class="mt-2 text-xs leading-relaxed text-secondary">{item.desc}</p>
-            <span class="mt-3 inline-block text-[10px] text-olive/70">{item.detail}</span>
+        <div class="flex gap-3 group/row">
+          {/* Timeline column */}
+          <div class="flex flex-col items-center">
+            <div class="w-9 h-9 rounded-full bg-olive/10 border-2 border-olive flex items-center justify-center text-olive text-[11px] font-bold shrink-0 transition-all duration-200 group-hover/row:bg-olive group-hover/row:text-white group-hover/row:scale-110" id={`m-step-circle-${i}`}>{item.step}</div>
+            {i < steps.length - 1 && <div class="w-[2px] flex-1 bg-olive/15 my-1"></div>}
           </div>
-          {i < steps.length - 1 && (
-            <div class="hidden md:flex absolute -right-2 top-1/2 -translate-y-1/2 z-10 text-border">
-              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
-            </div>
-          )}
+          {/* Content */}
+          <button class="wedding-step-btn group/m text-left pb-4 flex-1 rounded-xl px-3 py-2.5 -ml-1 border border-transparent transition-all duration-200 hover:bg-olive/5 hover:border-olive/20 active:scale-[0.97]" data-step-idx={i} data-circle-id={`m-step-circle-${i}`}>
+            <h3 class="text-sm font-bold text-primary transition-colors duration-200 group-hover/m:text-olive">{item.title}</h3>
+            <p class="text-[11px] text-secondary mt-0.5">{item.desc}</p>
+            <span class="inline-block mt-1.5 text-[10px] text-olive font-medium bg-olive/8 px-2 py-0.5 rounded-full transition-all duration-200 group-hover/m:bg-olive group-hover/m:text-white">{item.detail}</span>
+          </button>
         </div>
       ))}
+    </div>
+
+    {/* Desktop: horizontal step bar */}
+    <div class="hidden md:block">
+      <div class="relative">
+        {/* Connecting line */}
+        <div class="absolute top-5 left-[10%] right-[10%] h-[2px] bg-olive/15"></div>
+        <div class="grid grid-cols-5 relative">
+          {steps.map((item, i) => (
+            <button class="wedding-step-btn group flex flex-col items-center text-center px-2 py-4 rounded-xl transition-all duration-300 hover:bg-white hover:shadow-lg hover:-translate-y-1 cursor-pointer" data-step-idx={i}>
+              <div class="w-10 h-10 rounded-full bg-olive/10 border-2 border-olive flex items-center justify-center text-olive text-xs font-bold mb-3 relative z-10 bg-bg-light transition-all duration-300 group-hover:bg-olive group-hover:text-white group-hover:border-olive group-hover:scale-110">{item.step}</div>
+              <h3 class="text-sm font-bold text-primary transition-colors duration-300 group-hover:text-olive">{item.title}</h3>
+              <p class="mt-1 text-[11px] text-olive/70 transition-colors duration-300 group-hover:text-olive/90">{item.detail}</p>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    {/* Step detail modal */}
+    <div id="wedding-step-modal" style="display:none" class="fixed inset-0 z-50 items-center justify-center bg-black/50 p-4">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-auto p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-3">
+            <span id="wsm-step" class="w-10 h-10 rounded-full bg-olive/10 border-2 border-olive flex items-center justify-center text-olive text-sm font-bold"></span>
+            <h3 id="wsm-title" class="text-lg font-bold text-primary"></h3>
+          </div>
+          <button id="wsm-close" class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+        </div>
+        <p id="wsm-desc" class="text-sm text-secondary leading-relaxed"></p>
+        <p id="wsm-detail" class="mt-2 text-xs text-olive/70"></p>
+      </div>
     </div>
   </div>
 </section>
 
 <!-- Booking CTA -->
-<section class="relative flex min-h-[50vh] items-center justify-center overflow-hidden bg-[#6B5B4D]">
-  <!-- Background image -->
+<section class="relative flex min-h-[40vh] md:min-h-[50vh] items-center justify-center overflow-hidden bg-[#6B5B4D]">
   <div class="absolute inset-0">
-    <img
-      src="/images/wedding/outdoor-setup.jpg"
-      alt="웨딩 포토부스 세팅"
-      class="h-full w-full object-cover opacity-30"
-      loading="lazy"
-    />
+    <img src="/images/wedding/outdoor-setup.jpg" alt="웨딩 포토부스 세팅" class="h-full w-full object-cover opacity-30" loading="lazy" />
   </div>
-
-  <!-- Content -->
-  <div class="relative z-10 px-6 py-20 text-center">
-    <h2 class="text-[clamp(1.5rem,4vw,2.5rem)] font-bold leading-snug text-[#FFFAF4]">
+  <div class="relative z-10 px-6 py-16 md:py-20 text-center">
+    <h2 class="text-[clamp(1.3rem,4vw,2.5rem)] font-bold leading-snug text-[#FFFAF4]">
       웨딩 포토부스에 대해<br />궁금한 점이 있으신가요?
     </h2>
-    <p class="mt-4 text-base text-[#FFFAF4]/60">
-      편하게 문의해 주세요. 친절하게 안내드리겠습니다.
-    </p>
-
-    <div class="mt-10 flex flex-wrap justify-center gap-4">
-      <a
-        href="https://pf.kakao.com/_simplecube"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="inline-flex items-center gap-3 bg-olive px-8 py-4 text-sm font-semibold tracking-wider text-white transition-all duration-300 hover:bg-olive-hover rounded-full"
-      >
-        <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 3c-4.97 0-9 3.185-9 7.115 0 2.557 1.707 4.8 4.27 6.054-.188.702-.682 2.545-.78 2.94-.123.496.182.489.382.356.157-.105 2.501-1.7 3.515-2.389.533.078 1.08.12 1.613.12 4.97 0 9-3.186 9-7.115C21 6.185 16.97 3 12 3z"/>
-        </svg>
-        카카오톡으로 문의하기
+    <p class="mt-3 text-sm md:text-base text-[#FFFAF4]/60">편하게 문의해 주세요.</p>
+    <div class="mt-8 flex flex-col sm:flex-row justify-center gap-3">
+      <a href="https://pf.kakao.com/_simplecube" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 bg-olive px-6 py-3 text-sm font-semibold text-white rounded-full hover:bg-olive-hover transition-all">
+        <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 3.185-9 7.115 0 2.557 1.707 4.8 4.27 6.054-.188.702-.682 2.545-.78 2.94-.123.496.182.489.382.356.157-.105 2.501-1.7 3.515-2.389.533.078 1.08.12 1.613.12 4.97 0 9-3.186 9-7.115C21 6.185 16.97 3 12 3z"/></svg>
+        카카오톡 문의
       </a>
-      <a
-        href="/contact"
-        class="inline-flex items-center gap-2 rounded-full border border-[#FFFAF4]/30 px-8 py-4 text-sm font-semibold tracking-wider text-[#FFFAF4] transition-all duration-300 hover:bg-[#FFFAF4] hover:text-[#2E2318]"
-      >
+      <a href="/contact" class="inline-flex items-center justify-center gap-2 rounded-full border border-[#FFFAF4]/30 px-6 py-3 text-sm font-semibold text-[#FFFAF4] hover:bg-[#FFFAF4] hover:text-[#2E2318] transition-all">
         예약 문의 페이지
-        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-        </svg>
       </a>
     </div>
   </div>
 </section>
+
+<script define:vars={{ steps }}>
+  const modal = document.getElementById('wedding-step-modal');
+  const smStep = document.getElementById('wsm-step');
+  const smTitle = document.getElementById('wsm-title');
+  const smDesc = document.getElementById('wsm-desc');
+  const smDetail = document.getElementById('wsm-detail');
+  const smClose = document.getElementById('wsm-close');
+
+  document.querySelectorAll('.wedding-step-btn').forEach((btn) => {
+    // Touch/click highlight
+    btn.addEventListener('touchstart', () => {
+      btn.style.backgroundColor = 'rgba(180,160,69,0.08)';
+      btn.style.borderColor = 'rgba(180,160,69,0.3)';
+      const circleId = btn.dataset.circleId;
+      if (circleId) {
+        const circle = document.getElementById(circleId);
+        if (circle) {
+          circle.style.backgroundColor = '#B4A045';
+          circle.style.color = '#fff';
+          circle.style.transform = 'scale(1.15)';
+        }
+      }
+    }, { passive: true });
+    btn.addEventListener('touchend', () => {
+      setTimeout(() => {
+        btn.style.backgroundColor = '';
+        btn.style.borderColor = '';
+        const circleId = btn.dataset.circleId;
+        if (circleId) {
+          const circle = document.getElementById(circleId);
+          if (circle) {
+            circle.style.backgroundColor = '';
+            circle.style.color = '';
+            circle.style.transform = '';
+          }
+        }
+      }, 200);
+    }, { passive: true });
+
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.stepIdx);
+      const s = steps[idx];
+      smStep.textContent = s.step;
+      smTitle.textContent = s.title;
+      smDesc.textContent = s.desc;
+      smDetail.textContent = s.detail;
+      modal.style.display = 'flex';
+    });
+  });
+
+  smClose?.addEventListener('click', () => { modal.style.display = 'none'; });
+  modal?.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal) modal.style.display = 'none'; });
+</script>

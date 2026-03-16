@@ -3,143 +3,87 @@
 
 <section class="bg-bg-light py-14 lg:py-20">
   <div class="mx-auto max-w-7xl px-6 lg:px-8">
-    <div class="mb-10">
+    <div class="mb-8 lg:mb-10">
       <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">PHOTO STRIP</span>
       <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">포토 스트립 디자인</h2>
       <p class="mt-4 text-sm text-secondary max-w-xl">
-        40종 이상의 웨딩 포토 스트립 디자인 중 선택하실 수 있습니다.<br />
-        직접 디자인을 제작하셔도 적용이 가능합니다.
+        40종 이상의 디자인 중 선택 가능. 셀프 디자인도 적용됩니다.
       </p>
     </div>
 
-    <!-- Template preview images from PDF -->
-    <div class="gs-stagger space-y-4">
-      <div class="overflow-hidden rounded-2xl border border-border-light">
-        <img
-          src="/images/wedding/templates-1.jpg"
-          alt="포토 스트립 디자인 - Handwriting, Simple, Rounded"
-          class="w-full object-cover"
-          loading="lazy"
-        />
+    <!-- Template preview images -->
+    <div class="gs-stagger space-y-2 md:space-y-4">
+      <div class="overflow-hidden rounded-xl md:rounded-2xl border border-border-light">
+        <img src="/images/wedding/templates-1.jpg" alt="포토 스트립 디자인" class="w-full object-cover" loading="lazy" />
       </div>
-      <div class="grid grid-cols-2 gap-4">
-        <div class="overflow-hidden rounded-2xl border border-border-light">
-          <img
-            src="/images/wedding/templates-2.jpg"
-            alt="포토 스트립 디자인 - Full, Clean, Comic, Always, Four cut"
-            class="w-full object-cover"
-            loading="lazy"
-          />
+      <div class="grid grid-cols-2 gap-2 md:gap-4">
+        <div class="overflow-hidden rounded-xl md:rounded-2xl border border-border-light">
+          <img src="/images/wedding/templates-2.jpg" alt="포토 스트립 디자인 2" class="w-full object-cover" loading="lazy" />
         </div>
-        <div class="overflow-hidden rounded-2xl border border-border-light">
-          <img
-            src="/images/wedding/templates-3.jpg"
-            alt="포토 스트립 디자인 - Analog, Landscape, Thanks, Just love, Manuscript"
-            class="w-full object-cover"
-            loading="lazy"
-          />
+        <div class="overflow-hidden rounded-xl md:rounded-2xl border border-border-light">
+          <img src="/images/wedding/templates-3.jpg" alt="포토 스트립 디자인 3" class="w-full object-cover" loading="lazy" />
         </div>
       </div>
     </div>
-
-    <p class="mt-6 text-xs text-secondary text-center">
-      위 디자인 외에도 다양한 디자인이 준비되어 있습니다. 셀프 디자인도 가능합니다.
-    </p>
   </div>
 </section>
 
 <!-- Backdrop Section -->
 <section class="bg-white py-14 lg:py-20">
   <div class="mx-auto max-w-7xl px-6 lg:px-8">
-    <div class="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
-      <!-- Text -->
+    {/* Mobile: stacked / Desktop: side-by-side */}
+    <div class="grid items-center gap-6 md:gap-12 lg:grid-cols-2 lg:gap-20">
       <div class="gs-slide-left">
         <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">BACKDROP</span>
-        <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold leading-tight text-primary">
-          백드롭 선택
-        </h2>
-        <div class="mt-6 h-[2px] w-10 bg-olive"></div>
-        <p class="mt-8 text-base leading-relaxed text-secondary">
-          사진 배경으로 사용될 백드롭을 선택하실 수 있습니다.
-          시퀸 백드롭 2종과 화이트 커튼 백드롭 4종, 총 6가지 옵션을 제공합니다.
-          백드롭을 사용하지 않고 웨딩홀 벽면을 배경으로 활용하는 것도 가능합니다.
+        <h2 class="mt-5 text-[clamp(1.5rem,3vw,2.8rem)] font-bold leading-tight text-primary">백드롭 선택</h2>
+        <div class="mt-4 md:mt-6 h-[2px] w-10 bg-olive"></div>
+        <p class="mt-5 md:mt-8 text-sm md:text-base leading-relaxed text-secondary">
+          시퀸 2종 + 화이트 커튼 4종, 총 6가지 옵션을 제공합니다. 웨딩홀 벽면 활용도 가능합니다.
         </p>
-        <div class="mt-6 space-y-3">
-          <div class="flex items-center gap-3 text-sm text-secondary">
-            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-olive/10 text-olive text-xs">✓</span>
-            백드롭 사이즈: 폭 2,100mm × 높이 2,000mm
-          </div>
-          <div class="flex items-center gap-3 text-sm text-secondary">
-            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-olive/10 text-olive text-xs">✓</span>
-            촬영 공간 약 2m × 2m 필요
-          </div>
-          <div class="flex items-center gap-3 text-sm text-secondary">
-            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-olive/10 text-olive text-xs">✓</span>
-            야외 웨딩도 설치 가능 (사전 협의)
-          </div>
+        <div class="mt-4 md:mt-6 space-y-2">
+          {[
+            '백드롭: 2,100mm × 2,000mm',
+            '촬영 공간 약 2m × 2m 필요',
+            '야외 웨딩도 설치 가능',
+          ].map((text) => (
+            <div class="flex items-center gap-2 text-xs md:text-sm text-secondary">
+              <span class="flex h-5 w-5 items-center justify-center rounded-full bg-olive/10 text-olive text-[10px] shrink-0">✓</span>
+              {text}
+            </div>
+          ))}
         </div>
       </div>
-
-      <!-- Diagram image -->
-      <div class="gs-slide-right overflow-hidden rounded-2xl">
-        <img
-          src="/images/wedding/backdrop-diagram.jpg"
-          alt="백드롭 설치 구성도"
-          class="w-full object-cover"
-          loading="lazy"
-        />
+      <div class="gs-slide-right overflow-hidden rounded-xl md:rounded-2xl">
+        <img src="/images/wedding/backdrop-diagram.jpg" alt="백드롭 설치 구성도" class="w-full object-cover" loading="lazy" />
       </div>
     </div>
 
-    <!-- Backdrop options showcase -->
-    <div class="gs-fade-up mt-16">
-      <h3 class="mb-8 text-center text-lg font-semibold text-primary">백드롭 6종 옵션</h3>
-      <div class="overflow-hidden rounded-2xl border border-border-light bg-white">
-        <img
-          src="/images/wedding/backdrop-options.jpg"
-          alt="백드롭 옵션 - 골드 시퀸, 로즈골드 시퀸, 화이트 커튼 플라워 가랜드 4종"
-          class="w-full object-cover"
-          loading="lazy"
-        />
+    <!-- Backdrop options -->
+    <div class="gs-fade-up mt-10 md:mt-16">
+      <h3 class="mb-4 md:mb-8 text-center text-base md:text-lg font-semibold text-primary">백드롭 6종 옵션</h3>
+      <div class="overflow-hidden rounded-xl md:rounded-2xl border border-border-light">
+        <img src="/images/wedding/backdrop-options.jpg" alt="백드롭 옵션" class="w-full object-cover" loading="lazy" />
       </div>
-      <div class="mt-4 grid grid-cols-2 gap-3 text-center text-xs text-secondary sm:grid-cols-3 lg:grid-cols-6">
-        <span class="rounded-full bg-bg-light px-3 py-1.5">골드 시퀸</span>
-        <span class="rounded-full bg-bg-light px-3 py-1.5">로즈골드 시퀸</span>
-        <span class="rounded-full bg-bg-light px-3 py-1.5">플라워 가랜드 A</span>
-        <span class="rounded-full bg-bg-light px-3 py-1.5">플라워 가랜드 B</span>
-        <span class="rounded-full bg-bg-light px-3 py-1.5">위스테리아</span>
-        <span class="rounded-full bg-bg-light px-3 py-1.5">화이트 로즈</span>
+      <div class="mt-3 grid grid-cols-3 gap-2 text-center text-[11px] md:text-xs text-secondary lg:grid-cols-6">
+        {['골드 시퀸', '로즈골드 시퀸', '플라워 가랜드 A', '플라워 가랜드 B', '위스테리아', '화이트 로즈'].map((name) => (
+          <span class="rounded-full bg-bg-light px-2 py-1 md:px-3 md:py-1.5">{name}</span>
+        ))}
       </div>
     </div>
 
-    <!-- Backdrop detail close-ups -->
-    <div class="gs-stagger mt-8 grid grid-cols-2 gap-4">
-      <div class="overflow-hidden rounded-2xl border border-border-light">
-        <img
-          src="/images/wedding/backdrop-flower-garland.jpg"
-          alt="화이트 커튼 백드롭 - 플라워 가랜드"
-          class="w-full object-cover"
-          loading="lazy"
-        />
+    <!-- Backdrop close-ups -->
+    <div class="gs-stagger mt-4 md:mt-8 grid grid-cols-2 gap-2 md:gap-4">
+      <div class="overflow-hidden rounded-xl md:rounded-2xl border border-border-light">
+        <img src="/images/wedding/backdrop-flower-garland.jpg" alt="플라워 가랜드" class="w-full object-cover" loading="lazy" />
       </div>
-      <div class="overflow-hidden rounded-2xl border border-border-light">
-        <img
-          src="/images/wedding/backdrop-wisteria.jpg"
-          alt="화이트 커튼 백드롭 - 위스테리아"
-          class="w-full object-cover"
-          loading="lazy"
-        />
+      <div class="overflow-hidden rounded-xl md:rounded-2xl border border-border-light">
+        <img src="/images/wedding/backdrop-wisteria.jpg" alt="위스테리아" class="w-full object-cover" loading="lazy" />
       </div>
     </div>
 
-    <!-- Outdoor wedding example -->
-    <div class="gs-scale-in mt-8 overflow-hidden rounded-2xl">
-      <img
-        src="/images/wedding/outdoor-setup.jpg"
-        alt="야외 웨딩 포토부스 세팅"
-        class="h-[350px] w-full object-cover lg:h-[450px]"
-        loading="lazy"
-      />
+    <!-- Outdoor -->
+    <div class="gs-scale-in mt-4 md:mt-8 overflow-hidden rounded-xl md:rounded-2xl">
+      <img src="/images/wedding/outdoor-setup.jpg" alt="야외 웨딩 포토부스 세팅" class="h-[220px] md:h-[350px] lg:h-[450px] w-full object-cover" loading="lazy" />
     </div>
   </div>
 </section>
