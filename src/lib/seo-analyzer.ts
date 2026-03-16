@@ -10,7 +10,7 @@ export interface SEOInput {
 
 export interface SEOCheck {
   id: string;
-  category: 'basic' | 'title' | 'content' | 'links';
+  category: 'basic' | 'title' | 'content' | 'links' | 'geo';
   label: string;
   status: 'pass' | 'fail' | 'warning';
   message: string;
@@ -314,6 +314,122 @@ export function analyzeSEO(input: SEOInput, rules: SEORule[]): SEOResult {
           message = '이 포커스 키워드는 다른 글에서 사용되지 않았습니다.';
         } else {
           message = '이 포커스 키워드가 다른 글에서도 사용되고 있습니다.';
+        }
+        break;
+      }
+      // === GEO (Generative Engine Optimization) ===
+      case 'geo_question_answer': {
+        // Check for question marks followed by answer content
+        const questions = plainContent.match(/[^.!?]*\?/g) || [];
+        const htmlQuestions = input.content.match(/<(h[2-4]|strong|b)[^>]*>[^<]*\?[^<]*<\//gi) || [];
+        const totalQ = questions.length + htmlQuestions.length;
+        if (totalQ >= 2) {
+          status = 'pass';
+          message = `${totalQ}개의 질문-답변 형식이 포함되어 있습니다. AI 검색에 유리합니다.`;
+        } else if (totalQ === 1) {
+          status = 'warning';
+          message = '질문-답변 형식이 1개 있습니다. 더 추가하면 AI 검색 노출에 도움됩니다.';
+        } else {
+          message = '질문-답변 형식을 추가하세요. (예: "포토부스 가격은?" → 답변) AI가 인용하기 좋은 구조입니다.';
+        }
+        break;
+      }
+      case 'geo_statistics': {
+        const minCount = config.minCount || 2;
+        // Match numbers with units, percentages, years
+        const stats = plainContent.match(/\d[\d,.]*\s*(%|개|건|명|원|만|억|년|월|일|회|배|kg|cm|m|px|inch|시간|분|초)/g) || [];
+        if (stats.length >= minCount) {
+          status = 'pass';
+          message = `${stats.length}개의 수치/통계 데이터가 포함되어 있습니다. AI가 신뢰할 수 있는 근거입니다.`;
+        } else if (stats.length > 0) {
+          status = 'warning';
+          message = `수치 데이터가 ${stats.length}개입니다. ${minCount}개 이상 사용하면 AI 인용 확률이 높아집니다.`;
+        } else {
+          message = '구체적인 수치나 통계를 추가하세요. (예: "연간 1,600건 이상") AI가 정확한 답변을 위해 선호합니다.';
+        }
+        break;
+      }
+      case 'geo_list_structure': {
+        const ulOl = input.content.match(/<(ul|ol)[^>]*>/gi) || [];
+        const listItems = input.content.match(/<li[^>]*>/gi) || [];
+        if (ulOl.length >= 1 && listItems.length >= 3) {
+          status = 'pass';
+          message = `${ulOl.length}개의 목록에 ${listItems.length}개의 항목이 있습니다. AI 요약에 적합한 구조입니다.`;
+        } else if (listItems.length > 0) {
+          status = 'warning';
+          message = '목록 항목이 부족합니다. 3개 이상의 항목을 가진 목록을 사용하세요.';
+        } else {
+          message = '글머리 기호(•) 또는 번호 목록을 추가하세요. AI가 핵심 정보를 추출하기 좋습니다.';
+        }
+        break;
+      }
+      case 'geo_definition': {
+        // Check for definition patterns: "~은/는 ~입니다/이다", "~이란 ~", "~(이)라 함은"
+        const defPatterns = plainContent.match(/(은|는|이란|란)\s+.{5,}(입니다|이다|합니다|됩니다|것이다|의미합니다)/g) || [];
+        const whatIs = plainContent.match(/(무엇|뜻|의미|정의|개념)/g) || [];
+        if (defPatterns.length >= 1 || whatIs.length >= 1) {
+          status = 'pass';
+          message = '명확한 정의/설명문이 포함되어 있습니다. AI가 "~란?" 질문에 인용하기 좋습니다.';
+        } else {
+          status = 'warning';
+          message = '핵심 용어에 대한 정의문을 추가하세요. (예: "포토부스란 ~입니다") AI 검색 답변에 직접 인용됩니다.';
+        }
+        break;
+      }
+      case 'geo_source_citation': {
+        // Check for citation patterns
+        const citations = input.content.match(/(출처|참고|인용|자료|근거|연구|조사|보고서|통계청|한국\w+협회|according to)/gi) || [];
+        const extLinks = input.content.match(/href="https?:\/\/[^"]*"/gi) || [];
+        if (citations.length >= 1 || extLinks.length >= 2) {
+          status = 'pass';
+          message = '출처/인용이 포함되어 있습니다. AI가 신뢰도 높은 콘텐츠로 판단합니다.';
+        } else if (extLinks.length >= 1) {
+          status = 'warning';
+          message = '외부 링크가 있지만, 출처를 명시적으로 표기하면 AI 신뢰도가 높아집니다.';
+        } else {
+          message = '출처나 참고 자료를 추가하세요. AI는 검증 가능한 정보를 우선 인용합니다.';
+        }
+        break;
+      }
+      case 'geo_structured_headings': {
+        const h2s = input.content.match(/<h2[^>]*>/gi) || [];
+        const h3s = input.content.match(/<h3[^>]*>/gi) || [];
+        if (h2s.length >= 2 && h3s.length >= 1) {
+          status = 'pass';
+          message = `H2 ${h2s.length}개, H3 ${h3s.length}개의 계층 구조입니다. AI가 콘텐츠를 잘 이해할 수 있습니다.`;
+        } else if (h2s.length >= 2) {
+          status = 'warning';
+          message = 'H2는 충분하지만 H3 소제목을 추가하면 AI가 세부 주제를 더 잘 파악합니다.';
+        } else {
+          message = 'H2→H3 계층적 제목 구조를 사용하세요. AI가 콘텐츠 구조를 파악하는 데 핵심입니다.';
+        }
+        break;
+      }
+      case 'geo_concise_summary': {
+        // Check if first 2 sentences contain the keyword and are concise
+        const sentences = plainContent.split(/[.!?]\s+/).filter(s => s.trim().length > 5);
+        const firstTwo = sentences.slice(0, 2).join(' ');
+        const hasKeywordInSummary = kw && firstTwo.toLowerCase().includes(kw);
+        const isReasonableLength = firstTwo.length >= 30 && firstTwo.length <= 300;
+        if (hasKeywordInSummary && isReasonableLength) {
+          status = 'pass';
+          message = '글 서두에 키워드가 포함된 핵심 요약이 있습니다. AI 답변으로 직접 인용될 수 있습니다.';
+        } else if (isReasonableLength) {
+          status = 'warning';
+          message = '서두 요약은 있지만 포커스 키워드를 포함하면 AI 인용 확률이 높아집니다.';
+        } else {
+          message = '글 처음 1-2문장에 핵심 내용을 요약하세요. AI가 가장 먼저 참고하는 부분입니다.';
+        }
+        break;
+      }
+      case 'geo_table_usage': {
+        const tables = input.content.match(/<table[^>]*>/gi) || [];
+        if (tables.length >= 1) {
+          status = 'pass';
+          message = `${tables.length}개의 표가 포함되어 있습니다. 비교/정리 정보를 AI가 잘 추출합니다.`;
+        } else {
+          status = 'warning';
+          message = '비교 데이터가 있다면 표(테이블)로 정리하세요. AI가 구조화된 데이터를 선호합니다.';
         }
         break;
       }

@@ -11,6 +11,15 @@ const categoryLabels: Record<string, string> = {
   title: '제목 가독성',
   content: '콘텐츠 가독성',
   links: '링크 분석',
+  geo: 'GEO (AI 검색 최적화)',
+};
+
+const categoryDescriptions: Record<string, string> = {
+  basic: '검색엔진이 콘텐츠를 이해하는 데 필요한 기본 요소입니다.',
+  title: '검색 결과에서 클릭률을 높이는 제목 최적화 항목입니다.',
+  content: '사용자와 검색엔진 모두를 위한 콘텐츠 품질 항목입니다.',
+  links: '내부/외부 링크 및 URL 최적화 항목입니다.',
+  geo: 'ChatGPT, Google AI Overview, Perplexity 등 AI 검색엔진이 콘텐츠를 인용하도록 최적화합니다.',
 };
 
 const grouped = rules.reduce((acc: Record<string, any[]>, rule: any) => {
@@ -32,8 +41,16 @@ const grouped = rules.reduce((acc: Record<string, any[]>, rule: any) => {
   {Object.entries(grouped).map(([category, catRules]) => (
     <div class="bg-white rounded-xl border border-gray-200 mb-6 overflow-hidden">
       <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
-        <h2 class="text-lg font-semibold">{categoryLabels[category] || category}</h2>
-        <p class="text-xs text-gray-500 mt-0.5">
+        <div class="flex items-center gap-2">
+          <h2 class="text-lg font-semibold">{categoryLabels[category] || category}</h2>
+          {category === 'geo' && (
+            <span class="px-2 py-0.5 text-[10px] font-bold bg-purple-100 text-purple-700 rounded-full uppercase tracking-wider">New</span>
+          )}
+        </div>
+        {categoryDescriptions[category] && (
+          <p class="text-xs text-gray-500 mt-0.5">{categoryDescriptions[category]}</p>
+        )}
+        <p class="text-xs text-gray-400 mt-0.5">
           총 {(catRules as any[]).reduce((s: number, r: any) => s + r.max_score, 0)}점
         </p>
       </div>

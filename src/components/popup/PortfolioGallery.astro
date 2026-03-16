@@ -1,14 +1,29 @@
 ---
 import SectionHeading from '@components/common/SectionHeading.astro';
+import db from '@lib/db';
 
-const portfolioImages = [
-  { src: 'https://images.unsplash.com/photo-1511578314322-379afb476865?w=600&h=400&fit=crop&q=90', alt: '팝업 포트폴리오 1' },
-  { src: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=600&h=400&fit=crop&q=90', alt: '팝업 포트폴리오 2' },
-  { src: 'https://images.unsplash.com/photo-1497366858526-0766dd9e0c05?w=600&h=400&fit=crop&q=90', alt: '팝업 포트폴리오 3' },
-  { src: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=600&h=400&fit=crop&q=90', alt: '팝업 포트폴리오 4' },
-  { src: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=400&fit=crop&q=90', alt: '팝업 포트폴리오 5' },
-  { src: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?w=600&h=400&fit=crop&q=90', alt: '팝업 포트폴리오 6' },
-];
+// Fetch visible portfolio items for this page
+let items: any[] = [];
+let tagList: string[] = [];
+
+try {
+  const result = await db.execute({
+    sql: "SELECT * FROM portfolio WHERE visible = 1 AND (page = 'popup' OR page = 'all') ORDER BY sort_order ASC, created_at DESC",
+    args: [],
+  });
+  items = result.rows as any[];
+
+  // Collect unique tags
+  const allTags = new Set<string>();
+  items.forEach((item: any) => {
+    if (item.tags) {
+      item.tags.split(',').map((t: string) => t.trim()).filter(Boolean).forEach((t: string) => allTags.add(t));
+    }
+  });
+  tagList = Array.from(allTags).sort();
+} catch {
+  // Table may not exist yet during build
+}
 ---
 
 <section id="portfolio" class="bg-bg-light py-14 lg:py-20">
@@ -19,17 +34,62 @@ const portfolioImages = [
       <p class="mt-4 text-sm text-secondary">심플큐브가 함께한 특별한 순간들</p>
     </div>
 
-    <div class="gs-stagger grid grid-cols-2 gap-2 md:grid-cols-3">
-      {portfolioImages.map((img) => (
-        <div class="group cursor-pointer overflow-hidden rounded-lg">
-          <img
-            src={img.src}
-            alt={img.alt}
-            class="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            loading="lazy"
-          />
-        </div>
-      ))}
-    </div>
+    {/* Tag Filter Buttons */}
+    {tagList.length > 0 && (
+      <div class="flex flex-wrap gap-2 mb-6">
+        <button class="pf-tag-btn px-4 py-1.5 text-sm rounded-full bg-primary text-white font-medium transition-colors" data-tag="">전체</button>
+        {tagList.map((tag) => (
+          <button class="pf-tag-btn px-4 py-1.5 text-sm rounded-full bg-white border border-gray-200 text-secondary hover:border-olive hover:text-olive font-medium transition-colors" data-tag={tag}>{tag}</button>
+        ))}
+      </div>
+    )}
+
+    {items.length > 0 ? (
+      <div id="pf-grid" class="gs-stagger grid grid-cols-2 gap-2 md:grid-cols-3">
+        {items.map((item: any) => (
+          <div class="pf-item group cursor-pointer overflow-hidden rounded-lg" data-tags={item.tags}>
+            <img
+              src={item.image_url}
+              alt={item.title || '포트폴리오'}
+              class="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              loading="lazy"
+            />
+          </div>
+        ))}
+      </div>
+    ) : (
+      <div class="text-center py-16">
+        <p class="text-secondary text-sm">준비 중입니다.</p>
+      </div>
+    )}
   </div>
 </section>
+
+<script>
+  document.querySelectorAll('.pf-tag-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const tag = (btn as HTMLElement).dataset.tag!;
+
+      // Update active states
+      document.querySelectorAll('.pf-tag-btn').forEach((b) => {
+        if (b === btn) {
+          b.classList.remove('bg-white', 'border', 'border-gray-200', 'text-secondary');
+          b.classList.add('bg-primary', 'text-white');
+        } else {
+          b.classList.remove('bg-primary', 'text-white');
+          b.classList.add('bg-white', 'border', 'border-gray-200', 'text-secondary');
+        }
+      });
+
+      // Filter items
+      document.querySelectorAll('.pf-item').forEach((item) => {
+        const itemTags = (item as HTMLElement).dataset.tags || '';
+        if (!tag || itemTags.split(',').map(t => t.trim()).includes(tag)) {
+          (item as HTMLElement).style.display = '';
+        } else {
+          (item as HTMLElement).style.display = 'none';
+        }
+      });
+    });
+  });
+</script>

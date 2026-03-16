@@ -96,6 +96,19 @@ export async function initDB() {
       updated_at TEXT DEFAULT (datetime('now'))
     );
 
+    CREATE TABLE IF NOT EXISTS portfolio (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT DEFAULT '',
+      description TEXT DEFAULT '',
+      page TEXT DEFAULT 'popup',
+      image_url TEXT NOT NULL,
+      public_id TEXT DEFAULT '',
+      tags TEXT DEFAULT '',
+      sort_order INTEGER DEFAULT 0,
+      visible INTEGER DEFAULT 1,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+
     CREATE TABLE IF NOT EXISTS post_revisions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
@@ -112,7 +125,31 @@ export async function initDB() {
 export async function seedSEORules() {
   const client = getClient();
   const existing = await client.execute('SELECT COUNT(*) as count FROM seo_rules');
-  if ((existing.rows[0] as any).count > 0) return;
+  const existingCount = (existing.rows[0] as any).count;
+
+  // If rules exist, check if GEO rules are missing and add them
+  if (existingCount > 0) {
+    const geoCheck = await client.execute("SELECT COUNT(*) as count FROM seo_rules WHERE category = 'geo'");
+    if ((geoCheck.rows[0] as any).count === 0) {
+      const geoRules = [
+        { id: 'geo_question_answer', category: 'geo', label: '질문-답변 형식 포함', max_score: 5, config: '{}' },
+        { id: 'geo_statistics', category: 'geo', label: '통계/수치 데이터 포함', max_score: 4, config: '{"minCount": 2}' },
+        { id: 'geo_list_structure', category: 'geo', label: '목록(리스트) 구조 사용', max_score: 4, config: '{}' },
+        { id: 'geo_definition', category: 'geo', label: '명확한 정의/설명문 포함', max_score: 4, config: '{}' },
+        { id: 'geo_source_citation', category: 'geo', label: '출처/인용 표기', max_score: 3, config: '{}' },
+        { id: 'geo_structured_headings', category: 'geo', label: '계층적 제목 구조 (H2→H3)', max_score: 4, config: '{}' },
+        { id: 'geo_concise_summary', category: 'geo', label: '핵심 요약문 포함 (처음 2문장)', max_score: 4, config: '{}' },
+        { id: 'geo_table_usage', category: 'geo', label: '표(테이블) 사용', max_score: 3, config: '{}' },
+      ];
+      for (const rule of geoRules) {
+        await client.execute({
+          sql: 'INSERT OR IGNORE INTO seo_rules (id, category, label, max_score, config) VALUES (?, ?, ?, ?, ?)',
+          args: [rule.id, rule.category, rule.label, rule.max_score, rule.config],
+        });
+      }
+    }
+    return;
+  }
 
   const rules = [
     { id: 'keyword_in_title', category: 'basic', label: 'SEO 제목에 포커스 키워드 포함', max_score: 8, config: '{}' },
@@ -135,6 +172,15 @@ export async function seedSEORules() {
     { id: 'external_links', category: 'links', label: '외부 링크 포함', max_score: 4, config: '{}' },
     { id: 'internal_links', category: 'links', label: '내부 링크 포함', max_score: 4, config: '{}' },
     { id: 'keyword_uniqueness', category: 'links', label: '포커스 키워드 중복 없음', max_score: 4, config: '{}' },
+    // GEO (Generative Engine Optimization)
+    { id: 'geo_question_answer', category: 'geo', label: '질문-답변 형식 포함', max_score: 5, config: '{}' },
+    { id: 'geo_statistics', category: 'geo', label: '통계/수치 데이터 포함', max_score: 4, config: '{"minCount": 2}' },
+    { id: 'geo_list_structure', category: 'geo', label: '목록(리스트) 구조 사용', max_score: 4, config: '{}' },
+    { id: 'geo_definition', category: 'geo', label: '명확한 정의/설명문 포함', max_score: 4, config: '{}' },
+    { id: 'geo_source_citation', category: 'geo', label: '출처/인용 표기', max_score: 3, config: '{}' },
+    { id: 'geo_structured_headings', category: 'geo', label: '계층적 제목 구조 (H2→H3)', max_score: 4, config: '{}' },
+    { id: 'geo_concise_summary', category: 'geo', label: '핵심 요약문 포함 (처음 2문장)', max_score: 4, config: '{}' },
+    { id: 'geo_table_usage', category: 'geo', label: '표(테이블) 사용', max_score: 3, config: '{}' },
   ];
 
   for (const rule of rules) {
