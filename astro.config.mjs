@@ -10,6 +10,10 @@ export default defineConfig({
   site: 'https://simplecube.vercel.app',
   adapter: vercel(),
 
+  security: {
+    checkOrigin: false,
+  },
+
   vite: {
     plugins: [tailwindcss()],
   },

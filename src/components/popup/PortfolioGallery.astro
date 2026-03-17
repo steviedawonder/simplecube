@@ -1,29 +1,4 @@
 ---
-import SectionHeading from '@components/common/SectionHeading.astro';
-import db from '@lib/db';
-
-// Fetch visible portfolio items for this page
-let items: any[] = [];
-let tagList: string[] = [];
-
-try {
-  const result = await db.execute({
-    sql: "SELECT * FROM portfolio WHERE visible = 1 AND (page = 'popup' OR page = 'all') ORDER BY sort_order ASC, created_at DESC",
-    args: [],
-  });
-  items = result.rows as any[];
-
-  // Collect unique tags
-  const allTags = new Set<string>();
-  items.forEach((item: any) => {
-    if (item.tags) {
-      item.tags.split(',').map((t: string) => t.trim()).filter(Boolean).forEach((t: string) => allTags.add(t));
-    }
-  });
-  tagList = Array.from(allTags).sort();
-} catch {
-  // Table may not exist yet during build
-}
 ---
 
 <section id="portfolio" class="bg-bg-light py-14 lg:py-20">
@@ -34,62 +9,92 @@ try {
       <p class="mt-4 text-sm text-secondary">심플큐브가 함께한 특별한 순간들</p>
     </div>
 
-    {/* Tag Filter Buttons */}
-    {tagList.length > 0 && (
-      <div class="flex flex-wrap gap-2 mb-6">
-        <button class="pf-tag-btn px-4 py-1.5 text-sm rounded-full bg-primary text-white font-medium transition-colors" data-tag="">전체</button>
-        {tagList.map((tag) => (
-          <button class="pf-tag-btn px-4 py-1.5 text-sm rounded-full bg-white border border-gray-200 text-secondary hover:border-olive hover:text-olive font-medium transition-colors" data-tag={tag}>{tag}</button>
-        ))}
-      </div>
-    )}
+    <div id="pf-tags" class="flex flex-wrap gap-2 mb-6 hidden"></div>
 
-    {items.length > 0 ? (
-      <div id="pf-grid" class="gs-stagger grid grid-cols-2 gap-2 md:grid-cols-3">
-        {items.map((item: any) => (
-          <div class="pf-item group cursor-pointer overflow-hidden rounded-lg" data-tags={item.tags}>
-            <img
-              src={item.image_url}
-              alt={item.title || '포트폴리오'}
-              class="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-105"
-              loading="lazy"
-            />
-          </div>
-        ))}
-      </div>
-    ) : (
-      <div class="text-center py-16">
-        <p class="text-secondary text-sm">준비 중입니다.</p>
-      </div>
-    )}
+    <div id="pf-grid" class="gs-stagger grid grid-cols-2 gap-2 md:grid-cols-3"></div>
+
+    <div id="pf-empty" class="text-center py-16 hidden">
+      <p class="text-secondary text-sm">준비 중입니다.</p>
+    </div>
+
+    <div id="pf-loading" class="text-center py-16">
+      <p class="text-secondary text-sm">불러오는 중...</p>
+    </div>
   </div>
 </section>
 
 <script>
-  document.querySelectorAll('.pf-tag-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const tag = (btn as HTMLElement).dataset.tag!;
+  async function loadPortfolio() {
+    const grid = document.getElementById('pf-grid')!;
+    const tagsContainer = document.getElementById('pf-tags')!;
+    const empty = document.getElementById('pf-empty')!;
+    const loading = document.getElementById('pf-loading')!;
 
-      // Update active states
-      document.querySelectorAll('.pf-tag-btn').forEach((b) => {
-        if (b === btn) {
-          b.classList.remove('bg-white', 'border', 'border-gray-200', 'text-secondary');
-          b.classList.add('bg-primary', 'text-white');
-        } else {
-          b.classList.remove('bg-primary', 'text-white');
-          b.classList.add('bg-white', 'border', 'border-gray-200', 'text-secondary');
+    try {
+      const res = await fetch('/api/portfolio?page=popup');
+      const items: any[] = await res.json();
+
+      loading.classList.add('hidden');
+
+      if (items.length === 0) {
+        empty.classList.remove('hidden');
+        return;
+      }
+
+      // Collect tags
+      const allTags = new Set<string>();
+      items.forEach((item: any) => {
+        if (item.tags) {
+          item.tags.split(',').map((t: string) => t.trim()).filter(Boolean).forEach((t: string) => allTags.add(t));
         }
       });
+      const tagList = Array.from(allTags).sort();
 
-      // Filter items
-      document.querySelectorAll('.pf-item').forEach((item) => {
-        const itemTags = (item as HTMLElement).dataset.tags || '';
-        if (!tag || itemTags.split(',').map(t => t.trim()).includes(tag)) {
-          (item as HTMLElement).style.display = '';
-        } else {
-          (item as HTMLElement).style.display = 'none';
-        }
-      });
-    });
-  });
+      // Render tag buttons
+      if (tagList.length > 0) {
+        tagsContainer.classList.remove('hidden');
+        tagsContainer.innerHTML = `
+          <button class="pf-tag-btn px-4 py-1.5 text-sm rounded-full bg-primary text-white font-medium transition-colors" data-tag="">전체</button>
+          ${tagList.map(tag => `<button class="pf-tag-btn px-4 py-1.5 text-sm rounded-full bg-white border border-gray-200 text-secondary hover:border-olive hover:text-olive font-medium transition-colors" data-tag="${tag}">${tag}</button>`).join('')}
+        `;
+
+        tagsContainer.querySelectorAll('.pf-tag-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const tag = (btn as HTMLElement).dataset.tag!;
+            tagsContainer.querySelectorAll('.pf-tag-btn').forEach((b) => {
+              if (b === btn) {
+                b.classList.remove('bg-white', 'border', 'border-gray-200', 'text-secondary');
+                b.classList.add('bg-primary', 'text-white');
+              } else {
+                b.classList.remove('bg-primary', 'text-white');
+                b.classList.add('bg-white', 'border', 'border-gray-200', 'text-secondary');
+              }
+            });
+            grid.querySelectorAll('.pf-item').forEach((item) => {
+              const itemTags = (item as HTMLElement).dataset.tags || '';
+              (item as HTMLElement).style.display = (!tag || itemTags.split(',').map(t => t.trim()).includes(tag)) ? '' : 'none';
+            });
+          });
+        });
+      }
+
+      // Render grid
+      grid.innerHTML = items.map((item: any) => `
+        <div class="pf-item group cursor-pointer overflow-hidden rounded-lg" data-tags="${item.tags || ''}">
+          <img
+            src="${item.image_url}"
+            alt="${item.title || '포트폴리오'}"
+            class="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            loading="lazy"
+          />
+        </div>
+      `).join('');
+
+    } catch {
+      loading.classList.add('hidden');
+      empty.classList.remove('hidden');
+    }
+  }
+
+  loadPortfolio();
 </script>
