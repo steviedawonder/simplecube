@@ -152,7 +152,7 @@ const specs = [
     <div class="mx-auto max-w-7xl px-6 lg:px-8">
       <div class="grid gap-10 lg:grid-cols-2 items-center">
         <div class="gs-fade-up">
-          <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">DEVICE</span>
+          <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">01 · DEVICE</span>
           <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold leading-tight text-primary">
             기기 소개
           </h2>
@@ -191,7 +191,7 @@ const specs = [
           />
         </div>
         <div class="gs-fade-up order-1 lg:order-2">
-          <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">PACKAGE</span>
+          <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">02 · PACKAGE</span>
           <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold leading-tight text-primary">
             패키지 구성
           </h2>
@@ -217,10 +217,11 @@ const specs = [
   <!-- Booking Process -->
   <section class="bg-bg-light py-14 lg:py-20">
     <div class="mx-auto max-w-7xl px-6 lg:px-8">
-      <div class="mb-10">
-        <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">PROCESS</span>
-        <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">예약 진행 순서</h2>
-        <p class="mt-4 text-sm text-secondary">
+      <div class="gs-fade-up mb-10">
+        <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">03 · PROCESS</span>
+        <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold leading-tight text-primary">예약 진행 순서</h2>
+        <div class="mt-6 h-[2px] w-10 bg-olive"></div>
+        <p class="mt-6 text-sm text-secondary leading-relaxed">
           문의부터 웨딩 당일까지, 심플큐브 그레이가 함께합니다.
         </p>
       </div>
@@ -259,19 +260,19 @@ const specs = [
   <!-- Options Section: Main Screen -->
   <section id="options" class="bg-white py-14 lg:py-20">
     <div class="mx-auto max-w-7xl px-6 lg:px-8">
-      <div class="gs-fade-up text-center">
-        <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">OPTIONS</span>
+      <div class="gs-fade-up mb-10">
+        <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">04 · OPTIONS</span>
         <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold leading-tight text-primary">
           옵션사항 선택
         </h2>
-        <div class="mx-auto mt-6 h-[2px] w-10 bg-olive"></div>
-        <p class="mt-8 text-base leading-relaxed text-secondary">
+        <div class="mt-6 h-[2px] w-10 bg-olive"></div>
+        <p class="mt-6 text-sm text-secondary leading-relaxed">
           모든 옵션사항 선택 및 최종 편집 완료 후 행사가 진행됩니다.
         </p>
       </div>
 
       <!-- Main Screen -->
-      <div class="mt-14">
+      <div>
         <h3 class="gs-fade-up text-lg font-bold text-primary mb-6">메인화면 선택</h3>
         <div class="gs-scale-in overflow-hidden rounded-2xl">
           <img
@@ -303,32 +304,33 @@ const specs = [
   <section id="templates" class="bg-bg-light py-14 lg:py-20">
     <div class="mx-auto max-w-7xl px-6 lg:px-8">
       <div class="gs-fade-up mb-10">
-        <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">TEMPLATES</span>
-        <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">포토 스트립 디자인</h2>
-        <p class="mt-4 text-sm text-secondary">
+        <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">05 · TEMPLATES</span>
+        <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold leading-tight text-primary">포토 스트립 디자인</h2>
+        <div class="mt-6 h-[2px] w-10 bg-olive"></div>
+        <p class="mt-6 text-sm text-secondary leading-relaxed">
           하객분들이 받으실 사진 인화지 디자인을 선택해주세요.
         </p>
       </div>
 
-      <div class="gs-stagger space-y-8">
+      <div class="gs-stagger grid grid-cols-2 md:grid-cols-3 gap-4">
         {templates.map((template, i) => (
-          <div class="overflow-hidden rounded-2xl bg-white border border-border-light">
+          <div class="overflow-hidden rounded-xl bg-white border border-border-light">
             <img
               src={template.image}
               alt={`${template.name} 포토 스트립 템플릿`}
-              class="w-full object-cover"
+              class="w-full object-contain"
               loading="lazy"
             />
-            <div class="p-5">
-              <div class="flex items-center gap-3">
-                <span class="text-lg font-bold text-olive/40">{String(i + 1).padStart(2, '0')}</span>
-                <h3 class="text-base font-bold text-primary">{template.name}</h3>
+            <div class="p-3">
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-bold text-olive/40">{String(i + 1).padStart(2, '0')}</span>
+                <h3 class="text-sm font-bold text-primary">{template.name}</h3>
               </div>
-              <p class="mt-2 text-xs text-secondary leading-relaxed">{template.desc}</p>
+              <p class="mt-1 text-[11px] text-secondary leading-relaxed line-clamp-2">{template.desc}</p>
               {template.variants.length > 0 && (
-                <div class="mt-3 flex gap-2">
+                <div class="mt-2 flex flex-wrap gap-1">
                   {template.variants.map((v) => (
-                    <span class="rounded-full bg-bg-light px-3 py-1 text-[10px] font-medium text-secondary">{v}</span>
+                    <span class="rounded-full bg-bg-light px-2 py-0.5 text-[9px] font-medium text-secondary">{v}</span>
                   ))}
                 </div>
               )}
@@ -355,12 +357,12 @@ const specs = [
     <div class="mx-auto max-w-7xl px-6 lg:px-8">
       <div class="grid gap-10 lg:grid-cols-2 items-center">
         <div class="gs-fade-up">
-          <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">FRAME</span>
+          <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">06 · FRAME</span>
           <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold leading-tight text-primary">
             메시지 액자
           </h2>
           <div class="mt-6 h-[2px] w-10 bg-olive"></div>
-          <p class="mt-8 text-base leading-relaxed text-secondary">
+          <p class="mt-6 text-sm text-secondary leading-relaxed">
             중앙에 위치한 신랑·신부님의 사진 주변에
             하객분들의 축하 메시지를 담아드리는 액자입니다.
           </p>
