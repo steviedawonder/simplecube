@@ -146,9 +146,8 @@ const models = [
           </div>
 
           {/* Name only */}
-          <div class="px-3 py-2.5 lg:px-4 lg:py-3">
+          <div class="px-3 py-2.5 lg:px-4 lg:py-3 text-center">
             <h3 class="text-sm lg:text-base font-bold text-primary">{model.name}</h3>
-            <p class="text-[10px] lg:text-xs text-secondary/60 mt-0.5">{model.modelNo}</p>
           </div>
 
           {/* Hover indicator */}
@@ -162,25 +161,22 @@ const models = [
     </div>
 
     <!-- Common specs -->
-    <div class="mt-10 lg:mt-12 border border-border-light rounded-xl bg-white p-6 lg:p-8">
-      <h4 class="text-xs lg:text-sm font-bold text-primary mb-3 lg:mb-4">공통 사양</h4>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6 text-xs lg:text-sm">
-        <div>
-          <span class="text-secondary">촬영 방식</span>
-          <p class="mt-1 font-semibold text-primary">DSLR / 4K</p>
-        </div>
-        <div>
-          <span class="text-secondary">출력 방식</span>
-          <p class="mt-1 font-semibold text-primary">즉석 포토 프린터</p>
-        </div>
-        <div>
-          <span class="text-secondary">출력 속도</span>
-          <p class="mt-1 font-semibold text-primary">약 8초</p>
-        </div>
-        <div>
-          <span class="text-secondary">디지털 공유</span>
-          <p class="mt-1 font-semibold text-primary">QR 다운로드</p>
-        </div>
+    <div class="mt-8 lg:mt-10 grid grid-cols-4 divide-x divide-border-light text-center py-4 border-t border-border-light">
+      <div class="px-2">
+        <p class="text-[10px] lg:text-[11px] text-secondary/60 mb-0.5">촬영</p>
+        <p class="text-[11px] lg:text-xs font-bold text-primary leading-tight">DSLR<br/>WEBCAM</p>
+      </div>
+      <div class="px-2">
+        <p class="text-[10px] lg:text-[11px] text-secondary/60 mb-0.5">출력</p>
+        <p class="text-[11px] lg:text-xs font-bold text-primary leading-tight">즉석<br/>프린터</p>
+      </div>
+      <div class="px-2">
+        <p class="text-[10px] lg:text-[11px] text-secondary/60 mb-0.5">속도</p>
+        <p class="text-[11px] lg:text-xs font-bold text-primary leading-tight">약 8초</p>
+      </div>
+      <div class="px-2">
+        <p class="text-[10px] lg:text-[11px] text-secondary/60 mb-0.5">공유</p>
+        <p class="text-[11px] lg:text-xs font-bold text-primary leading-tight">QR<br/>다운로드</p>
       </div>
     </div>
   </div>
@@ -254,8 +250,7 @@ const models = [
       modalBody.innerHTML = `
         <!-- Specs -->
         <div class="px-5 py-5">
-          <p class="text-[10px] font-medium tracking-widest text-secondary/50 uppercase">${model.modelNo}</p>
-          <h4 class="text-lg font-bold text-primary mt-0.5 mb-4">${model.name}</h4>
+          <h4 class="text-lg font-bold text-primary mb-4">${model.name}</h4>
 
           ${model.specs.map((s: any, i: number) => `
             <div class="flex items-baseline justify-between py-2.5 ${i < model.specs.length - 1 ? 'border-b border-dashed border-[#e5e5e3]' : ''}">
