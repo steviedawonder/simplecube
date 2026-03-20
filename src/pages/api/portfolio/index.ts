@@ -4,22 +4,49 @@ import db from '@lib/db';
 
 export const prerender = false;
 
-// GET: List all portfolio items
+// GET: List portfolio items with filtering
 export const GET: APIRoute = async ({ url }) => {
   const page = url.searchParams.get('page') || '';
+  const pageTag = url.searchParams.get('page_tag') || '';
   const tag = url.searchParams.get('tag') || '';
+  const tags = url.searchParams.get('tags') || '';
+  const cutType = url.searchParams.get('cut_type') || '';
 
   let sql = 'SELECT * FROM portfolio WHERE visible = 1';
   const args: any[] = [];
 
-  if (page) {
+  // page_tag filter (new, preferred)
+  if (pageTag) {
+    sql += ' AND page_tag = ?';
+    args.push(pageTag);
+  }
+
+  // Legacy page filter (backward compat)
+  if (page && !pageTag) {
     sql += ' AND page = ?';
     args.push(page);
   }
 
+  // Single tag filter (legacy)
   if (tag) {
     sql += " AND (',' || tags || ',') LIKE ?";
     args.push(`%,${tag},%`);
+  }
+
+  // Multi-tag OR filter: ?tags=랩핑,삼성 → any match
+  if (tags) {
+    const tagList = tags.split(',').map(t => t.trim()).filter(Boolean);
+    if (tagList.length > 0) {
+      const tagConditions = tagList.map(() => "(',' || tags || ',') LIKE ?");
+      sql += ` AND (${tagConditions.join(' OR ')})`;
+      tagList.forEach(t => args.push(`%,${t},%`));
+    }
+  }
+
+  // cut_type filter
+  if (cutType) {
+    sql += ' AND cut_type = ?';
+    args.push(cutType);
   }
 
   sql += ' ORDER BY sort_order ASC, created_at DESC';
@@ -38,7 +65,9 @@ export const POST: APIRoute = async ({ request }) => {
     const title = (formData.get('title') as string) || '';
     const description = (formData.get('description') as string) || '';
     const page = (formData.get('page') as string) || 'popup';
+    const pageTag = (formData.get('page_tag') as string) || page;
     const tags = (formData.get('tags') as string) || '';
+    const cutType = (formData.get('cut_type') as string) || null;
 
     if (!file) {
       return new Response(JSON.stringify({ error: '파일이 없습니다.' }), {
@@ -65,8 +94,8 @@ export const POST: APIRoute = async ({ request }) => {
     const nextOrder = Number((maxOrder.rows[0] as any).max_order) + 1;
 
     await db.execute({
-      sql: 'INSERT INTO portfolio (title, description, page, image_url, public_id, tags, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      args: [title, description, page, blob.url, blob.url, tags, nextOrder],
+      sql: 'INSERT INTO portfolio (title, description, page, page_tag, image_url, public_id, tags, cut_type, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      args: [title, description, page, pageTag, blob.url, blob.url, tags, cutType, nextOrder],
     });
 
     const inserted = await db.execute('SELECT last_insert_rowid() as id');
@@ -78,8 +107,10 @@ export const POST: APIRoute = async ({ request }) => {
         title,
         description,
         page,
+        page_tag: pageTag,
         image_url: blob.url,
         tags,
+        cut_type: cutType,
         sort_order: nextOrder,
       }),
       { headers: { 'Content-Type': 'application/json' } }

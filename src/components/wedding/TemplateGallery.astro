@@ -1,4 +1,13 @@
 ---
+import db from '@lib/db';
+
+// Fetch backdrops from DB
+let backdrops: any[] = [];
+try {
+  const result = await db.execute('SELECT * FROM backdrops WHERE visible = 1 ORDER BY sort_order ASC, id DESC');
+  backdrops = result.rows as any[];
+} catch { /* fallback to hardcoded */ }
+const hasDbBackdrops = backdrops.length > 0;
 ---
 
 <section class="bg-bg-light py-14 lg:py-20">
@@ -56,28 +65,55 @@
       </div>
     </div>
 
-    <!-- Backdrop options -->
-    <div class="gs-fade-up mt-10 md:mt-16">
-      <h3 class="mb-4 md:mb-8 text-center text-base md:text-lg font-semibold text-primary">백드롭 6종 옵션</h3>
-      <div class="overflow-hidden rounded-xl md:rounded-2xl border border-border-light">
-        <img src="/images/wedding/backdrop-options.jpg" alt="백드롭 옵션" class="w-full object-cover" loading="lazy" />
+    <!-- Backdrop options - Dynamic or Fallback -->
+    {hasDbBackdrops ? (
+      <div class="gs-fade-up mt-10 md:mt-16">
+        <h3 class="mb-4 md:mb-8 text-center text-base md:text-lg font-semibold text-primary">백드롭 옵션</h3>
+        <div id="backdrop-grid" class="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-4">
+          {backdrops.map((bd: any) => (
+            <div class="backdrop-thumb group cursor-pointer overflow-hidden rounded-xl md:rounded-2xl border border-border-light relative"
+                 data-url={bd.image_url} data-title={bd.title || '백드롭'}>
+              <img
+                src={bd.image_url.includes('res.cloudinary.com') ? bd.image_url.replace('/upload/', '/upload/w_400,f_auto,q_auto/') : bd.image_url}
+                alt={bd.title || '백드롭'}
+                class="w-full aspect-[4/3] object-cover transition-transform duration-500 group-hover:scale-105"
+                loading="lazy"
+              />
+              <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                <svg class="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
+                </svg>
+              </div>
+              {bd.title && <p class="text-center text-xs text-secondary py-2">{bd.title}</p>}
+            </div>
+          ))}
+        </div>
       </div>
-      <div class="mt-3 grid grid-cols-3 gap-2 text-center text-[11px] md:text-xs text-secondary lg:grid-cols-6">
-        {['골드 시퀸', '로즈골드 시퀸', '플라워 가랜드 A', '플라워 가랜드 B', '위스테리아', '화이트 로즈'].map((name) => (
-          <span class="rounded-full bg-bg-light px-2 py-1 md:px-3 md:py-1.5">{name}</span>
-        ))}
-      </div>
-    </div>
+    ) : (
+      <>
+        <div class="gs-fade-up mt-10 md:mt-16">
+          <h3 class="mb-4 md:mb-8 text-center text-base md:text-lg font-semibold text-primary">백드롭 6종 옵션</h3>
+          <div class="overflow-hidden rounded-xl md:rounded-2xl border border-border-light">
+            <img src="/images/wedding/backdrop-options.jpg" alt="백드롭 옵션" class="w-full object-cover" loading="lazy" />
+          </div>
+          <div class="mt-3 grid grid-cols-3 gap-2 text-center text-[11px] md:text-xs text-secondary lg:grid-cols-6">
+            {['골드 시퀸', '로즈골드 시퀸', '플라워 가랜드 A', '플라워 가랜드 B', '위스테리아', '화이트 로즈'].map((name) => (
+              <span class="rounded-full bg-bg-light px-2 py-1 md:px-3 md:py-1.5">{name}</span>
+            ))}
+          </div>
+        </div>
 
-    <!-- Backdrop close-ups -->
-    <div class="gs-stagger mt-4 md:mt-8 grid grid-cols-2 gap-2 md:gap-4">
-      <div class="overflow-hidden rounded-xl md:rounded-2xl border border-border-light">
-        <img src="/images/wedding/backdrop-flower-garland.jpg" alt="플라워 가랜드" class="w-full object-cover" loading="lazy" />
-      </div>
-      <div class="overflow-hidden rounded-xl md:rounded-2xl border border-border-light">
-        <img src="/images/wedding/backdrop-wisteria.jpg" alt="위스테리아" class="w-full object-cover" loading="lazy" />
-      </div>
-    </div>
+        <!-- Backdrop close-ups -->
+        <div class="gs-stagger mt-4 md:mt-8 grid grid-cols-2 gap-2 md:gap-4">
+          <div class="overflow-hidden rounded-xl md:rounded-2xl border border-border-light">
+            <img src="/images/wedding/backdrop-flower-garland.jpg" alt="플라워 가랜드" class="w-full object-cover" loading="lazy" />
+          </div>
+          <div class="overflow-hidden rounded-xl md:rounded-2xl border border-border-light">
+            <img src="/images/wedding/backdrop-wisteria.jpg" alt="위스테리아" class="w-full object-cover" loading="lazy" />
+          </div>
+        </div>
+      </>
+    )}
 
     <!-- Outdoor -->
     <div class="gs-scale-in mt-4 md:mt-8 overflow-hidden rounded-xl md:rounded-2xl">
@@ -85,3 +121,83 @@
     </div>
   </div>
 </section>
+
+<!-- Backdrop Lightbox -->
+{hasDbBackdrops && (
+  <div id="bd-lightbox" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/80 backdrop-blur-sm">
+    <button id="bd-lb-prev" class="absolute left-3 lg:left-4 top-1/2 -translate-y-1/2 z-10 text-white/60 hover:text-white transition-colors" aria-label="이전">
+      <svg class="w-8 lg:w-10 h-8 lg:h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+    </button>
+    <button id="bd-lb-next" class="absolute right-3 lg:right-4 top-1/2 -translate-y-1/2 z-10 text-white/60 hover:text-white transition-colors" aria-label="다음">
+      <svg class="w-8 lg:w-10 h-8 lg:h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+    </button>
+    <button id="bd-lb-close" class="absolute top-4 right-4 z-10 text-white/60 hover:text-white transition-colors" aria-label="닫기">
+      <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+    </button>
+    <img id="bd-lb-img" src="" alt="" class="max-h-[85vh] max-w-[90vw] object-contain rounded-lg shadow-2xl" />
+    <p id="bd-lb-caption" class="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/70 text-sm"></p>
+  </div>
+)}
+
+<script>
+{
+  const grid = document.getElementById('backdrop-grid');
+  const lightbox = document.getElementById('bd-lightbox');
+  if (grid && lightbox) {
+    const thumbs = grid.querySelectorAll('.backdrop-thumb');
+    const images = Array.from(thumbs).map(t => ({
+      url: (t as HTMLElement).dataset.url || '',
+      title: (t as HTMLElement).dataset.title || '',
+    }));
+
+    const lbImg = document.getElementById('bd-lb-img') as HTMLImageElement;
+    const lbCaption = document.getElementById('bd-lb-caption')!;
+    let currentIdx = 0;
+
+    function fullUrl(url: string) {
+      if (url.includes('res.cloudinary.com') && url.includes('/upload/')) {
+        return url.replace('/upload/', '/upload/f_auto,q_auto/');
+      }
+      return url;
+    }
+
+    function show() {
+      const item = images[currentIdx];
+      if (!item) return;
+      lbImg.src = fullUrl(item.url);
+      lbImg.alt = item.title;
+      lbCaption.textContent = item.title;
+    }
+
+    function open(idx: number) {
+      currentIdx = idx;
+      show();
+      lightbox.classList.remove('hidden');
+      lightbox.classList.add('flex');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function close() {
+      lightbox.classList.add('hidden');
+      lightbox.classList.remove('flex');
+      document.body.style.overflow = '';
+    }
+
+    thumbs.forEach((thumb, i) => {
+      thumb.addEventListener('click', () => open(i));
+    });
+
+    document.getElementById('bd-lb-prev')!.addEventListener('click', (e) => { e.stopPropagation(); currentIdx = (currentIdx - 1 + images.length) % images.length; show(); });
+    document.getElementById('bd-lb-next')!.addEventListener('click', (e) => { e.stopPropagation(); currentIdx = (currentIdx + 1) % images.length; show(); });
+    document.getElementById('bd-lb-close')!.addEventListener('click', close);
+    lightbox.addEventListener('click', (e) => { if (e.target === lightbox) close(); });
+
+    document.addEventListener('keydown', (e) => {
+      if (lightbox.classList.contains('hidden')) return;
+      if (e.key === 'Escape') close();
+      if (e.key === 'ArrowLeft') { currentIdx = (currentIdx - 1 + images.length) % images.length; show(); }
+      if (e.key === 'ArrowRight') { currentIdx = (currentIdx + 1) % images.length; show(); }
+    });
+  }
+}
+</script>

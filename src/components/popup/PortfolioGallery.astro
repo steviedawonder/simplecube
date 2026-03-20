@@ -1,4 +1,5 @@
 ---
+import { POPUP_DEFAULT_TAGS } from '@lib/defaultTags';
 ---
 
 <section id="portfolio" class="bg-bg-light py-14 lg:py-20">
@@ -9,7 +10,7 @@
       <p class="mt-4 text-sm text-secondary">심플큐브가 함께한 특별한 순간들</p>
     </div>
 
-    <div id="pf-tags" class="flex flex-wrap gap-2 mb-6 hidden"></div>
+    <div id="pf-tags" class="flex flex-wrap gap-2.5 mb-8 hidden"></div>
 
     <div id="pf-grid" class="gs-stagger grid grid-cols-2 gap-2 md:grid-cols-3"></div>
 
@@ -23,7 +24,28 @@
   </div>
 </section>
 
+<!-- Portfolio Lightbox -->
+<div id="pf-lightbox" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/80 backdrop-blur-sm">
+  <button id="pf-lb-prev" class="absolute left-3 lg:left-4 top-1/2 -translate-y-1/2 z-10 text-white/60 hover:text-white transition-colors" aria-label="이전">
+    <svg class="w-8 lg:w-10 h-8 lg:h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+  </button>
+  <button id="pf-lb-next" class="absolute right-3 lg:right-4 top-1/2 -translate-y-1/2 z-10 text-white/60 hover:text-white transition-colors" aria-label="다음">
+    <svg class="w-8 lg:w-10 h-8 lg:h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+  </button>
+  <button id="pf-lb-close" class="absolute top-4 right-4 z-10 text-white/60 hover:text-white transition-colors" aria-label="닫기">
+    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+  </button>
+  <img id="pf-lb-img" src="" alt="" class="max-h-[85vh] max-w-[90vw] object-contain rounded-lg shadow-2xl" />
+  <p id="pf-lb-caption" class="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/70 text-sm"></p>
+</div>
+
+<script is:inline define:vars={{ defaultTags: POPUP_DEFAULT_TAGS }}>
+  window.__popupDefaultTags = defaultTags;
+</script>
+
 <script>
+  const defaultTags: string[] = (window as any).__popupDefaultTags || [];
+
   async function loadPortfolio() {
     const grid = document.getElementById('pf-grid')!;
     const tagsContainer = document.getElementById('pf-tags')!;
@@ -31,7 +53,7 @@
     const loading = document.getElementById('pf-loading')!;
 
     try {
-      const res = await fetch('/api/portfolio?page=popup');
+      const res = await fetch('/api/portfolio?page_tag=popup');
       const items: any[] = await res.json();
 
       loading.classList.add('hidden');
@@ -50,12 +72,17 @@
       });
       const tagList = Array.from(allTags).sort();
 
-      // Render tag buttons
-      if (tagList.length > 0) {
+      // Render tag buttons — default tags first, then dynamic extras
+      const orderedTags = [
+        ...defaultTags.filter(t => tagList.includes(t)),
+        ...tagList.filter(t => !defaultTags.includes(t)),
+      ];
+
+      if (orderedTags.length > 0) {
         tagsContainer.classList.remove('hidden');
         tagsContainer.innerHTML = `
-          <button class="pf-tag-btn px-4 py-1.5 text-sm rounded-full bg-primary text-white font-medium transition-colors" data-tag="">전체</button>
-          ${tagList.map(tag => `<button class="pf-tag-btn px-4 py-1.5 text-sm rounded-full bg-white border border-gray-200 text-secondary hover:border-olive hover:text-olive font-medium transition-colors" data-tag="${tag}">${tag}</button>`).join('')}
+          <button class="pf-tag-btn px-5 py-2 text-sm rounded-full bg-primary text-white font-medium transition-colors" data-tag="">전체</button>
+          ${orderedTags.map(tag => `<button class="pf-tag-btn px-5 py-2 text-sm rounded-full bg-white border border-gray-200 text-secondary hover:border-olive hover:text-olive font-medium transition-colors" data-tag="${tag}">${tag}</button>`).join('')}
         `;
 
         tagsContainer.querySelectorAll('.pf-tag-btn').forEach((btn) => {
@@ -80,21 +107,100 @@
 
       // Render grid
       grid.innerHTML = items.map((item: any) => `
-        <div class="pf-item group cursor-pointer overflow-hidden rounded-lg" data-tags="${item.tags || ''}">
-          <img
-            src="${item.image_url}"
-            alt="${item.title || '포트폴리오'}"
-            class="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            loading="lazy"
-          />
+        <div class="pf-item group cursor-pointer overflow-hidden rounded-lg" data-tags="${item.tags || ''}" data-src="${item.image_url}" data-alt="${item.title || '포트폴리오'}">
+          <div class="relative">
+            <img
+              src="${item.image_url}"
+              alt="${item.title || '포트폴리오'}"
+              class="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              loading="lazy"
+            />
+            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+              <svg class="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
+              </svg>
+            </div>
+          </div>
         </div>
       `).join('');
+
+      // Lightbox
+      setupLightbox(grid);
 
     } catch {
       loading.classList.add('hidden');
       empty.classList.remove('hidden');
     }
   }
+
+  function setupLightbox(grid: HTMLElement) {
+    const lightbox = document.getElementById('pf-lightbox')!;
+    const lbImg = document.getElementById('pf-lb-img') as HTMLImageElement;
+    const lbCaption = document.getElementById('pf-lb-caption')!;
+    const lbPrev = document.getElementById('pf-lb-prev')!;
+    const lbNext = document.getElementById('pf-lb-next')!;
+    const lbClose = document.getElementById('pf-lb-close')!;
+
+    let visibleItems: { src: string; alt: string }[] = [];
+    let currentIdx = 0;
+
+    function getVisible() {
+      return Array.from(grid.querySelectorAll('.pf-item:not([style*="display: none"])'));
+    }
+
+    function openLb(idx: number) {
+      const visible = getVisible();
+      visibleItems = visible.map(el => ({
+        src: (el as HTMLElement).dataset.src || '',
+        alt: (el as HTMLElement).dataset.alt || '',
+      }));
+      currentIdx = idx;
+      showLbImage();
+      lightbox.classList.remove('hidden');
+      lightbox.classList.add('flex');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLb() {
+      lightbox.classList.add('hidden');
+      lightbox.classList.remove('flex');
+      document.body.style.overflow = '';
+    }
+
+    function showLbImage() {
+      const item = visibleItems[currentIdx];
+      if (!item) return;
+      lbImg.src = item.src;
+      lbImg.alt = item.alt;
+      lbCaption.textContent = item.alt;
+    }
+
+    grid.addEventListener('click', (e) => {
+      const item = (e.target as HTMLElement).closest('.pf-item');
+      if (!item) return;
+      const visible = getVisible();
+      const idx = visible.indexOf(item as Element);
+      if (idx >= 0) openLb(idx);
+    });
+
+    lbPrev.addEventListener('click', (e) => { e.stopPropagation(); currentIdx = (currentIdx - 1 + visibleItems.length) % visibleItems.length; showLbImage(); });
+    lbNext.addEventListener('click', (e) => { e.stopPropagation(); currentIdx = (currentIdx + 1) % visibleItems.length; showLbImage(); });
+    lbClose.addEventListener('click', closeLb);
+    lightbox.addEventListener('click', (e) => { if (e.target === lightbox) closeLb(); });
+
+    document.addEventListener('keydown', (e) => {
+      if (lightbox.classList.contains('hidden')) return;
+      if (e.key === 'Escape') closeLb();
+      if (e.key === 'ArrowLeft') { currentIdx = (currentIdx - 1 + visibleItems.length) % visibleItems.length; showLbImage(); }
+      if (e.key === 'ArrowRight') { currentIdx = (currentIdx + 1) % visibleItems.length; showLbImage(); }
+    });
+  }
+
+  // Expose tag activation for external use (CustomOptions "더보기" button)
+  (window as any).__activatePortfolioTag = function(tag: string) {
+    const btn = document.querySelector(`.pf-tag-btn[data-tag="${tag}"]`) as HTMLButtonElement | null;
+    if (btn) btn.click();
+  };
 
   loadPortfolio();
 </script>

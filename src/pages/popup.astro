@@ -1,11 +1,26 @@
 ---
+export const prerender = false;
 import BaseLayout from '@layouts/BaseLayout.astro';
 import ServiceIntro from '@components/popup/ServiceIntro.astro';
 import PortfolioGallery from '@components/popup/PortfolioGallery.astro';
 import ClientShowcase from '@components/popup/ClientShowcase.astro';
 import MachineShowcase from '@components/popup/MachineShowcase.astro';
 import CustomOptions from '@components/popup/CustomOptions.astro';
-import BookingProcess from '@components/popup/BookingProcess.astro';
+import AccordionList from '@components/faq/AccordionList.astro';
+import db from '@lib/db';
+
+const faqResult = await db.execute({
+  sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC',
+  args: ['popup'],
+});
+const faqItems = faqResult.rows as { question: string; answer: string }[];
+
+// Backgrounds data
+let backgrounds: any[] = [];
+try {
+  const bgResult = await db.execute('SELECT * FROM backgrounds WHERE visible = 1 ORDER BY sort_order ASC, id DESC');
+  backgrounds = bgResult.rows as any[];
+} catch { /* table may not exist yet */ }
 ---
 
 <BaseLayout
@@ -31,6 +46,188 @@ import BookingProcess from '@components/popup/BookingProcess.astro';
   <MachineShowcase />
   <PortfolioGallery />
   <CustomOptions />
-  <BookingProcess />
+  {/* 프로그램 배경 예시 섹션 */}
+  {backgrounds.length > 0 && (
+    <section id="backgrounds" class="bg-bg-light py-14 lg:py-20 border-t border-border-light">
+      <div class="mx-auto max-w-7xl px-6 lg:px-8">
+        <div class="mb-8 lg:mb-10">
+          <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">BACKGROUNDS</span>
+          <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">프로그램 배경</h2>
+          <p class="mt-4 text-sm text-secondary">다양한 배경 디자인으로 특별한 포토 경험을 제공합니다.</p>
+        </div>
+
+        <div id="bg-tags" class="flex flex-wrap gap-2.5 mb-8"></div>
+        <div id="bg-grid" class="grid grid-cols-3 gap-2 md:grid-cols-4 md:gap-3"></div>
+      </div>
+    </section>
+  )}
+
   <ClientShowcase />
+
+  {faqItems.length > 0 && (
+    <section id="qna" class="bg-white py-16 lg:py-24 border-t border-border-light">
+      <div class="mx-auto max-w-3xl px-6 lg:px-8">
+        <div class="mb-10">
+          <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">Q&A</span>
+          <h2 class="mt-3 text-2xl font-bold text-primary md:text-3xl">자주 묻는 질문</h2>
+          <div class="mt-4 h-[2px] w-8 bg-olive"></div>
+        </div>
+        <AccordionList items={faqItems} />
+      </div>
+    </section>
+  )}
 </BaseLayout>
+
+<!-- 배경 라이트박스 -->
+<div id="bg-lightbox" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/80 backdrop-blur-sm">
+  <button id="bg-lb-prev" class="absolute left-3 lg:left-4 top-1/2 -translate-y-1/2 z-10 text-white/60 hover:text-white transition-colors" aria-label="이전">
+    <svg class="w-8 lg:w-10 h-8 lg:h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+  </button>
+  <button id="bg-lb-next" class="absolute right-3 lg:right-4 top-1/2 -translate-y-1/2 z-10 text-white/60 hover:text-white transition-colors" aria-label="다음">
+    <svg class="w-8 lg:w-10 h-8 lg:h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+  </button>
+  <button id="bg-lb-close" class="absolute top-4 right-4 z-10 text-white/60 hover:text-white transition-colors" aria-label="닫기">
+    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+  </button>
+  <img id="bg-lb-img" src="" alt="" class="max-h-[85vh] max-w-[90vw] object-contain rounded-lg shadow-2xl" />
+  <p id="bg-lb-caption" class="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/70 text-sm"></p>
+</div>
+
+<script is:inline define:vars={{ bgData: JSON.parse(JSON.stringify(backgrounds)) }}>
+  window.__backgrounds = bgData;
+</script>
+
+<script>
+{
+  const backgrounds: any[] = (window as any).__backgrounds || [];
+  if (backgrounds.length > 0) {
+    const grid = document.getElementById('bg-grid')!;
+    const tagsContainer = document.getElementById('bg-tags')!;
+
+    // Extract categories
+    const categories = [...new Set(backgrounds.map((b: any) => b.category || '기본'))];
+
+    // Render category tabs
+    if (categories.length > 1) {
+      tagsContainer.innerHTML = `
+        <button class="bg-tag-btn px-5 py-2 text-sm rounded-full bg-primary text-white font-medium transition-colors" data-cat="">전체</button>
+        ${categories.map(cat => `<button class="bg-tag-btn px-5 py-2 text-sm rounded-full bg-white border border-gray-200 text-secondary hover:border-olive hover:text-olive font-medium transition-colors" data-cat="${cat}">${cat}</button>`).join('')}
+      `;
+
+      tagsContainer.querySelectorAll('.bg-tag-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const cat = (btn as HTMLElement).dataset.cat!;
+          tagsContainer.querySelectorAll('.bg-tag-btn').forEach(b => {
+            if (b === btn) {
+              b.classList.remove('bg-white', 'border', 'border-gray-200', 'text-secondary');
+              b.classList.add('bg-primary', 'text-white');
+            } else {
+              b.classList.remove('bg-primary', 'text-white');
+              b.classList.add('bg-white', 'border', 'border-gray-200', 'text-secondary');
+            }
+          });
+          grid.querySelectorAll('.bg-item').forEach(item => {
+            const itemCat = (item as HTMLElement).dataset.category || '';
+            (item as HTMLElement).style.display = (!cat || itemCat === cat) ? '' : 'none';
+          });
+        });
+      });
+    }
+
+    // Cloudinary thumbnail transform
+    function thumbUrl(url: string) {
+      if (url.includes('res.cloudinary.com') && url.includes('/upload/')) {
+        return url.replace('/upload/', '/upload/w_400,f_auto,q_auto/');
+      }
+      return url;
+    }
+
+    // Render grid
+    grid.innerHTML = backgrounds.map((bg: any) => `
+      <div class="bg-item group cursor-pointer overflow-hidden rounded-lg" data-category="${bg.category || '기본'}">
+        <div class="relative">
+          <img
+            src="${thumbUrl(bg.image_url)}"
+            alt="${bg.title || '프로그램 배경'}"
+            class="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            loading="lazy"
+          />
+          <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+            <svg class="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
+            </svg>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    // Lightbox
+    const lightbox = document.getElementById('bg-lightbox')!;
+    const lbImg = document.getElementById('bg-lb-img') as HTMLImageElement;
+    const lbCaption = document.getElementById('bg-lb-caption')!;
+    const lbPrev = document.getElementById('bg-lb-prev')!;
+    const lbNext = document.getElementById('bg-lb-next')!;
+    const lbClose = document.getElementById('bg-lb-close')!;
+
+    let visibleItems: any[] = [];
+    let currentIdx = 0;
+
+    function getFullUrl(url: string) {
+      if (url.includes('res.cloudinary.com') && url.includes('/upload/')) {
+        return url.replace('/upload/', '/upload/f_auto,q_auto/');
+      }
+      return url;
+    }
+
+    function openBgLightbox(idx: number) {
+      // Get currently visible items
+      const visible = grid.querySelectorAll('.bg-item:not([style*="display: none"])');
+      visibleItems = Array.from(visible).map(el => {
+        const img = el.querySelector('img')!;
+        return { url: img.src, title: img.alt };
+      });
+      currentIdx = idx;
+      showBgImage();
+      lightbox.classList.remove('hidden');
+      lightbox.classList.add('flex');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeBgLightbox() {
+      lightbox.classList.add('hidden');
+      lightbox.classList.remove('flex');
+      document.body.style.overflow = '';
+    }
+
+    function showBgImage() {
+      const item = visibleItems[currentIdx];
+      if (!item) return;
+      // Get full URL from original background data
+      const origUrl = backgrounds.find((b: any) => (b.title || '프로그램 배경') === item.title)?.image_url || item.url;
+      lbImg.src = getFullUrl(origUrl);
+      lbImg.alt = item.title;
+      lbCaption.textContent = item.title;
+    }
+
+    grid.addEventListener('click', (e) => {
+      const item = (e.target as HTMLElement).closest('.bg-item');
+      if (!item) return;
+      const visible = Array.from(grid.querySelectorAll('.bg-item:not([style*="display: none"])'));
+      const idx = visible.indexOf(item as Element);
+      if (idx >= 0) openBgLightbox(idx);
+    });
+
+    lbPrev.addEventListener('click', (e) => { e.stopPropagation(); currentIdx = (currentIdx - 1 + visibleItems.length) % visibleItems.length; showBgImage(); });
+    lbNext.addEventListener('click', (e) => { e.stopPropagation(); currentIdx = (currentIdx + 1) % visibleItems.length; showBgImage(); });
+    lbClose.addEventListener('click', closeBgLightbox);
+    lightbox.addEventListener('click', (e) => { if (e.target === lightbox) closeBgLightbox(); });
+
+    document.addEventListener('keydown', (e) => {
+      if (lightbox.classList.contains('hidden')) return;
+      if (e.key === 'Escape') closeBgLightbox();
+      if (e.key === 'ArrowLeft') { currentIdx = (currentIdx - 1 + visibleItems.length) % visibleItems.length; showBgImage(); }
+      if (e.key === 'ArrowRight') { currentIdx = (currentIdx + 1) % visibleItems.length; showBgImage(); }
+    });
+  }
+}
+</script>

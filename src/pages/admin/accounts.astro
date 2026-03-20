@@ -1,0 +1,193 @@
+---
+export const prerender = false;
+import AdminLayout from '@layouts/AdminLayout.astro';
+
+const user = Astro.locals.user;
+if (!user || user.role !== 'owner') {
+  return Astro.redirect('/admin');
+}
+---
+
+<AdminLayout title="계정 관리">
+  <div class="flex items-center justify-between mb-8">
+    <h1 class="text-2xl font-bold text-gray-900">계정 관리</h1>
+    <button id="add-user-btn" class="px-4 py-2 bg-[#D4AA45] text-white rounded-lg text-sm font-medium hover:bg-[#C49A2F] transition-colors">
+      새 계정 추가
+    </button>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <table class="w-full">
+      <thead class="bg-gray-50 border-b border-gray-200">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">이름</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">이메일</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">역할</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">상태</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">등록일</th>
+          <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">작업</th>
+        </tr>
+      </thead>
+      <tbody id="users-tbody" class="divide-y divide-gray-200">
+        <tr><td colspan="6" class="px-6 py-8 text-center text-sm text-gray-500">로딩 중...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Add User Modal -->
+  <div id="modal-overlay" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center">
+    <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4 shadow-xl">
+      <h2 class="text-lg font-semibold mb-4">새 계정 추가</h2>
+      <form id="add-user-form">
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">이름</label>
+          <input type="text" name="name" required placeholder="이름" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#D4AA45] focus:outline-none" />
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">이메일</label>
+          <input type="email" name="email" required placeholder="email@example.com" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#D4AA45] focus:outline-none" />
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">임시 비밀번호</label>
+          <input type="text" name="password" required placeholder="임시 비밀번호" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#D4AA45] focus:outline-none" />
+        </div>
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-700 mb-1">역할</label>
+          <select name="role" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#D4AA45] focus:outline-none">
+            <option value="editor">에디터</option>
+            <option value="owner">오너</option>
+          </select>
+        </div>
+        <div class="flex gap-3 justify-end">
+          <button type="button" id="modal-cancel" class="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors">취소</button>
+          <button type="submit" class="px-4 py-2 bg-[#D4AA45] text-white rounded-lg text-sm font-medium hover:bg-[#C49A2F] transition-colors">추가</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  const tbody = document.getElementById('users-tbody') as HTMLTableSectionElement;
+  const modal = document.getElementById('modal-overlay') as HTMLDivElement;
+  const addBtn = document.getElementById('add-user-btn') as HTMLButtonElement;
+  const cancelBtn = document.getElementById('modal-cancel') as HTMLButtonElement;
+  const form = document.getElementById('add-user-form') as HTMLFormElement;
+
+  function roleBadge(role: string) {
+    if (role === 'owner') {
+      return '<span class="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-amber-100 text-amber-800">오너</span>';
+    }
+    return '<span class="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-800">에디터</span>';
+  }
+
+  function statusBadge(active: number) {
+    if (active) {
+      return '<span class="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-800">활성</span>';
+    }
+    return '<span class="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-500">비활성</span>';
+  }
+
+  async function loadUsers() {
+    const res = await fetch('/api/admin/users');
+    if (!res.ok) return;
+    const data = await res.json();
+    const users = data.users;
+
+    if (users.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-sm text-gray-500">계정이 없습니다.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = users.map((u: any) => `
+      <tr>
+        <td class="px-6 py-4 text-sm font-medium text-gray-900">${escapeHtml(u.name)}</td>
+        <td class="px-6 py-4 text-sm text-gray-500">${escapeHtml(u.email)}</td>
+        <td class="px-6 py-4 text-sm">${roleBadge(u.role)}</td>
+        <td class="px-6 py-4 text-sm">${statusBadge(u.active)}</td>
+        <td class="px-6 py-4 text-sm text-gray-500">${u.created_at ? u.created_at.split('T')[0] : '-'}</td>
+        <td class="px-6 py-4 text-right">
+          ${u.active
+            ? `<button onclick="deactivateUser(${u.id}, '${escapeHtml(u.name)}')" class="text-sm text-red-600 hover:text-red-800">비활성화</button>`
+            : `<button onclick="activateUser(${u.id}, '${escapeHtml(u.name)}')" class="text-sm text-green-600 hover:text-green-800">활성화</button>`
+          }
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function escapeHtml(str: string) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  addBtn.addEventListener('click', () => {
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  });
+
+  function closeModal() {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    form.reset();
+  }
+
+  cancelBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    const body = {
+      name: formData.get('name'),
+      email: formData.get('email'),
+      password: formData.get('password'),
+      role: formData.get('role'),
+    };
+
+    const res = await fetch('/api/admin/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (res.ok) {
+      closeModal();
+      loadUsers();
+    } else {
+      const data = await res.json();
+      alert(data.error || '오류가 발생했습니다.');
+    }
+  });
+
+  (window as any).deactivateUser = async (id: number, name: string) => {
+    if (!confirm(`"${name}" 계정을 비활성화하시겠습니까?`)) return;
+    const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+      loadUsers();
+    } else {
+      const data = await res.json();
+      alert(data.error || '오류가 발생했습니다.');
+    }
+  };
+
+  (window as any).activateUser = async (id: number, name: string) => {
+    if (!confirm(`"${name}" 계정을 다시 활성화하시겠습니까?`)) return;
+    const res = await fetch(`/api/admin/users/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ active: true }),
+    });
+    if (res.ok) {
+      loadUsers();
+    } else {
+      const data = await res.json();
+      alert(data.error || '오류가 발생했습니다.');
+    }
+  };
+
+  loadUsers();
+</script>

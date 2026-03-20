@@ -37,6 +37,14 @@ export const PUT: APIRoute = async ({ params, request }) => {
       fields.push('sort_order = ?');
       args.push(body.sort_order);
     }
+    if (body.page_tag !== undefined) {
+      fields.push('page_tag = ?');
+      args.push(body.page_tag);
+    }
+    if (body.cut_type !== undefined) {
+      fields.push('cut_type = ?');
+      args.push(body.cut_type || null);
+    }
 
     if (fields.length === 0) {
       return new Response(JSON.stringify({ error: '변경할 항목이 없습니다.' }), {

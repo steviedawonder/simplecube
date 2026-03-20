@@ -1,0 +1,312 @@
+---
+export const prerender = false;
+import AdminLayout from '@layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="패키지 관리">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">패키지 관리</h1>
+    <button id="add-item-btn" class="px-4 py-2 bg-[#D4AA45] text-white rounded-lg text-sm font-medium hover:bg-[#C49A2F] transition-colors hidden">
+      새 항목 추가
+    </button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex gap-1 mb-6 bg-gray-100 rounded-lg p-1 w-fit">
+    <button class="tab-btn active px-4 py-2 text-sm font-medium rounded-md transition-colors" data-tab="wedding">웨딩 패키지</button>
+    <button class="tab-btn px-4 py-2 text-sm font-medium rounded-md transition-colors" data-tab="popup">행사 패키지</button>
+    <button class="tab-btn px-4 py-2 text-sm font-medium rounded-md transition-colors" data-tab="branches">지점 연락처</button>
+  </div>
+
+  <!-- Package Items (wedding / popup) -->
+  <div id="package-section" class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <table class="w-full">
+      <thead class="bg-gray-50 border-b border-gray-200">
+        <tr>
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-10">#</th>
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-16">사진</th>
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">이름</th>
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">설명</th>
+          <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase w-28">작업</th>
+        </tr>
+      </thead>
+      <tbody id="pkg-tbody" class="divide-y divide-gray-200">
+        <tr><td colspan="5" class="px-4 py-8 text-center text-sm text-gray-500">로딩 중...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Branch Section -->
+  <div id="branch-section" class="hidden">
+    <div id="branch-cards" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Dynamically filled -->
+    </div>
+    <div class="mt-4 flex justify-end">
+      <button id="save-branches-btn" class="px-6 py-2.5 bg-[#D4AA45] text-white rounded-lg text-sm font-medium hover:bg-[#C49A2F] transition-colors">
+        저장
+      </button>
+    </div>
+  </div>
+
+  <!-- Add/Edit Modal -->
+  <div id="modal-overlay" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center">
+    <div class="bg-white rounded-xl p-6 w-full max-w-lg mx-4 shadow-xl">
+      <h2 id="modal-title" class="text-lg font-semibold mb-4">새 항목 추가</h2>
+      <form id="pkg-form">
+        <input type="hidden" id="pkg-id" value="" />
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">이름</label>
+          <input type="text" id="pkg-name" required placeholder="항목 이름" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#D4AA45] focus:outline-none" />
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">설명</label>
+          <textarea id="pkg-desc" rows="3" placeholder="설명을 입력하세요" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#D4AA45] focus:outline-none resize-y"></textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">가격</label>
+            <input type="text" id="pkg-price" placeholder="예: 350,000원" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#D4AA45] focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">이미지 URL</label>
+            <input type="text" id="pkg-image" placeholder="/images/..." class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#D4AA45] focus:outline-none" />
+          </div>
+        </div>
+        <div class="flex gap-3 justify-end">
+          <button type="button" id="modal-cancel" class="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors">취소</button>
+          <button type="submit" class="px-4 py-2 bg-[#D4AA45] text-white rounded-lg text-sm font-medium hover:bg-[#C49A2F] transition-colors">저장</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</AdminLayout>
+
+<style>
+  .tab-btn { color: #6e6e73; }
+  .tab-btn.active { background-color: #ffffff; color: #1d1d1f; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+</style>
+
+<script>
+  const tbody = document.getElementById('pkg-tbody') as HTMLTableSectionElement;
+  const modal = document.getElementById('modal-overlay') as HTMLDivElement;
+  const addBtn = document.getElementById('add-item-btn') as HTMLButtonElement;
+  const cancelBtn = document.getElementById('modal-cancel') as HTMLButtonElement;
+  const form = document.getElementById('pkg-form') as HTMLFormElement;
+  const modalTitle = document.getElementById('modal-title') as HTMLHeadingElement;
+  const pkgId = document.getElementById('pkg-id') as HTMLInputElement;
+  const pkgName = document.getElementById('pkg-name') as HTMLInputElement;
+  const pkgDesc = document.getElementById('pkg-desc') as HTMLTextAreaElement;
+  const pkgPrice = document.getElementById('pkg-price') as HTMLInputElement;
+  const pkgImage = document.getElementById('pkg-image') as HTMLInputElement;
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const packageSection = document.getElementById('package-section') as HTMLDivElement;
+  const branchSection = document.getElementById('branch-section') as HTMLDivElement;
+  const branchCards = document.getElementById('branch-cards') as HTMLDivElement;
+  const saveBranchesBtn = document.getElementById('save-branches-btn') as HTMLButtonElement;
+
+  let currentTab = 'wedding';
+  let allItems: any[] = [];
+
+  function escapeHtml(str: string) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // ===== Package Items =====
+  async function loadPackageItems() {
+    const res = await fetch('/api/package-items?page=' + currentTab);
+    if (!res.ok) return;
+    const data = await res.json();
+    allItems = data.items;
+    renderTable();
+  }
+
+  function renderTable() {
+    if (allItems.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-sm text-gray-500">항목이 없습니다.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = allItems.map((item: any, idx: number) => `
+      <tr>
+        <td class="px-4 py-3 text-sm text-gray-400">${idx + 1}</td>
+        <td class="px-4 py-3">
+          ${item.image_url ? `<img src="${escapeHtml(item.image_url)}" alt="" class="w-10 h-10 rounded-lg object-cover" />` : '<div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 text-xs">없음</div>'}
+        </td>
+        <td class="px-4 py-3">
+          <div class="text-sm font-medium text-gray-900">${escapeHtml(item.name)}</div>
+          ${item.price ? `<div class="text-xs text-[#D4AA45] mt-0.5">${escapeHtml(item.price)}</div>` : ''}
+        </td>
+        <td class="px-4 py-3 text-sm text-gray-500 hidden md:table-cell">${escapeHtml((item.description || '').length > 80 ? item.description.slice(0, 80) + '…' : (item.description || ''))}</td>
+        <td class="px-4 py-3 text-right">
+          <button onclick="editItem(${item.id})" class="text-sm text-blue-600 hover:text-blue-800 mr-3">수정</button>
+          <button onclick="deleteItem(${item.id})" class="text-sm text-red-600 hover:text-red-800">삭제</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // Modal
+  function openModal(editMode = false) {
+    modalTitle.textContent = editMode ? '항목 수정' : '새 항목 추가';
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  }
+
+  function closeModal() {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    form.reset();
+    pkgId.value = '';
+  }
+
+  addBtn.addEventListener('click', () => openModal(false));
+  cancelBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = pkgId.value;
+    const body: any = {
+      page: currentTab,
+      name: pkgName.value,
+      description: pkgDesc.value,
+      price: pkgPrice.value,
+      image_url: pkgImage.value,
+    };
+
+    const url = id ? `/api/package-items/${id}` : '/api/package-items';
+    const method = id ? 'PUT' : 'POST';
+
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (res.ok) {
+      closeModal();
+      loadPackageItems();
+    } else {
+      const data = await res.json();
+      alert(data.error || '오류가 발생했습니다.');
+    }
+  });
+
+  (window as any).editItem = (id: number) => {
+    const item = allItems.find((i: any) => i.id === id);
+    if (!item) return;
+    pkgId.value = String(id);
+    pkgName.value = item.name;
+    pkgDesc.value = item.description || '';
+    pkgPrice.value = item.price || '';
+    pkgImage.value = item.image_url || '';
+    openModal(true);
+  };
+
+  (window as any).deleteItem = async (id: number) => {
+    if (!confirm('이 항목을 삭제하시겠습니까?')) return;
+    await fetch(`/api/package-items/${id}`, { method: 'DELETE' });
+    loadPackageItems();
+  };
+
+  // ===== Branches =====
+  const branchSections = ['seoul', 'busan', 'daejeon', 'jeonju'];
+  const branchLabels: Record<string, string> = { seoul: '서울 본점', busan: '부산 지점', daejeon: '대전 지점', jeonju: '전주 지점' };
+
+  async function loadBranches() {
+    const res = await fetch('/api/page-contents?page=branch');
+    if (!res.ok) return;
+    const data = await res.json();
+
+    const grouped: Record<string, Record<string, string>> = {};
+    for (const item of data.items) {
+      if (!grouped[item.section]) grouped[item.section] = {};
+      grouped[item.section][item.key] = item.value;
+    }
+
+    branchCards.innerHTML = branchSections.map(section => {
+      const b = grouped[section] || {};
+      return `
+        <div class="bg-white rounded-xl border border-gray-200 p-5" data-section="${section}">
+          <div class="flex items-center gap-2 mb-4">
+            <h3 class="text-sm font-bold text-gray-900">${branchLabels[section]}</h3>
+            ${section === 'seoul' ? '<span class="text-[9px] font-semibold tracking-wider uppercase bg-[#D4AA45]/10 text-[#D4AA45] px-2 py-0.5 rounded">HQ</span>' : ''}
+          </div>
+          <div class="space-y-3">
+            <div>
+              <label class="block text-xs text-gray-500 mb-1">전화번호</label>
+              <input type="text" class="branch-input w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#D4AA45] focus:outline-none" data-section="${section}" data-key="phone" value="${escapeHtml(b.phone || '')}" />
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 mb-1">카카오톡 채널</label>
+              <input type="text" class="branch-input w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#D4AA45] focus:outline-none" data-section="${section}" data-key="kakao" value="${escapeHtml(b.kakao || '')}" />
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 mb-1">인스타그램</label>
+              <input type="text" class="branch-input w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#D4AA45] focus:outline-none" data-section="${section}" data-key="instagram" value="${escapeHtml(b.instagram || '')}" />
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  saveBranchesBtn.addEventListener('click', async () => {
+    const inputs = branchCards.querySelectorAll<HTMLInputElement>('.branch-input');
+    const promises: Promise<Response>[] = [];
+
+    inputs.forEach(input => {
+      const section = input.dataset.section!;
+      const key = input.dataset.key!;
+      const value = input.value.trim();
+
+      promises.push(fetch('/api/page-contents', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ page: 'branch', section, key, value, type: 'text' }),
+      }));
+    });
+
+    try {
+      await Promise.all(promises);
+      saveBranchesBtn.textContent = '저장 완료!';
+      saveBranchesBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+      saveBranchesBtn.classList.remove('bg-[#D4AA45]', 'hover:bg-[#C49A2F]');
+      setTimeout(() => {
+        saveBranchesBtn.textContent = '저장';
+        saveBranchesBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+        saveBranchesBtn.classList.add('bg-[#D4AA45]', 'hover:bg-[#C49A2F]');
+      }, 2000);
+    } catch {
+      alert('저장 중 오류가 발생했습니다.');
+    }
+  });
+
+  // ===== Tab Switching =====
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const tab = (btn as HTMLElement).dataset.tab || 'wedding';
+      currentTab = tab;
+
+      if (tab === 'branches') {
+        packageSection.classList.add('hidden');
+        branchSection.classList.remove('hidden');
+        addBtn.classList.add('hidden');
+        loadBranches();
+      } else {
+        packageSection.classList.remove('hidden');
+        branchSection.classList.add('hidden');
+        addBtn.classList.remove('hidden');
+        loadPackageItems();
+      }
+    });
+  });
+
+  // Initial load
+  addBtn.classList.remove('hidden');
+  loadPackageItems();
+</script>

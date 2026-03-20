@@ -1,34 +1,53 @@
 ---
-const packageItems = [
-  {
-    icon: '📸',
-    title: '하객 제공 사진',
-    desc: '동일 사진 2장 즉시 인화',
-    detail: '한 장은 하객에게 기념으로, 한 장은 방명록용으로 제공됩니다.',
-    image: '/images/wedding/booth-print.jpg',
-  },
-  {
-    icon: '📖',
-    title: '포토 방명록',
-    desc: '사진+축하 메시지를 담은 바인더',
-    detail: '바인더형 방명록에 사진과 축하 메시지를 담아 신랑·신부님께 선물합니다.',
-    image: '/images/wedding/photo-strips.jpg',
-  },
-  {
-    icon: '🖼️',
-    title: '원목 액자',
-    desc: '대표 사진을 액자에 담아 제공',
-    detail: '신랑·신부님의 대표 사진을 원목 액자에 넣어 전달드립니다.',
-    image: '/images/wedding/frame.jpg',
-  },
-  {
-    icon: '💾',
-    title: '원본 & GIF USB',
-    desc: '모든 원본 사진+GIF USB 전달',
-    detail: '촬영된 모든 원본 사진과 GIF 파일을 USB에 담아 드립니다.',
-    image: '/images/wedding/giftbox.jpg',
-  },
+import db from '@lib/db';
+
+// Icon mapping by package name
+const iconMap: Record<string, string> = {
+  '하객 제공 사진': '📸',
+  '포토 방명록': '📖',
+  '원목 액자': '🖼️',
+  '원본 & GIF USB': '💾',
+};
+
+// Hardcoded fallback
+const defaultItems = [
+  { name: '하객 제공 사진', desc: '동일 사진 2장 즉시 인화', detail: '한 장은 하객에게 기념으로, 한 장은 방명록용으로 제공됩니다.', image_url: '/images/wedding/booth-print.jpg' },
+  { name: '포토 방명록', desc: '사진+축하 메시지를 담은 바인더', detail: '바인더형 방명록에 사진과 축하 메시지를 담아 신랑·신부님께 선물합니다.', image_url: '/images/wedding/photo-strips.jpg' },
+  { name: '원목 액자', desc: '대표 사진을 액자에 담아 제공', detail: '신랑·신부님의 대표 사진을 원목 액자에 넣어 전달드립니다.', image_url: '/images/wedding/frame.jpg' },
+  { name: '원본 & GIF USB', desc: '모든 원본 사진+GIF USB 전달', detail: '촬영된 모든 원본 사진과 GIF 파일을 USB에 담아 드립니다.', image_url: '/images/wedding/giftbox.jpg' },
 ];
+
+// Try loading from DB
+let packageItems: { icon: string; name: string; desc: string; detail: string; image_url: string }[] = [];
+try {
+  const result = await db.execute({
+    sql: "SELECT * FROM package_items WHERE page = 'wedding' ORDER BY sort_order ASC, id ASC",
+    args: [],
+  });
+  if (result.rows.length > 0) {
+    packageItems = (result.rows as any[]).map(row => {
+      const fullDesc = row.description || '';
+      const dotIdx = fullDesc.indexOf('. ');
+      const desc = dotIdx > 0 ? fullDesc.substring(0, dotIdx) : fullDesc;
+      const detail = dotIdx > 0 ? fullDesc.substring(dotIdx + 2) : fullDesc;
+      return {
+        icon: iconMap[row.name] || '📦',
+        name: row.name,
+        desc,
+        detail,
+        image_url: row.image_url || '/images/wedding/booth-print.jpg',
+      };
+    });
+  }
+} catch { /* table may not exist yet */ }
+
+// Fallback to hardcoded
+if (packageItems.length === 0) {
+  packageItems = defaultItems.map(d => ({
+    icon: iconMap[d.name] || '📦',
+    ...d,
+  }));
+}
 
 const specs = [
   { label: '촬영 배경', value: '백드롭 6종 택 1' },
@@ -55,7 +74,7 @@ const specs = [
       {packageItems.map((item, i) => (
         <button class="pkg-card text-left rounded-xl border border-border-light bg-white p-4 transition-all active:scale-[0.98]" data-pkg-idx={i}>
           <span class="text-2xl block">{item.icon}</span>
-          <h3 class="mt-2 text-sm font-bold text-primary leading-tight">{item.title}</h3>
+          <h3 class="mt-2 text-sm font-bold text-primary leading-tight">{item.name}</h3>
           <p class="mt-1 text-[11px] text-secondary leading-snug">{item.desc}</p>
         </button>
       ))}
@@ -68,11 +87,11 @@ const specs = [
           <div class="grid md:grid-cols-[1fr_1.1fr]">
             <div class="p-8 flex flex-col justify-center">
               <span class="text-3xl mb-3">{item.icon}</span>
-              <h3 class="text-lg font-bold text-primary">{item.title}</h3>
+              <h3 class="text-lg font-bold text-primary">{item.name}</h3>
               <p class="mt-2 text-sm leading-relaxed text-secondary">{item.detail}</p>
             </div>
             <div class="overflow-hidden">
-              <img src={item.image} alt={item.title} class="h-48 md:h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" />
+              <img src={item.image_url} alt={item.name} class="h-48 md:h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" />
             </div>
           </div>
         </div>
@@ -119,9 +138,9 @@ const specs = [
     btn.addEventListener('click', () => {
       const idx = parseInt(btn.dataset.pkgIdx);
       const item = packageItems[idx];
-      modalImg.src = item.image;
-      modalImg.alt = item.title;
-      modalTitle.textContent = item.title;
+      modalImg.src = item.image_url;
+      modalImg.alt = item.name;
+      modalTitle.textContent = item.name;
       modalDetail.textContent = item.detail;
       modal.style.display = 'flex';
     });

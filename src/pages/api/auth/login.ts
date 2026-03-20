@@ -1,29 +1,29 @@
 import type { APIRoute } from 'astro';
-import { verifyPassword, createToken, getSessionCookie } from '@lib/auth';
+import { authenticateUser, createToken, getSessionCookie } from '@lib/auth';
 
 export const prerender = false;
 
 export const POST: APIRoute = async ({ request }) => {
   try {
     const body = await request.json();
-    const { password } = body;
+    const { email, password } = body;
 
-    if (!password) {
-      return new Response(JSON.stringify({ error: '비밀번호를 입력하세요.' }), {
+    if (!email || !password) {
+      return new Response(JSON.stringify({ error: '이메일과 비밀번호를 입력하세요.' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
     }
 
-    const valid = await verifyPassword(password);
-    if (!valid) {
-      return new Response(JSON.stringify({ error: '비밀번호가 올바르지 않습니다.' }), {
+    const user = await authenticateUser(email, password);
+    if (!user) {
+      return new Response(JSON.stringify({ error: '이메일 또는 비밀번호가 올바르지 않습니다.' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' },
       });
     }
 
-    const token = await createToken();
+    const token = await createToken(user);
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: {

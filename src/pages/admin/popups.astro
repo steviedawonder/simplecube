@@ -1,0 +1,408 @@
+---
+export const prerender = false;
+
+import AdminLayout from '@layouts/AdminLayout.astro';
+import db from '@lib/db';
+
+const popups = await db.execute('SELECT * FROM popups ORDER BY sort_order ASC, created_at DESC');
+const activeCount = popups.rows.filter((p: any) => p.active).length;
+---
+
+<AdminLayout title="팝업 관리">
+  <div class="popup-page">
+    <div class="page-header">
+      <div>
+        <h2>팝업 관리</h2>
+        <p class="page-desc">랜딩페이지에 표시할 팝업을 관리합니다. 최대 2개까지 활성화할 수 있습니다.</p>
+      </div>
+      <button id="add-popup-btn" class="btn btn-primary">+ 새 팝업 추가</button>
+    </div>
+
+    <div class="active-badge">활성 팝업: <strong id="active-count">{activeCount}</strong> / 2</div>
+
+    <!-- Popup List -->
+    <div id="popup-list" class="popup-list">
+      {popups.rows.length === 0 ? (
+        <div class="empty-state">
+          <p>등록된 팝업이 없습니다.</p>
+        </div>
+      ) : (
+        popups.rows.map((popup: any) => (
+          <div class="popup-card" data-id={popup.id}>
+            <div class="popup-card-preview" style={`background-color: ${popup.bg_color};`}>
+              {popup.image_url ? (
+                <img src={popup.image_url} alt={popup.title} class="popup-thumb" />
+              ) : (
+                <div class="popup-thumb-placeholder" style={`color: ${popup.text_color};`}>
+                  <span>{popup.title}</span>
+                </div>
+              )}
+            </div>
+            <div class="popup-card-info">
+              <div class="popup-card-header">
+                <h3>{popup.title}</h3>
+                <span class:list={['status-badge', popup.active ? 'active' : 'inactive']}>
+                  {popup.active ? '활성' : '비활성'}
+                </span>
+              </div>
+              {popup.subtitle && <p class="popup-subtitle">{popup.subtitle}</p>}
+              <p class="popup-meta">순서: {popup.sort_order} · 수정: {new Date(popup.updated_at + 'Z').toLocaleDateString('ko-KR')}</p>
+              <div class="popup-actions">
+                <button class="btn btn-sm btn-outline edit-btn" data-id={popup.id}>수정</button>
+                <button class="btn btn-sm btn-danger delete-btn" data-id={popup.id}>삭제</button>
+              </div>
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+
+    <!-- Modal -->
+    <div id="popup-modal" class="modal hidden">
+      <div class="modal-overlay"></div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="modal-title">새 팝업 추가</h3>
+          <button class="modal-close" id="modal-close">&times;</button>
+        </div>
+        <form id="popup-form" class="modal-body">
+          <input type="hidden" id="popup-id" />
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>제목 (상단 뱃지) <span class="required">*</span></label>
+              <input type="text" id="field-title" placeholder="예: 4시간 가능" required />
+            </div>
+            <div class="form-group">
+              <label>부제목 (메인 텍스트)</label>
+              <input type="text" id="field-subtitle" placeholder="예: 3월 사전 예약" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>본문</label>
+            <textarea id="field-body" rows="3" placeholder="예: 원하는 날짜를 잡으시려면&#10;지금 바로 예약 필수!"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>이미지</label>
+            <div class="image-upload-area">
+              <div id="image-preview" class="image-preview hidden">
+                <img id="preview-img" src="" alt="미리보기" />
+                <button type="button" id="remove-image" class="btn btn-sm btn-danger">삭제</button>
+              </div>
+              <div id="image-dropzone" class="image-dropzone">
+                <p>이미지를 드래그하거나 클릭하여 업로드</p>
+                <input type="file" id="image-file" accept="image/*" class="hidden" />
+              </div>
+              <input type="hidden" id="field-image-url" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>링크 URL</label>
+              <input type="text" id="field-link-url" placeholder="/contact" />
+            </div>
+            <div class="form-group">
+              <label>링크 텍스트</label>
+              <input type="text" id="field-link-text" placeholder="예약하기" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>배경 색상</label>
+              <div class="color-input">
+                <input type="color" id="field-bg-color" value="#1d1d1f" />
+                <input type="text" id="field-bg-color-text" value="#1d1d1f" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>텍스트 색상</label>
+              <div class="color-input">
+                <input type="color" id="field-text-color" value="#ffffff" />
+                <input type="text" id="field-text-color-text" value="#ffffff" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>정렬 순서</label>
+              <input type="number" id="field-sort-order" value="0" min="0" />
+            </div>
+            <div class="form-group">
+              <label>상태</label>
+              <label class="toggle-label">
+                <input type="checkbox" id="field-active" />
+                <span>활성화 (랜딩페이지에 표시)</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline" id="modal-cancel">취소</button>
+            <button type="submit" class="btn btn-primary" id="save-btn">저장</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .popup-page { max-width: 900px; }
+    .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; gap: 1rem; flex-wrap: wrap; }
+    .page-header h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem; }
+    .page-desc { font-size: 0.875rem; color: #6e6e73; }
+    .active-badge { display: inline-block; background: #f0f0f5; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.875rem; margin-bottom: 1.5rem; }
+
+    .btn { padding: 0.5rem 1rem; border: none; border-radius: 8px; font-size: 0.875rem; font-family: inherit; cursor: pointer; transition: all 0.15s; }
+    .btn-primary { background: #1d1d1f; color: #fff; }
+    .btn-primary:hover { background: #333; }
+    .btn-outline { background: #fff; border: 1px solid #d2d2d7; color: #1d1d1f; }
+    .btn-outline:hover { border-color: #1d1d1f; }
+    .btn-danger { background: #dc2626; color: #fff; }
+    .btn-danger:hover { background: #b91c1c; }
+    .btn-sm { padding: 0.375rem 0.75rem; font-size: 0.8125rem; }
+
+    .popup-list { display: flex; flex-direction: column; gap: 1rem; }
+    .empty-state { text-align: center; padding: 3rem; background: #fff; border-radius: 12px; color: #6e6e73; }
+
+    .popup-card { display: flex; gap: 1rem; background: #fff; border-radius: 12px; overflow: hidden; border: 1px solid #e8e8ed; }
+    .popup-card-preview { width: 160px; min-height: 120px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    .popup-thumb { width: 100%; height: 100%; object-fit: cover; }
+    .popup-thumb-placeholder { padding: 1rem; text-align: center; font-size: 0.875rem; font-weight: 600; }
+    .popup-card-info { flex: 1; padding: 1rem; display: flex; flex-direction: column; gap: 0.375rem; }
+    .popup-card-header { display: flex; align-items: center; gap: 0.75rem; }
+    .popup-card-header h3 { font-size: 1rem; font-weight: 600; }
+    .popup-subtitle { font-size: 0.875rem; color: #6e6e73; }
+    .popup-meta { font-size: 0.75rem; color: #8c8c8c; }
+    .popup-actions { display: flex; gap: 0.5rem; margin-top: auto; padding-top: 0.5rem; }
+
+    .status-badge { font-size: 0.75rem; padding: 0.125rem 0.5rem; border-radius: 999px; font-weight: 500; }
+    .status-badge.active { background: #dcfce7; color: #16a34a; }
+    .status-badge.inactive { background: #f3f4f6; color: #6b7280; }
+
+    /* Modal */
+    .modal { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; }
+    .modal.hidden { display: none; }
+    .modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); }
+    .modal-content { position: relative; background: #fff; border-radius: 16px; width: 90%; max-width: 640px; max-height: 90vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid #e8e8ed; }
+    .modal-header h3 { font-size: 1.125rem; font-weight: 600; }
+    .modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #6e6e73; padding: 0; line-height: 1; }
+    .modal-body { padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 0.75rem; padding-top: 0.5rem; }
+
+    .form-group { flex: 1; display: flex; flex-direction: column; gap: 0.375rem; }
+    .form-group label { font-size: 0.8125rem; font-weight: 500; color: #1d1d1f; }
+    .form-row { display: flex; gap: 1rem; }
+    .required { color: #dc2626; }
+
+    .form-group input[type="text"],
+    .form-group input[type="number"],
+    .form-group textarea {
+      padding: 0.5rem 0.75rem; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 0.875rem; font-family: inherit;
+      transition: border-color 0.15s;
+    }
+    .form-group input:focus,
+    .form-group textarea:focus { outline: none; border-color: #1d1d1f; }
+
+    .color-input { display: flex; gap: 0.5rem; align-items: center; }
+    .color-input input[type="color"] { width: 36px; height: 36px; border: 1px solid #d2d2d7; border-radius: 8px; padding: 2px; cursor: pointer; }
+    .color-input input[type="text"] { flex: 1; padding: 0.5rem 0.75rem; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 0.875rem; font-family: monospace; }
+
+    .toggle-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; cursor: pointer; padding-top: 0.25rem; }
+    .toggle-label input { width: 18px; height: 18px; }
+
+    .image-upload-area { display: flex; flex-direction: column; gap: 0.75rem; }
+    .image-dropzone { border: 2px dashed #d2d2d7; border-radius: 8px; padding: 1.5rem; text-align: center; cursor: pointer; transition: border-color 0.15s; }
+    .image-dropzone:hover { border-color: #1d1d1f; }
+    .image-dropzone p { font-size: 0.875rem; color: #6e6e73; }
+    .image-preview { position: relative; max-width: 200px; }
+    .image-preview img { width: 100%; border-radius: 8px; }
+    .image-preview .btn { position: absolute; top: 0.5rem; right: 0.5rem; }
+    .hidden { display: none; }
+
+    @media (max-width: 640px) {
+      .form-row { flex-direction: column; }
+      .popup-card { flex-direction: column; }
+      .popup-card-preview { width: 100%; min-height: 100px; }
+    }
+  </style>
+
+  <script>
+    const modal = document.getElementById('popup-modal')!;
+    const form = document.getElementById('popup-form') as HTMLFormElement;
+    const modalTitle = document.getElementById('modal-title')!;
+    const popupIdField = document.getElementById('popup-id') as HTMLInputElement;
+
+    const fields = {
+      title: document.getElementById('field-title') as HTMLInputElement,
+      subtitle: document.getElementById('field-subtitle') as HTMLInputElement,
+      body: document.getElementById('field-body') as HTMLTextAreaElement,
+      imageUrl: document.getElementById('field-image-url') as HTMLInputElement,
+      linkUrl: document.getElementById('field-link-url') as HTMLInputElement,
+      linkText: document.getElementById('field-link-text') as HTMLInputElement,
+      bgColor: document.getElementById('field-bg-color') as HTMLInputElement,
+      bgColorText: document.getElementById('field-bg-color-text') as HTMLInputElement,
+      textColor: document.getElementById('field-text-color') as HTMLInputElement,
+      textColorText: document.getElementById('field-text-color-text') as HTMLInputElement,
+      sortOrder: document.getElementById('field-sort-order') as HTMLInputElement,
+      active: document.getElementById('field-active') as HTMLInputElement,
+    };
+
+    const imageFile = document.getElementById('image-file') as HTMLInputElement;
+    const imagePreview = document.getElementById('image-preview')!;
+    const previewImg = document.getElementById('preview-img') as HTMLImageElement;
+    const dropzone = document.getElementById('image-dropzone')!;
+    const removeImageBtn = document.getElementById('remove-image')!;
+
+    // Color sync
+    fields.bgColor.addEventListener('input', () => { fields.bgColorText.value = fields.bgColor.value; });
+    fields.bgColorText.addEventListener('input', () => { fields.bgColor.value = fields.bgColorText.value; });
+    fields.textColor.addEventListener('input', () => { fields.textColorText.value = fields.textColor.value; });
+    fields.textColorText.addEventListener('input', () => { fields.textColor.value = fields.textColorText.value; });
+
+    // Image upload
+    dropzone.addEventListener('click', () => imageFile.click());
+    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.style.borderColor = '#1d1d1f'; });
+    dropzone.addEventListener('dragleave', () => { dropzone.style.borderColor = '#d2d2d7'; });
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.style.borderColor = '#d2d2d7';
+      const file = e.dataTransfer?.files[0];
+      if (file) uploadImage(file);
+    });
+    imageFile.addEventListener('change', () => {
+      if (imageFile.files?.[0]) uploadImage(imageFile.files[0]);
+    });
+    removeImageBtn.addEventListener('click', () => {
+      fields.imageUrl.value = '';
+      imagePreview.classList.add('hidden');
+      dropzone.classList.remove('hidden');
+    });
+
+    async function uploadImage(file: File) {
+      const formData = new FormData();
+      formData.append('file', file);
+      dropzone.innerHTML = '<p>업로드 중...</p>';
+      try {
+        const res = await fetch('/api/media/upload', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+        fields.imageUrl.value = data.url;
+        previewImg.src = data.url;
+        imagePreview.classList.remove('hidden');
+        dropzone.classList.add('hidden');
+      } catch (e: any) {
+        alert('이미지 업로드 실패: ' + e.message);
+      }
+      dropzone.innerHTML = '<p>이미지를 드래그하거나 클릭하여 업로드</p>';
+    }
+
+    function showImage(url: string) {
+      if (url) {
+        previewImg.src = url;
+        imagePreview.classList.remove('hidden');
+        dropzone.classList.add('hidden');
+      } else {
+        imagePreview.classList.add('hidden');
+        dropzone.classList.remove('hidden');
+      }
+    }
+
+    // Open modal
+    function openModal(popup?: any) {
+      if (popup) {
+        modalTitle.textContent = '팝업 수정';
+        popupIdField.value = String(popup.id);
+        fields.title.value = popup.title || '';
+        fields.subtitle.value = popup.subtitle || '';
+        fields.body.value = popup.body || '';
+        fields.imageUrl.value = popup.image_url || '';
+        fields.linkUrl.value = popup.link_url || '';
+        fields.linkText.value = popup.link_text || '';
+        fields.bgColor.value = popup.bg_color || '#1d1d1f';
+        fields.bgColorText.value = popup.bg_color || '#1d1d1f';
+        fields.textColor.value = popup.text_color || '#ffffff';
+        fields.textColorText.value = popup.text_color || '#ffffff';
+        fields.sortOrder.value = String(popup.sort_order || 0);
+        fields.active.checked = !!popup.active;
+        showImage(popup.image_url || '');
+      } else {
+        modalTitle.textContent = '새 팝업 추가';
+        form.reset();
+        popupIdField.value = '';
+        fields.bgColor.value = '#dc2626';
+        fields.bgColorText.value = '#dc2626';
+        fields.textColor.value = '#ffffff';
+        fields.textColorText.value = '#ffffff';
+        showImage('');
+      }
+      modal.classList.remove('hidden');
+    }
+
+    function closeModal() {
+      modal.classList.add('hidden');
+    }
+
+    document.getElementById('add-popup-btn')!.addEventListener('click', () => openModal());
+    document.getElementById('modal-close')!.addEventListener('click', closeModal);
+    document.getElementById('modal-cancel')!.addEventListener('click', closeModal);
+    document.querySelector('.modal-overlay')!.addEventListener('click', closeModal);
+
+    // Edit buttons
+    document.querySelectorAll('.edit-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = (btn as HTMLElement).dataset.id;
+        const res = await fetch(`/api/popups/${id}`);
+        const popup = await res.json();
+        openModal(popup);
+      });
+    });
+
+    // Delete buttons
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('이 팝업을 삭제하시겠습니까?')) return;
+        const id = (btn as HTMLElement).dataset.id;
+        await fetch(`/api/popups/${id}`, { method: 'DELETE' });
+        location.reload();
+      });
+    });
+
+    // Save form
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = popupIdField.value;
+      const payload = {
+        title: fields.title.value,
+        subtitle: fields.subtitle.value,
+        body: fields.body.value,
+        image_url: fields.imageUrl.value,
+        link_url: fields.linkUrl.value,
+        link_text: fields.linkText.value,
+        bg_color: fields.bgColor.value,
+        text_color: fields.textColor.value,
+        sort_order: parseInt(fields.sortOrder.value) || 0,
+        active: fields.active.checked,
+      };
+
+      const url = id ? `/api/popups/${id}` : '/api/popups';
+      const method = id ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (data.error) {
+        alert(data.error);
+        return;
+      }
+      location.reload();
+    });
+  </script>
+</AdminLayout>

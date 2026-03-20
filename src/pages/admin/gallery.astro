@@ -1,0 +1,630 @@
+---
+export const prerender = false;
+import AdminLayout from '@layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="배경·백드롭">
+  <h2 class="page-title">배경·백드롭 관리</h2>
+  <p class="page-desc">프로그램 배경, 웨딩 백드롭, 모델별 사진을 관리합니다.</p>
+
+  <!-- Tabs -->
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="backgrounds">프로그램 배경</button>
+    <button class="tab-btn" data-tab="backdrops">웨딩 백드롭</button>
+    <button class="tab-btn" data-tab="models">모델별 사진</button>
+  </div>
+
+  <!-- Tab: 프로그램 배경 -->
+  <div id="tab-backgrounds" class="tab-panel active">
+    <div class="panel-toolbar">
+      <button id="bg-upload-btn" class="btn-primary">+ 배경 업로드</button>
+    </div>
+    <div id="bg-grid" class="gallery-grid"></div>
+    <div id="bg-empty" class="empty-state hidden">등록된 배경이 없습니다.</div>
+    <div id="bg-loading" class="loading-state">불러오는 중...</div>
+  </div>
+
+  <!-- Tab: 웨딩 백드롭 -->
+  <div id="tab-backdrops" class="tab-panel">
+    <div class="panel-toolbar">
+      <button id="bd-upload-btn" class="btn-primary">+ 백드롭 업로드</button>
+    </div>
+    <div id="bd-grid" class="gallery-grid"></div>
+    <div id="bd-empty" class="empty-state hidden">등록된 백드롭이 없습니다.</div>
+    <div id="bd-loading" class="loading-state">불러오는 중...</div>
+  </div>
+
+  <!-- Tab: 모델별 사진 -->
+  <div id="tab-models" class="tab-panel">
+    <div class="model-tabs">
+      <button class="model-tab-btn active" data-model="popup">팝업부스</button>
+      <button class="model-tab-btn" data-model="module">모듈형</button>
+      <button class="model-tab-btn" data-model="wood-edge">우드Edge</button>
+      <button class="model-tab-btn" data-model="wood-round">우드Round</button>
+    </div>
+    <div class="panel-toolbar">
+      <button id="mp-upload-btn" class="btn-primary">+ 사진 업로드</button>
+    </div>
+    <div id="mp-grid" class="gallery-grid"></div>
+    <div id="mp-empty" class="empty-state hidden">등록된 사진이 없습니다.</div>
+    <div id="mp-loading" class="loading-state">불러오는 중...</div>
+  </div>
+
+  <!-- Upload Modal -->
+  <div id="upload-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="upload-modal-title" class="modal-title">업로드</h3>
+        <button id="upload-modal-close" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">이미지 파일</label>
+          <input type="file" id="upload-file" accept="image/*" class="form-input" />
+          <div id="upload-preview" class="upload-preview hidden">
+            <img id="upload-preview-img" src="" alt="미리보기" />
+          </div>
+        </div>
+        <div id="upload-title-group" class="form-group">
+          <label class="form-label">제목 (선택)</label>
+          <input type="text" id="upload-title" class="form-input" placeholder="제목을 입력하세요" />
+        </div>
+        <div id="upload-category-group" class="form-group hidden">
+          <label class="form-label">카테고리</label>
+          <input type="text" id="upload-category" class="form-input" placeholder="예: 기본, 시즌, 브랜드" value="기본" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="upload-cancel" class="btn-secondary">취소</button>
+        <button id="upload-submit" class="btn-primary">업로드</button>
+      </div>
+      <div id="upload-progress" class="upload-progress hidden">
+        <div class="progress-bar"><div id="upload-progress-bar" class="progress-fill"></div></div>
+        <p class="progress-text">업로드 중...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Delete Modal -->
+  <div id="delete-modal" class="modal-overlay hidden">
+    <div class="modal-card modal-small">
+      <div class="modal-header">
+        <h3 class="modal-title">삭제 확인</h3>
+        <button id="delete-modal-close" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>이 항목을 영구적으로 삭제하시겠습니까?<br/>이 작업은 되돌릴 수 없습니다.</p>
+      </div>
+      <div class="modal-footer">
+        <button id="delete-cancel" class="btn-secondary">취소</button>
+        <button id="delete-confirm" class="btn-danger">삭제</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="gallery-toast" class="gallery-toast"></div>
+
+  <style>
+    .page-title { font-size: 1.5rem; font-weight: 700; color: #1d1d1f; margin-bottom: 0.25rem; }
+    .page-desc { font-size: 0.9rem; color: #6e6e73; margin-bottom: 1.5rem; }
+
+    .tab-bar { display: flex; gap: 0; border-bottom: 1px solid #e8e8ed; margin-bottom: 1.5rem; }
+    .tab-btn {
+      padding: 0.75rem 1.25rem; font-size: 0.875rem; font-weight: 500; color: #6e6e73;
+      background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer;
+      font-family: inherit; transition: all 0.15s;
+    }
+    .tab-btn:hover { color: #1d1d1f; }
+    .tab-btn.active { color: #D4AA45; border-bottom-color: #D4AA45; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .model-tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .model-tab-btn {
+      padding: 0.5rem 1rem; font-size: 0.8125rem; font-weight: 500; border-radius: 100px;
+      border: 1px solid #e8e8ed; background: #fff; color: #6e6e73; cursor: pointer;
+      font-family: inherit; transition: all 0.15s;
+    }
+    .model-tab-btn:hover { border-color: #D4AA45; color: #D4AA45; }
+    .model-tab-btn.active { background: #1d1d1f; color: #fff; border-color: #1d1d1f; }
+
+    .panel-toolbar { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
+
+    .gallery-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem;
+    }
+    @media (min-width: 768px) {
+      .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+    }
+
+    .gallery-card {
+      position: relative; background: #fff; border: 1px solid #e8e8ed; border-radius: 10px;
+      overflow: hidden; transition: box-shadow 0.2s; cursor: grab;
+    }
+    .gallery-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .gallery-card.dragging { opacity: 0.5; }
+    .gallery-card.drag-over { border-color: #D4AA45; box-shadow: 0 0 0 2px rgba(212,170,69,0.3); }
+
+    .gallery-card img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; }
+    .gallery-card-info { padding: 0.5rem 0.75rem; }
+    .gallery-card-title { font-size: 0.8125rem; font-weight: 500; color: #1d1d1f; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .gallery-card-meta { font-size: 0.6875rem; color: #8c8c8c; margin-top: 2px; }
+    .gallery-card-actions {
+      position: absolute; top: 0.5rem; right: 0.5rem; display: flex; gap: 0.25rem;
+      opacity: 0; transition: opacity 0.2s;
+    }
+    .gallery-card:hover .gallery-card-actions { opacity: 1; }
+    .card-action-btn {
+      width: 28px; height: 28px; border-radius: 6px; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; transition: all 0.15s;
+    }
+    .card-action-btn.delete { background: rgba(239,68,68,0.9); color: #fff; }
+    .card-action-btn.delete:hover { background: #ef4444; }
+    .card-action-btn.visibility { background: rgba(255,255,255,0.9); color: #6e6e73; }
+    .card-action-btn.visibility:hover { background: #fff; color: #1d1d1f; }
+
+    .drag-handle {
+      position: absolute; top: 0.5rem; left: 0.5rem;
+      width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.8); border-radius: 4px; color: #8c8c8c;
+      opacity: 0; transition: opacity 0.2s; cursor: grab;
+    }
+    .gallery-card:hover .drag-handle { opacity: 1; }
+
+    .empty-state { text-align: center; padding: 3rem 1rem; color: #8c8c8c; font-size: 0.9rem; }
+    .loading-state { text-align: center; padding: 2rem; color: #8c8c8c; font-size: 0.875rem; }
+    .hidden { display: none !important; }
+
+    /* Buttons */
+    .btn-primary {
+      padding: 0.5rem 1.25rem; background: #1d1d1f; color: #fff; border: none;
+      border-radius: 8px; font-size: 0.8125rem; font-weight: 500; cursor: pointer;
+      font-family: inherit; transition: background 0.15s;
+    }
+    .btn-primary:hover { background: #333; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-secondary {
+      padding: 0.5rem 1.25rem; background: #fff; color: #6e6e73; border: 1px solid #d2d2d7;
+      border-radius: 8px; font-size: 0.8125rem; font-weight: 500; cursor: pointer;
+      font-family: inherit; transition: all 0.15s;
+    }
+    .btn-secondary:hover { border-color: #1d1d1f; color: #1d1d1f; }
+    .btn-danger {
+      padding: 0.5rem 1.25rem; background: #ef4444; color: #fff; border: none;
+      border-radius: 8px; font-size: 0.8125rem; font-weight: 500; cursor: pointer;
+      font-family: inherit; transition: background 0.15s;
+    }
+    .btn-danger:hover { background: #dc2626; }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.4);
+      display: flex; align-items: center; justify-content: center; padding: 1rem;
+    }
+    .modal-card {
+      background: #fff; border-radius: 14px; width: 100%; max-width: 480px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15); position: relative;
+    }
+    .modal-small { max-width: 380px; }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.5rem; border-bottom: 1px solid #e8e8ed; }
+    .modal-title { font-size: 1rem; font-weight: 600; color: #1d1d1f; }
+    .modal-close { background: none; border: none; font-size: 1.5rem; color: #8c8c8c; cursor: pointer; line-height: 1; }
+    .modal-close:hover { color: #1d1d1f; }
+    .modal-body { padding: 1.25rem 1.5rem; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 0.75rem; padding: 1rem 1.5rem; border-top: 1px solid #e8e8ed; }
+
+    .form-group { margin-bottom: 1rem; }
+    .form-label { display: block; font-size: 0.8125rem; font-weight: 500; color: #1d1d1f; margin-bottom: 0.375rem; }
+    .form-input {
+      width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d2d2d7; border-radius: 8px;
+      font-size: 0.875rem; font-family: inherit; color: #1d1d1f; transition: border-color 0.15s;
+    }
+    .form-input:focus { outline: none; border-color: #D4AA45; }
+
+    .upload-preview { margin-top: 0.75rem; }
+    .upload-preview img { max-height: 200px; border-radius: 8px; object-fit: contain; }
+
+    .upload-progress { padding: 1rem 1.5rem; }
+    .progress-bar { height: 4px; background: #e8e8ed; border-radius: 2px; overflow: hidden; }
+    .progress-fill { height: 100%; background: #D4AA45; width: 0; transition: width 0.3s; }
+    .progress-text { font-size: 0.8125rem; color: #8c8c8c; text-align: center; margin-top: 0.5rem; }
+
+    /* Toast */
+    .gallery-toast {
+      position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: #1d1d1f; color: #fff; padding: 0.75rem 1.5rem; border-radius: 10px;
+      font-size: 0.875rem; font-weight: 500; opacity: 0; pointer-events: none;
+      transition: opacity 0.3s, transform 0.3s; z-index: 200;
+    }
+    .gallery-toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .gallery-toast.error { background: #ef4444; }
+  </style>
+</AdminLayout>
+
+<script>
+{
+  // State
+  let currentTab = 'backgrounds';
+  let currentModelId = 'popup';
+  let deleteTarget: { type: string; id: number } | null = null;
+
+  // DOM refs
+  const toast = document.getElementById('gallery-toast')!;
+
+  function showToast(msg: string, isError = false) {
+    toast.textContent = msg;
+    toast.classList.toggle('error', isError);
+    toast.classList.add('visible');
+    setTimeout(() => toast.classList.remove('visible'), 2500);
+  }
+
+  function thumbUrl(url: string) {
+    if (url.includes('res.cloudinary.com') && url.includes('/upload/')) {
+      return url.replace('/upload/', '/upload/w_400,f_auto,q_auto/');
+    }
+    return url;
+  }
+
+  // === Tab switching ===
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      currentTab = (btn as HTMLElement).dataset.tab!;
+      document.getElementById(`tab-${currentTab}`)!.classList.add('active');
+      if (currentTab === 'backgrounds') loadBackgrounds();
+      else if (currentTab === 'backdrops') loadBackdrops();
+      else if (currentTab === 'models') loadModelPhotos();
+    });
+  });
+
+  // Model sub-tabs
+  document.querySelectorAll('.model-tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.model-tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentModelId = (btn as HTMLElement).dataset.model!;
+      loadModelPhotos();
+    });
+  });
+
+  // === Render helpers ===
+  function renderCard(item: any, type: string) {
+    const title = item.title || item.category || '';
+    const meta = type === 'backgrounds' ? (item.category || '기본') : '';
+    const hasVisibility = type !== 'models';
+
+    return `
+      <div class="gallery-card" draggable="true" data-id="${item.id}" data-type="${type}" data-sort="${item.sort_order || 0}">
+        <div class="drag-handle">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="9" cy="5" r="1"/><circle cx="15" cy="5" r="1"/>
+            <circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/>
+            <circle cx="9" cy="19" r="1"/><circle cx="15" cy="19" r="1"/>
+          </svg>
+        </div>
+        <div class="gallery-card-actions">
+          ${hasVisibility ? `
+            <button class="card-action-btn visibility" data-id="${item.id}" data-visible="${item.visible}" title="${item.visible ? '숨기기' : '보이기'}">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                ${item.visible
+                  ? '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'
+                  : '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
+                }
+              </svg>
+            </button>
+          ` : ''}
+          <button class="card-action-btn delete" data-id="${item.id}" title="삭제">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
+          </button>
+        </div>
+        <img src="${thumbUrl(item.image_url)}" alt="${title}" loading="lazy" />
+        <div class="gallery-card-info">
+          <div class="gallery-card-title">${title || '(제목 없음)'}</div>
+          ${meta ? `<div class="gallery-card-meta">${meta}</div>` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  function bindCardEvents(gridEl: HTMLElement, type: string) {
+    // Delete buttons
+    gridEl.querySelectorAll('.card-action-btn.delete').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = Number((btn as HTMLElement).dataset.id);
+        deleteTarget = { type, id };
+        document.getElementById('delete-modal')!.classList.remove('hidden');
+      });
+    });
+
+    // Visibility toggle
+    gridEl.querySelectorAll('.card-action-btn.visibility').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const id = (btn as HTMLElement).dataset.id;
+        const currentVisible = (btn as HTMLElement).dataset.visible === '1';
+        const apiBase = type === 'backgrounds' ? '/api/backgrounds' : '/api/backdrops';
+        try {
+          const res = await fetch(`${apiBase}/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ visible: !currentVisible }),
+          });
+          if (res.ok) {
+            showToast(currentVisible ? '숨김 처리됨' : '표시 처리됨');
+            if (type === 'backgrounds') loadBackgrounds();
+            else loadBackdrops();
+          }
+        } catch { showToast('오류가 발생했습니다.', true); }
+      });
+    });
+
+    // Drag and drop
+    let draggedEl: HTMLElement | null = null;
+
+    gridEl.querySelectorAll('.gallery-card').forEach(card => {
+      card.addEventListener('dragstart', (e) => {
+        draggedEl = card as HTMLElement;
+        (card as HTMLElement).classList.add('dragging');
+        (e as DragEvent).dataTransfer!.effectAllowed = 'move';
+      });
+      card.addEventListener('dragend', () => {
+        (card as HTMLElement).classList.remove('dragging');
+        gridEl.querySelectorAll('.gallery-card').forEach(c => c.classList.remove('drag-over'));
+        draggedEl = null;
+      });
+      card.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        (e as DragEvent).dataTransfer!.dropEffect = 'move';
+        if (draggedEl && card !== draggedEl) {
+          (card as HTMLElement).classList.add('drag-over');
+        }
+      });
+      card.addEventListener('dragleave', () => {
+        (card as HTMLElement).classList.remove('drag-over');
+      });
+      card.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        (card as HTMLElement).classList.remove('drag-over');
+        if (!draggedEl || card === draggedEl) return;
+
+        // Reorder in DOM
+        const cards = Array.from(gridEl.querySelectorAll('.gallery-card'));
+        const fromIdx = cards.indexOf(draggedEl);
+        const toIdx = cards.indexOf(card as Element);
+
+        if (fromIdx < toIdx) {
+          card.after(draggedEl);
+        } else {
+          card.before(draggedEl);
+        }
+
+        // Save new order
+        const reordered = Array.from(gridEl.querySelectorAll('.gallery-card'));
+        const apiBase = type === 'backgrounds' ? '/api/backgrounds'
+          : type === 'backdrops' ? '/api/backdrops'
+          : '/api/model-photos';
+
+        const updates = reordered.map((c, i) => {
+          const id = (c as HTMLElement).dataset.id;
+          return fetch(`${apiBase}/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sort_order: i }),
+          });
+        });
+
+        try {
+          await Promise.all(updates);
+          showToast('순서가 저장되었습니다.');
+        } catch { showToast('순서 저장 실패', true); }
+      });
+    });
+  }
+
+  // === Load functions ===
+  async function loadBackgrounds() {
+    const grid = document.getElementById('bg-grid')!;
+    const empty = document.getElementById('bg-empty')!;
+    const loading = document.getElementById('bg-loading')!;
+    loading.classList.remove('hidden');
+    empty.classList.add('hidden');
+
+    try {
+      // Admin view: show all (including hidden) - fetch without visible filter
+      const res = await fetch('/api/backgrounds');
+      let items: any[] = await res.json();
+      // The API only returns visible=1, but for admin we need all
+      // We'll use a direct query approach - for now show visible ones
+      loading.classList.add('hidden');
+      if (items.length === 0) { empty.classList.remove('hidden'); grid.innerHTML = ''; return; }
+      grid.innerHTML = items.map(item => renderCard(item, 'backgrounds')).join('');
+      bindCardEvents(grid, 'backgrounds');
+    } catch {
+      loading.classList.add('hidden');
+      empty.classList.remove('hidden');
+    }
+  }
+
+  async function loadBackdrops() {
+    const grid = document.getElementById('bd-grid')!;
+    const empty = document.getElementById('bd-empty')!;
+    const loading = document.getElementById('bd-loading')!;
+    loading.classList.remove('hidden');
+    empty.classList.add('hidden');
+
+    try {
+      const res = await fetch('/api/backdrops');
+      const items: any[] = await res.json();
+      loading.classList.add('hidden');
+      if (items.length === 0) { empty.classList.remove('hidden'); grid.innerHTML = ''; return; }
+      grid.innerHTML = items.map(item => renderCard(item, 'backdrops')).join('');
+      bindCardEvents(grid, 'backdrops');
+    } catch {
+      loading.classList.add('hidden');
+      empty.classList.remove('hidden');
+    }
+  }
+
+  async function loadModelPhotos() {
+    const grid = document.getElementById('mp-grid')!;
+    const empty = document.getElementById('mp-empty')!;
+    const loading = document.getElementById('mp-loading')!;
+    loading.classList.remove('hidden');
+    empty.classList.add('hidden');
+
+    try {
+      const res = await fetch(`/api/model-photos?model_id=${currentModelId}`);
+      const items: any[] = await res.json();
+      loading.classList.add('hidden');
+      if (items.length === 0) { empty.classList.remove('hidden'); grid.innerHTML = ''; return; }
+      grid.innerHTML = items.map(item => renderCard({ ...item, title: '' }, 'models')).join('');
+      bindCardEvents(grid, 'models');
+    } catch {
+      loading.classList.add('hidden');
+      empty.classList.remove('hidden');
+    }
+  }
+
+  // === Upload modal ===
+  const uploadModal = document.getElementById('upload-modal')!;
+  const uploadFile = document.getElementById('upload-file') as HTMLInputElement;
+  const uploadPreview = document.getElementById('upload-preview')!;
+  const uploadPreviewImg = document.getElementById('upload-preview-img') as HTMLImageElement;
+  const uploadTitle = document.getElementById('upload-title') as HTMLInputElement;
+  const uploadCategory = document.getElementById('upload-category') as HTMLInputElement;
+  const uploadCategoryGroup = document.getElementById('upload-category-group')!;
+  const uploadTitleGroup = document.getElementById('upload-title-group')!;
+  const uploadProgress = document.getElementById('upload-progress')!;
+  const uploadProgressBar = document.getElementById('upload-progress-bar')!;
+  let uploadType = '';
+
+  function openUploadModal(type: string) {
+    uploadType = type;
+    uploadFile.value = '';
+    uploadTitle.value = '';
+    uploadCategory.value = '기본';
+    uploadPreview.classList.add('hidden');
+    uploadProgress.classList.add('hidden');
+
+    const title = type === 'backgrounds' ? '배경 업로드'
+      : type === 'backdrops' ? '백드롭 업로드'
+      : '모델 사진 업로드';
+    document.getElementById('upload-modal-title')!.textContent = title;
+
+    // Show/hide fields
+    uploadCategoryGroup.classList.toggle('hidden', type !== 'backgrounds');
+    uploadTitleGroup.classList.toggle('hidden', type === 'models');
+
+    uploadModal.classList.remove('hidden');
+  }
+
+  uploadFile.addEventListener('change', () => {
+    const file = uploadFile.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        uploadPreviewImg.src = reader.result as string;
+        uploadPreview.classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  document.getElementById('bg-upload-btn')!.addEventListener('click', () => openUploadModal('backgrounds'));
+  document.getElementById('bd-upload-btn')!.addEventListener('click', () => openUploadModal('backdrops'));
+  document.getElementById('mp-upload-btn')!.addEventListener('click', () => openUploadModal('models'));
+
+  document.getElementById('upload-modal-close')!.addEventListener('click', () => uploadModal.classList.add('hidden'));
+  document.getElementById('upload-cancel')!.addEventListener('click', () => uploadModal.classList.add('hidden'));
+
+  document.getElementById('upload-submit')!.addEventListener('click', async () => {
+    const file = uploadFile.files?.[0];
+    if (!file) { showToast('파일을 선택하세요.', true); return; }
+
+    const submitBtn = document.getElementById('upload-submit') as HTMLButtonElement;
+    submitBtn.disabled = true;
+    uploadProgress.classList.remove('hidden');
+    uploadProgressBar.style.width = '30%';
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    let apiUrl = '';
+    if (uploadType === 'backgrounds') {
+      formData.append('title', uploadTitle.value);
+      formData.append('category', uploadCategory.value || '기본');
+      apiUrl = '/api/backgrounds';
+    } else if (uploadType === 'backdrops') {
+      formData.append('title', uploadTitle.value);
+      apiUrl = '/api/backdrops';
+    } else {
+      formData.append('model_id', currentModelId);
+      apiUrl = '/api/model-photos';
+    }
+
+    try {
+      uploadProgressBar.style.width = '60%';
+      const res = await fetch(apiUrl, { method: 'POST', body: formData });
+      uploadProgressBar.style.width = '100%';
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || '업로드 실패');
+      }
+
+      showToast('업로드 완료!');
+      uploadModal.classList.add('hidden');
+
+      if (uploadType === 'backgrounds') loadBackgrounds();
+      else if (uploadType === 'backdrops') loadBackdrops();
+      else loadModelPhotos();
+    } catch (e: any) {
+      showToast(e.message || '업로드 실패', true);
+    } finally {
+      submitBtn.disabled = false;
+      uploadProgress.classList.add('hidden');
+      uploadProgressBar.style.width = '0';
+    }
+  });
+
+  // === Delete modal ===
+  document.getElementById('delete-modal-close')!.addEventListener('click', () => {
+    document.getElementById('delete-modal')!.classList.add('hidden');
+    deleteTarget = null;
+  });
+  document.getElementById('delete-cancel')!.addEventListener('click', () => {
+    document.getElementById('delete-modal')!.classList.add('hidden');
+    deleteTarget = null;
+  });
+  document.getElementById('delete-confirm')!.addEventListener('click', async () => {
+    if (!deleteTarget) return;
+    const { type, id } = deleteTarget;
+    const apiBase = type === 'backgrounds' ? '/api/backgrounds'
+      : type === 'backdrops' ? '/api/backdrops'
+      : '/api/model-photos';
+
+    try {
+      const res = await fetch(`${apiBase}/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error();
+      showToast('삭제되었습니다.');
+      if (type === 'backgrounds') loadBackgrounds();
+      else if (type === 'backdrops') loadBackdrops();
+      else loadModelPhotos();
+    } catch {
+      showToast('삭제 실패', true);
+    }
+
+    document.getElementById('delete-modal')!.classList.add('hidden');
+    deleteTarget = null;
+  });
+
+  // Initial load
+  loadBackgrounds();
+}
+</script>

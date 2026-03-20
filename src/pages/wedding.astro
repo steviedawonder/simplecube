@@ -1,10 +1,26 @@
 ---
+export const prerender = false;
 import BaseLayout from '@layouts/BaseLayout.astro';
 import ServiceIntro from '@components/wedding/ServiceIntro.astro';
 import PackageDetails from '@components/wedding/PackageDetails.astro';
 import TemplateGallery from '@components/wedding/TemplateGallery.astro';
 import BookingInquiry from '@components/wedding/BookingInquiry.astro';
 import PartnerHalls from '@components/wedding/PartnerHalls.astro';
+import AccordionList from '@components/faq/AccordionList.astro';
+import db from '@lib/db';
+
+const faqResult = await db.execute({
+  sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC',
+  args: ['wedding'],
+});
+const faqItems = faqResult.rows as { question: string; answer: string }[];
+
+// Photostrip categories
+let photostripCategories: { id: number; name: string; sort_order: number }[] = [];
+try {
+  const catResult = await db.execute('SELECT * FROM photostrip_categories ORDER BY sort_order ASC, id ASC');
+  photostripCategories = catResult.rows as any[];
+} catch { /* table may not exist yet */ }
 ---
 
 <BaseLayout
@@ -29,7 +45,336 @@ import PartnerHalls from '@components/wedding/PartnerHalls.astro';
   </section>
   <ServiceIntro />
   <PackageDetails />
+
+  <!-- 현장사진 갤러리 -->
+  <section id="gallery" class="bg-bg-light py-14 lg:py-20 border-t border-border-light">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      <div class="mb-8 lg:mb-10">
+        <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">GALLERY</span>
+        <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">현장 사진</h2>
+        <p class="mt-4 text-sm text-secondary">심플큐브 웨딩 포토부스의 실제 현장 모습입니다.</p>
+      </div>
+      <div id="wedding-gallery-grid" class="grid grid-cols-2 gap-2 md:grid-cols-3"></div>
+      <div id="wedding-gallery-empty" class="text-center py-12 hidden">
+        <p class="text-secondary text-sm">준비 중입니다.</p>
+      </div>
+      <div id="wedding-gallery-loading" class="text-center py-12">
+        <p class="text-secondary text-sm">불러오는 중...</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 현장사진 라이트박스 -->
+  <div id="wg-lightbox" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/80 backdrop-blur-sm">
+    <button id="wg-lb-prev" class="absolute left-3 lg:left-4 top-1/2 -translate-y-1/2 z-10 text-white/60 hover:text-white transition-colors" aria-label="이전">
+      <svg class="w-8 lg:w-10 h-8 lg:h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+    </button>
+    <button id="wg-lb-next" class="absolute right-3 lg:right-4 top-1/2 -translate-y-1/2 z-10 text-white/60 hover:text-white transition-colors" aria-label="다음">
+      <svg class="w-8 lg:w-10 h-8 lg:h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+    </button>
+    <button id="wg-lb-close" class="absolute top-4 right-4 z-10 text-white/60 hover:text-white transition-colors" aria-label="닫기">
+      <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+    </button>
+    <img id="wg-lb-img" src="" alt="" class="max-h-[85vh] max-w-[90vw] object-contain rounded-lg shadow-2xl" />
+    <p id="wg-lb-caption" class="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/70 text-sm"></p>
+  </div>
+
+  <!-- 포토스트립 섹션 -->
+  {photostripCategories.length > 0 && (
+    <section id="photostrip" class="bg-white py-14 lg:py-20 border-t border-border-light">
+      <div class="mx-auto max-w-7xl px-6 lg:px-8">
+        <div class="mb-8 lg:mb-10">
+          <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">PHOTOSTRIP</span>
+          <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">포토스트립</h2>
+          <p class="mt-4 text-sm text-secondary">다양한 포토스트립 디자인을 확인해보세요.</p>
+        </div>
+
+        <div id="ps-tabs" class="flex flex-wrap gap-2.5 mb-8">
+          {photostripCategories.map((cat, i) => (
+            <button
+              class:list={[
+                'ps-tab-btn px-5 py-2 text-sm rounded-full font-medium transition-colors',
+                i === 0 ? 'bg-primary text-white' : 'bg-white border border-gray-200 text-secondary hover:border-olive hover:text-olive',
+              ]}
+              data-cut-type={cat.name}
+            >
+              {cat.name}
+            </button>
+          ))}
+        </div>
+
+        <div id="ps-grid" class="grid grid-cols-2 gap-2 md:grid-cols-4"></div>
+        <div id="ps-empty" class="text-center py-12 hidden">
+          <p class="text-secondary text-sm">준비 중입니다.</p>
+        </div>
+        <div id="ps-loading" class="text-center py-12">
+          <p class="text-secondary text-sm">불러오는 중...</p>
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- 포토스트립 라이트박스 -->
+  <div id="ps-lightbox" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/80 backdrop-blur-sm">
+    <button id="ps-lb-prev" class="absolute left-3 lg:left-4 top-1/2 -translate-y-1/2 z-10 text-white/60 hover:text-white transition-colors" aria-label="이전">
+      <svg class="w-8 lg:w-10 h-8 lg:h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+    </button>
+    <button id="ps-lb-next" class="absolute right-3 lg:right-4 top-1/2 -translate-y-1/2 z-10 text-white/60 hover:text-white transition-colors" aria-label="다음">
+      <svg class="w-8 lg:w-10 h-8 lg:h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+    </button>
+    <button id="ps-lb-close" class="absolute top-4 right-4 z-10 text-white/60 hover:text-white transition-colors" aria-label="닫기">
+      <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+    </button>
+    <img id="ps-lb-img" src="" alt="" class="max-h-[85vh] max-w-[90vw] object-contain rounded-lg shadow-2xl" />
+    <p id="ps-lb-caption" class="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/70 text-sm"></p>
+  </div>
+
   <TemplateGallery />
   <BookingInquiry />
   <PartnerHalls />
+
+  {faqItems.length > 0 && (
+    <section id="qna" class="bg-white py-16 lg:py-24 border-t border-border-light">
+      <div class="mx-auto max-w-3xl px-6 lg:px-8">
+        <div class="mb-10">
+          <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">Q&A</span>
+          <h2 class="mt-3 text-2xl font-bold text-primary md:text-3xl">자주 묻는 질문</h2>
+          <div class="mt-4 h-[2px] w-8 bg-olive"></div>
+        </div>
+        <AccordionList items={faqItems} />
+      </div>
+    </section>
+  )}
 </BaseLayout>
+
+<script is:inline define:vars={{ photostripCats: JSON.parse(JSON.stringify(photostripCategories)) }}>
+  window.__photostripCats = photostripCats;
+</script>
+
+<script>
+{
+  // === Wedding Gallery with Lightbox ===
+  async function loadWeddingGallery() {
+    const grid = document.getElementById('wedding-gallery-grid')!;
+    const empty = document.getElementById('wedding-gallery-empty')!;
+    const loading = document.getElementById('wedding-gallery-loading')!;
+    const gallerySection = document.getElementById('gallery')!;
+
+    try {
+      const res = await fetch('/api/portfolio?page_tag=wedding&tags=현장사진');
+      const items: any[] = await res.json();
+
+      loading.classList.add('hidden');
+
+      if (items.length === 0) {
+        gallerySection.style.display = 'none';
+        return;
+      }
+
+      grid.innerHTML = items.map((item: any) => `
+        <div class="wg-item group cursor-pointer overflow-hidden rounded-lg" data-src="${item.image_url}" data-alt="${item.title || '웨딩 현장사진'}">
+          <div class="relative">
+            <img
+              src="${item.image_url}"
+              alt="${item.title || '웨딩 현장사진'}"
+              class="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              loading="lazy"
+            />
+            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+              <svg class="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      // Lightbox for gallery
+      const lightbox = document.getElementById('wg-lightbox')!;
+      const lbImg = document.getElementById('wg-lb-img') as HTMLImageElement;
+      const lbCaption = document.getElementById('wg-lb-caption')!;
+      let wgItems: { src: string; alt: string }[] = [];
+      let wgIdx = 0;
+
+      function showWg() {
+        const item = wgItems[wgIdx];
+        if (!item) return;
+        lbImg.src = item.src;
+        lbImg.alt = item.alt;
+        lbCaption.textContent = item.alt;
+      }
+      function openWg(idx: number) {
+        wgItems = Array.from(grid.querySelectorAll('.wg-item')).map(el => ({
+          src: (el as HTMLElement).dataset.src || '',
+          alt: (el as HTMLElement).dataset.alt || '',
+        }));
+        wgIdx = idx;
+        showWg();
+        lightbox.classList.remove('hidden');
+        lightbox.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+      }
+      function closeWg() {
+        lightbox.classList.add('hidden');
+        lightbox.classList.remove('flex');
+        document.body.style.overflow = '';
+      }
+
+      grid.addEventListener('click', (e) => {
+        const item = (e.target as HTMLElement).closest('.wg-item');
+        if (!item) return;
+        const all = Array.from(grid.querySelectorAll('.wg-item'));
+        const idx = all.indexOf(item as Element);
+        if (idx >= 0) openWg(idx);
+      });
+
+      document.getElementById('wg-lb-prev')!.addEventListener('click', (e) => { e.stopPropagation(); wgIdx = (wgIdx - 1 + wgItems.length) % wgItems.length; showWg(); });
+      document.getElementById('wg-lb-next')!.addEventListener('click', (e) => { e.stopPropagation(); wgIdx = (wgIdx + 1) % wgItems.length; showWg(); });
+      document.getElementById('wg-lb-close')!.addEventListener('click', closeWg);
+      lightbox.addEventListener('click', (e) => { if (e.target === lightbox) closeWg(); });
+      document.addEventListener('keydown', (e) => {
+        if (lightbox.classList.contains('hidden')) return;
+        if (e.key === 'Escape') closeWg();
+        if (e.key === 'ArrowLeft') { wgIdx = (wgIdx - 1 + wgItems.length) % wgItems.length; showWg(); }
+        if (e.key === 'ArrowRight') { wgIdx = (wgIdx + 1) % wgItems.length; showWg(); }
+      });
+
+    } catch {
+      loading.classList.add('hidden');
+      empty.classList.remove('hidden');
+    }
+  }
+
+  loadWeddingGallery();
+
+  // === Photostrip Section ===
+  const psCats: any[] = (window as any).__photostripCats || [];
+  if (psCats.length > 0) {
+    const psGrid = document.getElementById('ps-grid')!;
+    const psEmpty = document.getElementById('ps-empty')!;
+    const psLoading = document.getElementById('ps-loading')!;
+    const psSection = document.getElementById('photostrip')!;
+    const psTabs = document.querySelectorAll<HTMLButtonElement>('.ps-tab-btn');
+
+    let allPhotostripItems: any[] = [];
+    let currentCutType = psCats[0]?.name || '';
+
+    async function loadPhotostrip() {
+      try {
+        const res = await fetch('/api/portfolio?page_tag=wedding&tags=포토스트립');
+        allPhotostripItems = await res.json();
+
+        psLoading.classList.add('hidden');
+
+        if (allPhotostripItems.length === 0) {
+          psSection.style.display = 'none';
+          return;
+        }
+
+        renderPhotostrip(currentCutType);
+      } catch {
+        psLoading.classList.add('hidden');
+        psSection.style.display = 'none';
+      }
+    }
+
+    function renderPhotostrip(cutType: string) {
+      const filtered = allPhotostripItems.filter((item: any) => item.cut_type === cutType);
+
+      if (filtered.length === 0) {
+        psGrid.innerHTML = '';
+        psEmpty.classList.remove('hidden');
+        return;
+      }
+      psEmpty.classList.add('hidden');
+
+      psGrid.innerHTML = filtered.map((item: any) => `
+        <div class="ps-item group cursor-pointer overflow-hidden rounded-lg" data-src="${item.image_url}" data-alt="${item.title || '포토스트립'}">
+          <div class="relative">
+            <img
+              src="${item.image_url}"
+              alt="${item.title || '포토스트립'}"
+              class="aspect-[3/4] w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              loading="lazy"
+            />
+            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+              <svg class="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Tab clicks
+    psTabs.forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentCutType = btn.dataset.cutType || '';
+        psTabs.forEach(b => {
+          if (b === btn) {
+            b.classList.remove('bg-white', 'border', 'border-gray-200', 'text-secondary');
+            b.classList.add('bg-primary', 'text-white');
+          } else {
+            b.classList.remove('bg-primary', 'text-white');
+            b.classList.add('bg-white', 'border', 'border-gray-200', 'text-secondary');
+          }
+        });
+        renderPhotostrip(currentCutType);
+      });
+    });
+
+    // Photostrip lightbox
+    const psLb = document.getElementById('ps-lightbox')!;
+    const psLbImg = document.getElementById('ps-lb-img') as HTMLImageElement;
+    const psLbCaption = document.getElementById('ps-lb-caption')!;
+    let psLbItems: { src: string; alt: string }[] = [];
+    let psLbIdx = 0;
+
+    function showPsLb() {
+      const item = psLbItems[psLbIdx];
+      if (!item) return;
+      psLbImg.src = item.src;
+      psLbImg.alt = item.alt;
+      psLbCaption.textContent = item.alt;
+    }
+    function openPsLb(idx: number) {
+      psLbItems = Array.from(psGrid.querySelectorAll('.ps-item')).map(el => ({
+        src: (el as HTMLElement).dataset.src || '',
+        alt: (el as HTMLElement).dataset.alt || '',
+      }));
+      psLbIdx = idx;
+      showPsLb();
+      psLb.classList.remove('hidden');
+      psLb.classList.add('flex');
+      document.body.style.overflow = 'hidden';
+    }
+    function closePsLb() {
+      psLb.classList.add('hidden');
+      psLb.classList.remove('flex');
+      document.body.style.overflow = '';
+    }
+
+    psGrid.addEventListener('click', (e) => {
+      const item = (e.target as HTMLElement).closest('.ps-item');
+      if (!item) return;
+      const all = Array.from(psGrid.querySelectorAll('.ps-item'));
+      const idx = all.indexOf(item as Element);
+      if (idx >= 0) openPsLb(idx);
+    });
+
+    document.getElementById('ps-lb-prev')!.addEventListener('click', (e) => { e.stopPropagation(); psLbIdx = (psLbIdx - 1 + psLbItems.length) % psLbItems.length; showPsLb(); });
+    document.getElementById('ps-lb-next')!.addEventListener('click', (e) => { e.stopPropagation(); psLbIdx = (psLbIdx + 1) % psLbItems.length; showPsLb(); });
+    document.getElementById('ps-lb-close')!.addEventListener('click', closePsLb);
+    psLb.addEventListener('click', (e) => { if (e.target === psLb) closePsLb(); });
+    document.addEventListener('keydown', (e) => {
+      if (psLb.classList.contains('hidden')) return;
+      if (e.key === 'Escape') closePsLb();
+      if (e.key === 'ArrowLeft') { psLbIdx = (psLbIdx - 1 + psLbItems.length) % psLbItems.length; showPsLb(); }
+      if (e.key === 'ArrowRight') { psLbIdx = (psLbIdx + 1) % psLbItems.length; showPsLb(); }
+    });
+
+    loadPhotostrip();
+  }
+}
+</script>

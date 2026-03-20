@@ -4,89 +4,118 @@ export const prerender = false;
 import AdminLayout from '@layouts/AdminLayout.astro';
 import db from '@lib/db';
 
-// Fetch stats
-const totalResult = await db.execute(
-  'SELECT COUNT(*) as count FROM posts WHERE deleted_at IS NULL'
-);
-const publishedResult = await db.execute(
-  'SELECT COUNT(*) as count FROM posts WHERE deleted_at IS NULL AND draft = 0'
-);
-const draftResult = await db.execute(
-  'SELECT COUNT(*) as count FROM posts WHERE deleted_at IS NULL AND draft = 1'
-);
-const scheduledResult = await db.execute(
-  "SELECT COUNT(*) as count FROM posts WHERE deleted_at IS NULL AND draft = 1 AND scheduled_at IS NOT NULL AND scheduled_at > datetime('now')"
-);
-const trashResult = await db.execute(
-  'SELECT COUNT(*) as count FROM posts WHERE deleted_at IS NOT NULL'
-);
-const categoryResult = await db.execute(
-  'SELECT COUNT(*) as count FROM categories'
-);
-const mediaResult = await db.execute(
-  'SELECT COUNT(*) as count FROM media'
-);
+const user = Astro.locals.user;
+const isOwner = user?.role === 'owner';
 
-// SEO score average
-const avgSeoResult = await db.execute(
-  'SELECT AVG(seo_score) as avg_score FROM posts WHERE deleted_at IS NULL AND draft = 0 AND seo_score > 0'
-);
+// Editor hub data
+const today = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
 
-const totalPosts = Number((totalResult.rows[0] as any).count);
-const publishedPosts = Number((publishedResult.rows[0] as any).count);
-const draftPosts = Number((draftResult.rows[0] as any).count);
-const scheduledPosts = Number((scheduledResult.rows[0] as any).count);
-const trashPosts = Number((trashResult.rows[0] as any).count);
-const totalCategories = Number((categoryResult.rows[0] as any).count);
-const totalMedia = Number((mediaResult.rows[0] as any).count);
-const avgSeoScore = Math.round(Number((avgSeoResult.rows[0] as any).avg_score) || 0);
+// Owner-only stats (skip DB queries for editors)
+let totalPosts = 0, publishedPosts = 0, draftPosts = 0, scheduledPosts = 0, trashPosts = 0;
+let totalCategories = 0, totalMedia = 0, avgSeoScore = 0;
+let recentPosts: any[] = [];
+let seoGood = 0, seoOk = 0, seoPoor = 0;
+let catDist: any[] = [];
 
-// Fetch recent posts
-const recentPostsResult = await db.execute(`
-  SELECT p.id, p.title, p.slug, p.draft, p.seo_score, p.created_at, p.updated_at,
-         c.name as category_name
-  FROM posts p
-  LEFT JOIN categories c ON p.category_id = c.id
-  WHERE p.deleted_at IS NULL
-  ORDER BY p.updated_at DESC
-  LIMIT 5
-`);
-const recentPosts = recentPostsResult.rows as any[];
+if (isOwner) {
+  const totalResult = await db.execute('SELECT COUNT(*) as count FROM posts WHERE deleted_at IS NULL');
+  const publishedResult = await db.execute('SELECT COUNT(*) as count FROM posts WHERE deleted_at IS NULL AND draft = 0');
+  const draftResult = await db.execute('SELECT COUNT(*) as count FROM posts WHERE deleted_at IS NULL AND draft = 1');
+  const scheduledResult = await db.execute("SELECT COUNT(*) as count FROM posts WHERE deleted_at IS NULL AND draft = 1 AND scheduled_at IS NOT NULL AND scheduled_at > datetime('now')");
+  const trashResult = await db.execute('SELECT COUNT(*) as count FROM posts WHERE deleted_at IS NOT NULL');
+  const categoryResult = await db.execute('SELECT COUNT(*) as count FROM categories');
+  const mediaResult = await db.execute('SELECT COUNT(*) as count FROM media');
+  const avgSeoResult = await db.execute('SELECT AVG(seo_score) as avg_score FROM posts WHERE deleted_at IS NULL AND draft = 0 AND seo_score > 0');
 
-// SEO score distribution
-const seoDistResult = await db.execute(`
-  SELECT
-    SUM(CASE WHEN seo_score >= 70 THEN 1 ELSE 0 END) as good,
-    SUM(CASE WHEN seo_score >= 40 AND seo_score < 70 THEN 1 ELSE 0 END) as ok,
-    SUM(CASE WHEN seo_score < 40 THEN 1 ELSE 0 END) as poor
-  FROM posts
-  WHERE deleted_at IS NULL AND draft = 0
-`);
-const seoDist = seoDistResult.rows[0] as any;
-const seoGood = Number(seoDist.good || 0);
-const seoOk = Number(seoDist.ok || 0);
-const seoPoor = Number(seoDist.poor || 0);
+  totalPosts = Number((totalResult.rows[0] as any).count);
+  publishedPosts = Number((publishedResult.rows[0] as any).count);
+  draftPosts = Number((draftResult.rows[0] as any).count);
+  scheduledPosts = Number((scheduledResult.rows[0] as any).count);
+  trashPosts = Number((trashResult.rows[0] as any).count);
+  totalCategories = Number((categoryResult.rows[0] as any).count);
+  totalMedia = Number((mediaResult.rows[0] as any).count);
+  avgSeoScore = Math.round(Number((avgSeoResult.rows[0] as any).avg_score) || 0);
 
-// Category distribution
-const catDistResult = await db.execute(`
-  SELECT c.name, COUNT(p.id) as post_count
-  FROM categories c
-  LEFT JOIN posts p ON p.category_id = c.id AND p.deleted_at IS NULL
-  GROUP BY c.id, c.name
-  ORDER BY post_count DESC
-  LIMIT 5
-`);
-const catDist = catDistResult.rows as any[];
+  const recentPostsResult = await db.execute(`
+    SELECT p.id, p.title, p.slug, p.draft, p.seo_score, p.created_at, p.updated_at,
+           c.name as category_name
+    FROM posts p
+    LEFT JOIN categories c ON p.category_id = c.id
+    WHERE p.deleted_at IS NULL
+    ORDER BY p.updated_at DESC
+    LIMIT 5
+  `);
+  recentPosts = recentPostsResult.rows as any[];
 
-// Determine SEO color
+  const seoDistResult = await db.execute(`
+    SELECT
+      SUM(CASE WHEN seo_score >= 70 THEN 1 ELSE 0 END) as good,
+      SUM(CASE WHEN seo_score >= 40 AND seo_score < 70 THEN 1 ELSE 0 END) as ok,
+      SUM(CASE WHEN seo_score < 40 THEN 1 ELSE 0 END) as poor
+    FROM posts
+    WHERE deleted_at IS NULL AND draft = 0
+  `);
+  const seoDist = seoDistResult.rows[0] as any;
+  seoGood = Number(seoDist.good || 0);
+  seoOk = Number(seoDist.ok || 0);
+  seoPoor = Number(seoDist.poor || 0);
+
+  const catDistResult = await db.execute(`
+    SELECT c.name, COUNT(p.id) as post_count
+    FROM categories c
+    LEFT JOIN posts p ON p.category_id = c.id AND p.deleted_at IS NULL
+    GROUP BY c.id, c.name
+    ORDER BY post_count DESC
+    LIMIT 5
+  `);
+  catDist = catDistResult.rows as any[];
+}
+
 function seoColor(score: number) {
   if (score >= 70) return '#22c55e';
   if (score >= 40) return '#D4AA45';
   return '#ef4444';
 }
+
+const hubCards = [
+  { emoji: '📸', label: '사진 관리', desc: '포트폴리오, 현장사진, 포토스트립 업로드', href: '/admin/portfolio', ready: true },
+  { emoji: '✍️', label: '블로그', desc: '블로그 글 작성 및 관리', href: '/admin/posts', ready: true },
+  { emoji: '📢', label: '공지/팝업', desc: '팝업 배너 관리', href: '/admin/popups', ready: true },
+  { emoji: '📦', label: '패키지·스펙', desc: '패키지 구성, 가격, 모델 스펙 수정', href: '/admin/packages', ready: true },
+  { emoji: '🎨', label: '배경·백드롭', desc: '프로그램 배경, 웨딩 백드롭 이미지 관리', href: '/admin/gallery', ready: true },
+  { emoji: '🎞️', label: '포토스트립', desc: '웨딩 포토스트립 디자인 관리', href: '/admin/photostrip', ready: true },
+  { emoji: '❓', label: 'FAQ·연락처', desc: '자주 묻는 질문, 지점 연락처 수정', href: '/admin/faq', ready: true },
+];
 ---
 
-<AdminLayout title="대시보드">
+<AdminLayout title={isOwner ? '대시보드' : '허브'}>
+  {!isOwner ? (
+  <!-- Editor Hub -->
+  <div class="hub-container">
+    <div class="hub-header">
+      <h2 class="hub-greeting">안녕하세요, {user?.name}님 👋</h2>
+      <p class="hub-date">{today}</p>
+    </div>
+
+    <div class="hub-grid">
+      {hubCards.map((card) => (
+        <a
+          href={card.ready ? card.href : '#'}
+          class:list={['hub-card', { 'hub-card--disabled': !card.ready }]}
+          data-ready={card.ready ? 'true' : 'false'}
+        >
+          <span class="hub-card-emoji">{card.emoji}</span>
+          <div class="hub-card-body">
+            <h3 class="hub-card-label">{card.label}</h3>
+            <p class="hub-card-desc">{card.desc}</p>
+          </div>
+          {!card.ready && <span class="hub-card-badge">준비 중</span>}
+        </a>
+      ))}
+    </div>
+  </div>
+  ) : (
+  <!-- Owner Dashboard -->
   <div>
     <h2 class="page-title">대시보드</h2>
     <p class="page-desc">SIMPLE CUBE 관리자 페이지에 오신 것을 환영합니다.</p>
@@ -327,8 +356,116 @@ function seoColor(score: number) {
       </div>
     </div>
   </div>
+  )}
 
   <style>
+    /* ─── Editor Hub ─── */
+    .hub-container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 1rem 0;
+    }
+    .hub-header {
+      margin-bottom: 2rem;
+    }
+    .hub-greeting {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1d1d1f;
+      margin-bottom: 0.25rem;
+    }
+    .hub-date {
+      font-size: 0.875rem;
+      color: #8c8c8c;
+    }
+    .hub-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+    @media (max-width: 560px) {
+      .hub-grid { grid-template-columns: 1fr; }
+    }
+    .hub-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1.25rem;
+      background-color: #ffffff;
+      border: 1px solid #e8e8ed;
+      border-radius: 12px;
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+    .hub-card:hover {
+      border-color: #D4AA45;
+      box-shadow: 0 2px 8px rgba(212, 170, 69, 0.10);
+    }
+    .hub-card--disabled {
+      opacity: 0.65;
+      cursor: default;
+    }
+    .hub-card--disabled:hover {
+      border-color: #e8e8ed;
+      box-shadow: none;
+    }
+    .hub-card-emoji {
+      font-size: 1.75rem;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .hub-card-body {
+      flex: 1;
+      min-width: 0;
+    }
+    .hub-card-label {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: #1d1d1f;
+      margin-bottom: 0.25rem;
+    }
+    .hub-card-desc {
+      font-size: 0.8125rem;
+      color: #8c8c8c;
+      line-height: 1.4;
+    }
+    .hub-card-badge {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      font-size: 0.6875rem;
+      font-weight: 500;
+      color: #8c8c8c;
+      background-color: #f5f5f7;
+      padding: 0.125rem 0.5rem;
+      border-radius: 100px;
+    }
+
+    /* Toast */
+    .hub-toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background-color: #1d1d1f;
+      color: #ffffff;
+      padding: 0.75rem 1.5rem;
+      border-radius: 10px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s, transform 0.3s;
+      z-index: 100;
+    }
+    .hub-toast.visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ─── Owner Dashboard ─── */
     .page-title {
       font-size: 1.5rem;
       font-weight: 700;
@@ -609,4 +746,17 @@ function seoColor(score: number) {
       color: #D4AA45;
     }
   </style>
+  <div id="hub-toast" class="hub-toast">준비 중인 기능입니다</div>
 </AdminLayout>
+
+<script>
+  document.querySelectorAll('.hub-card[data-ready="false"]').forEach((card) => {
+    card.addEventListener('click', (e) => {
+      e.preventDefault();
+      const toast = document.getElementById('hub-toast');
+      if (!toast) return;
+      toast.classList.add('visible');
+      setTimeout(() => toast.classList.remove('visible'), 2000);
+    });
+  });
+</script>

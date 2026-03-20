@@ -3,6 +3,11 @@ export const prerender = false;
 import AdminLayout from '@layouts/AdminLayout.astro';
 import db from '@lib/db';
 
+const user = Astro.locals.user as any;
+if (!user || user.role !== 'owner') {
+  return Astro.redirect('/admin');
+}
+
 const result = await db.execute('SELECT * FROM seo_rules ORDER BY category, id');
 const rules = result.rows as any[];
 

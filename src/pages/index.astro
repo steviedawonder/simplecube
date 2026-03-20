@@ -1,14 +1,49 @@
 ---
+export const prerender = false;
 import BaseLayout from '@layouts/BaseLayout.astro';
 import HeroSection from '@components/home/HeroSection.astro';
+import ServicesSection from '@components/home/ServicesSection.astro';
+import WhySimpleCube from '@components/home/WhySimpleCube.astro';
+import ClientShowcase from '@components/popup/ClientShowcase.astro';
 import BrandStory from '@components/brand/BrandStory.astro';
+import CTASection from '@components/home/CTASection.astro';
 import BranchOffices from '@components/brand/BranchOffices.astro';
+import db from '@lib/db';
+
+// DB에서 지점 연락처 조회
+let dbBranches: any[] | null = null;
+try {
+  const result = await db.execute("SELECT section, key, value FROM page_contents WHERE page = 'branch' ORDER BY section, key");
+  if (result.rows.length > 0) {
+    const grouped: Record<string, Record<string, string>> = {};
+    for (const row of result.rows as any[]) {
+      if (!grouped[row.section]) grouped[row.section] = {};
+      grouped[row.section][row.key] = row.value;
+    }
+    const sectionOrder = ['seoul', 'busan', 'daejeon', 'jeonju'];
+    dbBranches = sectionOrder
+      .filter(s => grouped[s])
+      .map(s => ({
+        name: grouped[s].name,
+        kakao: grouped[s].kakao,
+        instagram: grouped[s].instagram,
+        phone: grouped[s].phone,
+        isHQ: grouped[s].isHQ === '1',
+      }));
+  }
+} catch (e) {
+  // fallback to hardcoded
+}
 ---
 
 <BaseLayout>
   <HeroSection />
+  <ServicesSection />
+  <WhySimpleCube />
+  <ClientShowcase />
   <BrandStory />
-  <BranchOffices />
+  <CTASection />
+  <BranchOffices branches={dbBranches} />
 </BaseLayout>
 
 <script>

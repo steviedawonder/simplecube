@@ -1,10 +1,17 @@
 ---
 import AccordionItem from './AccordionItem.astro';
 import { faqItems } from '@data/faq';
+
+interface Props {
+  items?: { question: string; answer: string }[];
+}
+
+const { items } = Astro.props;
+const displayItems = items ?? faqItems;
 ---
 
 <div class="accordion-list">
-  {faqItems.map((item) => (
+  {displayItems.map((item) => (
     <AccordionItem question={item.question} answer={item.answer} />
   ))}
 </div>

@@ -1,4 +1,53 @@
 ---
+import db from '@lib/db';
+
+// Model ID mapping: component id → DB model_id
+const modelIdMap: Record<string, string> = {
+  'popup-booth': 'popup',
+  'module': 'module',
+  'wood-edge': 'wood-edge',
+  'wood-round': 'wood-round',
+};
+
+// Model → portfolio tag mapping
+const modelTagMap: Record<string, string> = {
+  'popup-booth': '팝업부스',
+  'module': '모듈형',
+  'wood-edge': '우드Edge',
+  'wood-round': '우드Round',
+};
+
+// Fetch model photos from DB
+let modelPhotosMap: Record<string, { src: string; alt: string }[]> = {};
+try {
+  const result = await db.execute('SELECT * FROM model_photos ORDER BY sort_order ASC, id DESC');
+  const photos = result.rows as any[];
+  for (const p of photos) {
+    if (!modelPhotosMap[p.model_id]) modelPhotosMap[p.model_id] = [];
+    modelPhotosMap[p.model_id].push({
+      src: p.image_url,
+      alt: `모델 사진 ${p.id}`,
+    });
+  }
+} catch { /* table may not exist yet */ }
+
+// Fetch related portfolio for each model (max 6, filtered by model tag)
+let modelPortfolioMap: Record<string, { src: string; alt: string }[]> = {};
+try {
+  for (const [componentId, tag] of Object.entries(modelTagMap)) {
+    const result = await db.execute({
+      sql: "SELECT image_url, title FROM portfolio WHERE visible = 1 AND page_tag = 'popup' AND (',' || tags || ',') LIKE ? ORDER BY sort_order ASC, created_at DESC LIMIT 6",
+      args: [`%,${tag},%`],
+    });
+    if (result.rows.length > 0) {
+      modelPortfolioMap[componentId] = (result.rows as any[]).map(r => ({
+        src: r.image_url,
+        alt: r.title || `${tag} 포트폴리오`,
+      }));
+    }
+  }
+} catch { /* table may not exist yet */ }
+
 const models = [
   {
     id: 'popup-booth',
@@ -221,9 +270,23 @@ const models = [
 </div>
 
 <!-- Pass data to script -->
-<script is:inline define:vars={{ models: JSON.parse(JSON.stringify(models)) }}>
-  // Store models data for JS access
-  window.__models = models;
+<script is:inline define:vars={{ models: JSON.parse(JSON.stringify(models)), modelPhotosMap: JSON.parse(JSON.stringify(modelPhotosMap)), modelIdMap: JSON.parse(JSON.stringify(modelIdMap)), modelPortfolioMap: JSON.parse(JSON.stringify(modelPortfolioMap)) }}>
+  // Merge DB model photos + DB portfolio into models
+  window.__models = models.map(function(m) {
+    var dbModelId = modelIdMap[m.id] || m.id;
+    var dbPhotos = modelPhotosMap[dbModelId];
+    if (dbPhotos && dbPhotos.length > 0) {
+      m.modelPhotos = dbPhotos;
+    } else {
+      m.modelPhotos = [];
+    }
+    // DB portfolio takes priority over hardcoded
+    var dbPortfolio = modelPortfolioMap[m.id];
+    if (dbPortfolio && dbPortfolio.length > 0) {
+      m.portfolio = dbPortfolio;
+    }
+    return m;
+  });
 </script>
 
 <script>
@@ -242,12 +305,46 @@ const models = [
       const model = modelsData.find((m: any) => m.id === modelId);
       if (!model) return;
 
-      // Set image
-      modalImg.src = model.image;
-      modalImg.alt = model.name;
+      // Set image - hide main image if model photos slider will be shown
+      const imgContainer = modalImg.parentElement as HTMLDivElement;
+      const hasSlider = model.modelPhotos && model.modelPhotos.length > 0;
+      if (hasSlider) {
+        imgContainer.style.display = 'none';
+      } else {
+        imgContainer.style.display = '';
+        modalImg.src = model.image;
+        modalImg.alt = model.name;
+      }
 
       // Build scrollable content
+      const hasModelPhotos = model.modelPhotos && model.modelPhotos.length > 0;
       modalBody.innerHTML = `
+        ${hasModelPhotos ? `
+        <!-- Model Photos Slider -->
+        <div class="relative">
+          <div id="modal-slider" class="overflow-hidden">
+            <div id="modal-slider-track" class="flex transition-transform duration-300">
+              ${model.modelPhotos.map((p: any) => `
+                <div class="w-full shrink-0">
+                  <img src="${p.src}" alt="${p.alt}" class="w-full aspect-[4/3] object-cover" loading="lazy" />
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          ${model.modelPhotos.length > 1 ? `
+          <button class="slider-prev absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 bg-black/30 hover:bg-black/50 text-white rounded-full flex items-center justify-center transition-colors">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+          </button>
+          <button class="slider-next absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 bg-black/30 hover:bg-black/50 text-white rounded-full flex items-center justify-center transition-colors">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+          </button>
+          <div class="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
+            ${model.modelPhotos.map((_: any, i: number) => `<span class="slider-dot w-1.5 h-1.5 rounded-full ${i === 0 ? 'bg-white' : 'bg-white/40'} transition-colors"></span>`).join('')}
+          </div>
+          ` : ''}
+        </div>
+        ` : ''}
+
         <!-- Specs -->
         <div class="px-5 py-5">
           <h4 class="text-lg font-bold text-primary mb-4">${model.name}</h4>
@@ -263,6 +360,7 @@ const models = [
         </div>
 
         <!-- Portfolio -->
+        ${model.portfolio.length > 0 ? `
         <div class="px-5 pb-5 pt-1">
           <div class="flex items-center justify-between mb-3">
             <h4 class="text-xs font-bold text-[#1d1d1f] tracking-wide uppercase">Portfolio</h4>
@@ -281,6 +379,7 @@ const models = [
             `).join('')}
           </div>
         </div>
+        ` : ''}
       `;
 
       // Bind portfolio thumb clicks
@@ -292,6 +391,29 @@ const models = [
       thumbs.forEach((thumb, idx) => {
         thumb.addEventListener('click', () => openLightbox(images, idx));
       });
+
+      // Slider logic for model photos
+      const sliderTrack = modalBody.querySelector('#modal-slider-track') as HTMLDivElement | null;
+      if (sliderTrack && model.modelPhotos && model.modelPhotos.length > 1) {
+        let slideIdx = 0;
+        const total = model.modelPhotos.length;
+        const dots = modalBody.querySelectorAll('.slider-dot');
+        const updateSlider = () => {
+          sliderTrack.style.transform = `translateX(-${slideIdx * 100}%)`;
+          dots.forEach((d: Element, i: number) => {
+            (d as HTMLElement).classList.toggle('bg-white', i === slideIdx);
+            (d as HTMLElement).classList.toggle('bg-white/40', i !== slideIdx);
+          });
+        };
+        modalBody.querySelector('.slider-prev')?.addEventListener('click', () => {
+          slideIdx = (slideIdx - 1 + total) % total;
+          updateSlider();
+        });
+        modalBody.querySelector('.slider-next')?.addEventListener('click', () => {
+          slideIdx = (slideIdx + 1) % total;
+          updateSlider();
+        });
+      }
 
       // Show modal with animation
       modal.classList.remove('hidden');

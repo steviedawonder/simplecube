@@ -1,31 +1,62 @@
 import { SignJWT, jwtVerify } from 'jose';
+import bcrypt from 'bcryptjs';
+import db from './db';
 
 const JWT_SECRET = new TextEncoder().encode(
   import.meta.env.JWT_SECRET || 'dev-secret-change-in-production-32ch'
 );
 
-const ADMIN_PASSWORD = import.meta.env.ADMIN_PASSWORD || 'admin1234';
 const COOKIE_NAME = 'sc_admin_session';
 const EXPIRY_HOURS = 24;
 
-export async function verifyPassword(password: string): Promise<boolean> {
-  return password === ADMIN_PASSWORD;
+export interface UserPayload {
+  userId: number;
+  email: string;
+  role: 'owner' | 'editor';
+  name: string;
 }
 
-export async function createToken(): Promise<string> {
-  return new SignJWT({ role: 'admin' })
+export async function authenticateUser(email: string, password: string): Promise<UserPayload | null> {
+  const result = await db.execute({
+    sql: 'SELECT id, name, email, password_hash, role, active FROM users WHERE email = ?',
+    args: [email],
+  });
+
+  if (result.rows.length === 0) return null;
+
+  const user = result.rows[0] as any;
+  if (!user.active) return null;
+
+  const valid = await bcrypt.compare(password, user.password_hash);
+  if (!valid) return null;
+
+  return {
+    userId: user.id,
+    email: user.email,
+    role: user.role,
+    name: user.name,
+  };
+}
+
+export async function createToken(payload: UserPayload): Promise<string> {
+  return new SignJWT({ ...payload })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime(`${EXPIRY_HOURS}h`)
     .sign(JWT_SECRET);
 }
 
-export async function verifyToken(token: string): Promise<boolean> {
+export async function verifyToken(token: string): Promise<UserPayload | null> {
   try {
-    await jwtVerify(token, JWT_SECRET);
-    return true;
+    const { payload } = await jwtVerify(token, JWT_SECRET);
+    return {
+      userId: payload.userId as number,
+      email: payload.email as string,
+      role: payload.role as 'owner' | 'editor',
+      name: payload.name as string,
+    };
   } catch {
-    return false;
+    return null;
   }
 }
 
@@ -41,10 +72,4 @@ export function getTokenFromCookies(cookieHeader: string | null): string | null 
   if (!cookieHeader) return null;
   const match = cookieHeader.match(new RegExp(`${COOKIE_NAME}=([^;]+)`));
   return match ? match[1] : null;
-}
-
-export async function isAuthenticated(request: Request): Promise<boolean> {
-  const token = getTokenFromCookies(request.headers.get('cookie'));
-  if (!token) return false;
-  return verifyToken(token);
 }

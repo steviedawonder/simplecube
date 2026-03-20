@@ -1,0 +1,267 @@
+---
+export const prerender = false;
+import AdminLayout from '@layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="FAQ 관리">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">FAQ 관리</h1>
+    <button id="add-faq-btn" class="px-4 py-2 bg-[#D4AA45] text-white rounded-lg text-sm font-medium hover:bg-[#C49A2F] transition-colors">
+      새 FAQ 추가
+    </button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex gap-1 mb-6 bg-gray-100 rounded-lg p-1 w-fit">
+    <button class="tab-btn active px-4 py-2 text-sm font-medium rounded-md transition-colors" data-tab="popup">행사</button>
+    <button class="tab-btn px-4 py-2 text-sm font-medium rounded-md transition-colors" data-tab="wedding">웨딩</button>
+  </div>
+
+  <!-- FAQ Table -->
+  <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <table class="w-full">
+      <thead class="bg-gray-50 border-b border-gray-200">
+        <tr>
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-10">순서</th>
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">질문</th>
+          <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-20">상태</th>
+          <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase w-32">작업</th>
+        </tr>
+      </thead>
+      <tbody id="faq-tbody" class="divide-y divide-gray-200">
+        <tr><td colspan="4" class="px-4 py-8 text-center text-sm text-gray-500">로딩 중...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Add/Edit Modal -->
+  <div id="modal-overlay" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center">
+    <div class="bg-white rounded-xl p-6 w-full max-w-lg mx-4 shadow-xl">
+      <h2 id="modal-title" class="text-lg font-semibold mb-4">새 FAQ 추가</h2>
+      <form id="faq-form">
+        <input type="hidden" id="faq-id" value="" />
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">페이지</label>
+          <select id="faq-page" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#D4AA45] focus:outline-none">
+            <option value="popup">행사</option>
+            <option value="wedding">웨딩</option>
+          </select>
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">질문</label>
+          <input type="text" id="faq-question" required placeholder="질문을 입력하세요" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#D4AA45] focus:outline-none" />
+        </div>
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-700 mb-1">답변</label>
+          <textarea id="faq-answer" required rows="4" placeholder="답변을 입력하세요" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#D4AA45] focus:outline-none resize-y"></textarea>
+        </div>
+        <div class="flex gap-3 justify-end">
+          <button type="button" id="modal-cancel" class="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors">취소</button>
+          <button type="submit" class="px-4 py-2 bg-[#D4AA45] text-white rounded-lg text-sm font-medium hover:bg-[#C49A2F] transition-colors">저장</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</AdminLayout>
+
+<style>
+  .tab-btn { color: #6e6e73; }
+  .tab-btn.active { background-color: #ffffff; color: #1d1d1f; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .drag-over { background-color: #fef3c7; }
+</style>
+
+<script>
+  const tbody = document.getElementById('faq-tbody') as HTMLTableSectionElement;
+  const modal = document.getElementById('modal-overlay') as HTMLDivElement;
+  const addBtn = document.getElementById('add-faq-btn') as HTMLButtonElement;
+  const cancelBtn = document.getElementById('modal-cancel') as HTMLButtonElement;
+  const form = document.getElementById('faq-form') as HTMLFormElement;
+  const modalTitle = document.getElementById('modal-title') as HTMLHeadingElement;
+  const faqIdInput = document.getElementById('faq-id') as HTMLInputElement;
+  const faqPageSelect = document.getElementById('faq-page') as HTMLSelectElement;
+  const faqQuestion = document.getElementById('faq-question') as HTMLInputElement;
+  const faqAnswer = document.getElementById('faq-answer') as HTMLTextAreaElement;
+  const tabBtns = document.querySelectorAll('.tab-btn');
+
+  let currentTab = 'popup';
+  let allFaqs: any[] = [];
+
+  function escapeHtml(str: string) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  async function loadFaqs() {
+    const res = await fetch('/api/faqs?page=' + currentTab);
+    if (!res.ok) return;
+    const data = await res.json();
+    allFaqs = data.faqs;
+    renderTable();
+  }
+
+  function renderTable() {
+    if (allFaqs.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-sm text-gray-500">FAQ가 없습니다.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = allFaqs.map((faq: any, idx: number) => `
+      <tr draggable="true" data-id="${faq.id}" data-idx="${idx}" class="cursor-grab active:cursor-grabbing">
+        <td class="px-4 py-3 text-sm text-gray-400">${idx + 1}</td>
+        <td class="px-4 py-3 text-sm text-gray-900">${escapeHtml(faq.question.length > 60 ? faq.question.slice(0, 60) + '…' : faq.question)}</td>
+        <td class="px-4 py-3 text-center">
+          <button onclick="toggleActive(${faq.id}, ${faq.active})" class="text-xs font-medium px-2 py-0.5 rounded-full ${faq.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'}">
+            ${faq.active ? '활성' : '비활성'}
+          </button>
+        </td>
+        <td class="px-4 py-3 text-right">
+          <button onclick="editFaq(${faq.id})" class="text-sm text-blue-600 hover:text-blue-800 mr-3">수정</button>
+          <button onclick="deleteFaq(${faq.id})" class="text-sm text-red-600 hover:text-red-800">삭제</button>
+        </td>
+      </tr>
+    `).join('');
+
+    setupDragAndDrop();
+  }
+
+  // Tab switching
+  tabBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      tabBtns.forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentTab = (btn as HTMLElement).dataset.tab || 'popup';
+      loadFaqs();
+    });
+  });
+
+  // Modal
+  function openModal(editMode = false) {
+    modalTitle.textContent = editMode ? 'FAQ 수정' : '새 FAQ 추가';
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  }
+
+  function closeModal() {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    form.reset();
+    faqIdInput.value = '';
+  }
+
+  addBtn.addEventListener('click', () => {
+    faqPageSelect.value = currentTab;
+    openModal(false);
+  });
+  cancelBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = faqIdInput.value;
+    const body = {
+      page: faqPageSelect.value,
+      question: faqQuestion.value,
+      answer: faqAnswer.value,
+    };
+
+    const url = id ? `/api/faqs/${id}` : '/api/faqs';
+    const method = id ? 'PUT' : 'POST';
+
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (res.ok) {
+      closeModal();
+      loadFaqs();
+    } else {
+      const data = await res.json();
+      alert(data.error || '오류가 발생했습니다.');
+    }
+  });
+
+  // Edit
+  (window as any).editFaq = (id: number) => {
+    const faq = allFaqs.find((f: any) => f.id === id);
+    if (!faq) return;
+    faqIdInput.value = String(id);
+    faqPageSelect.value = faq.page;
+    faqQuestion.value = faq.question;
+    faqAnswer.value = faq.answer;
+    openModal(true);
+  };
+
+  // Toggle active
+  (window as any).toggleActive = async (id: number, currentActive: number) => {
+    await fetch(`/api/faqs/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ active: currentActive ? 0 : 1 }),
+    });
+    loadFaqs();
+  };
+
+  // Delete
+  (window as any).deleteFaq = async (id: number) => {
+    if (!confirm('이 FAQ를 삭제하시겠습니까?')) return;
+    await fetch(`/api/faqs/${id}`, { method: 'DELETE' });
+    loadFaqs();
+  };
+
+  // Drag and drop reorder
+  function setupDragAndDrop() {
+    let draggedRow: HTMLTableRowElement | null = null;
+
+    tbody.querySelectorAll('tr[draggable]').forEach((row) => {
+      row.addEventListener('dragstart', (e) => {
+        draggedRow = row as HTMLTableRowElement;
+        (e as DragEvent).dataTransfer!.effectAllowed = 'move';
+        setTimeout(() => row.classList.add('opacity-50'), 0);
+      });
+
+      row.addEventListener('dragend', () => {
+        row.classList.remove('opacity-50');
+        tbody.querySelectorAll('tr').forEach((r) => r.classList.remove('drag-over'));
+        draggedRow = null;
+      });
+
+      row.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        (e as DragEvent).dataTransfer!.dropEffect = 'move';
+        row.classList.add('drag-over');
+      });
+
+      row.addEventListener('dragleave', () => {
+        row.classList.remove('drag-over');
+      });
+
+      row.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        row.classList.remove('drag-over');
+        if (!draggedRow || draggedRow === row) return;
+
+        const fromIdx = Number((draggedRow as HTMLElement).dataset.idx);
+        const toIdx = Number((row as HTMLElement).dataset.idx);
+
+        // Reorder in array
+        const [moved] = allFaqs.splice(fromIdx, 1);
+        allFaqs.splice(toIdx, 0, moved);
+
+        // Update sort_order
+        const items = allFaqs.map((f: any, i: number) => ({ id: f.id, sort_order: i }));
+        await fetch('/api/faqs/reorder', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items }),
+        });
+
+        renderTable();
+      });
+    });
+  }
+
+  loadFaqs();
+</script>

@@ -1,0 +1,459 @@
+---
+export const prerender = false;
+import AdminLayout from '@layouts/AdminLayout.astro';
+import db from '@lib/db';
+
+// Load photostrip categories
+let categories: { id: number; name: string; sort_order: number }[] = [];
+try {
+  const catResult = await db.execute('SELECT * FROM photostrip_categories ORDER BY sort_order ASC, id ASC');
+  categories = catResult.rows as any[];
+} catch { /* table may not exist yet */ }
+---
+
+<AdminLayout title="포토스트립">
+  <h2 class="page-title">포토스트립 디자인 관리</h2>
+  <p class="page-desc">웨딩 포토스트립 디자인을 컷 유형별로 관리합니다.</p>
+
+  <!-- Cut type tabs -->
+  <div class="tab-bar">
+    {categories.map((cat, i) => (
+      <button class:list={['tab-btn', i === 0 ? 'active' : '']} data-cut-type={cat.name}>
+        {cat.name}
+      </button>
+    ))}
+  </div>
+
+  <div class="panel-toolbar">
+    <button id="ps-upload-btn" class="btn-primary">+ 디자인 업로드</button>
+  </div>
+
+  <div id="ps-grid" class="gallery-grid"></div>
+  <div id="ps-empty" class="empty-state hidden">등록된 디자인이 없습니다.</div>
+  <div id="ps-loading" class="loading-state">불러오는 중...</div>
+
+  <!-- Upload Modal -->
+  <div id="upload-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">포토스트립 디자인 업로드</h3>
+        <button id="upload-modal-close" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">이미지 파일</label>
+          <input type="file" id="upload-file" accept="image/*" class="form-input" />
+          <div id="upload-preview" class="upload-preview hidden">
+            <img id="upload-preview-img" src="" alt="미리보기" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">제목 (선택)</label>
+          <input type="text" id="upload-title" class="form-input" placeholder="예: 봄 시즌 2컷" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">컷 유형</label>
+          <select id="upload-cut-type" class="form-input">
+            {categories.map((cat, i) => (
+              <option value={cat.name} selected={i === 0}>{cat.name}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="upload-cancel" class="btn-secondary">취소</button>
+        <button id="upload-submit" class="btn-primary">업로드</button>
+      </div>
+      <div id="upload-progress" class="upload-progress hidden">
+        <div class="progress-bar"><div id="upload-progress-bar" class="progress-fill"></div></div>
+        <p class="progress-text">업로드 중...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Modal -->
+  <div id="delete-modal" class="modal-overlay hidden">
+    <div class="modal-card modal-small">
+      <div class="modal-header">
+        <h3 class="modal-title">삭제 확인</h3>
+        <button id="delete-modal-close" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>이 디자인을 영구적으로 삭제하시겠습니까?<br/>이 작업은 되돌릴 수 없습니다.</p>
+      </div>
+      <div class="modal-footer">
+        <button id="delete-cancel" class="btn-secondary">취소</button>
+        <button id="delete-confirm" class="btn-danger">삭제</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="ps-toast" class="gallery-toast"></div>
+
+  <style>
+    .page-title { font-size: 1.5rem; font-weight: 700; color: #1d1d1f; margin-bottom: 0.25rem; }
+    .page-desc { font-size: 0.9rem; color: #6e6e73; margin-bottom: 1.5rem; }
+
+    .tab-bar { display: flex; gap: 0; border-bottom: 1px solid #e8e8ed; margin-bottom: 1.5rem; }
+    .tab-btn {
+      padding: 0.75rem 1.25rem; font-size: 0.875rem; font-weight: 500; color: #6e6e73;
+      background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer;
+      font-family: inherit; transition: all 0.15s;
+    }
+    .tab-btn:hover { color: #1d1d1f; }
+    .tab-btn.active { color: #D4AA45; border-bottom-color: #D4AA45; }
+
+    .panel-toolbar { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
+
+    .gallery-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem;
+    }
+    @media (min-width: 768px) {
+      .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+    }
+
+    .gallery-card {
+      position: relative; background: #fff; border: 1px solid #e8e8ed; border-radius: 10px;
+      overflow: hidden; transition: box-shadow 0.2s; cursor: grab;
+    }
+    .gallery-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .gallery-card.dragging { opacity: 0.5; }
+    .gallery-card.drag-over { border-color: #D4AA45; box-shadow: 0 0 0 2px rgba(212,170,69,0.3); }
+
+    .gallery-card img { width: 100%; aspect-ratio: 3/4; object-fit: cover; display: block; }
+    .gallery-card-info { padding: 0.5rem 0.75rem; }
+    .gallery-card-title { font-size: 0.8125rem; font-weight: 500; color: #1d1d1f; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .gallery-card-meta { font-size: 0.6875rem; color: #8c8c8c; margin-top: 2px; }
+    .gallery-card-actions {
+      position: absolute; top: 0.5rem; right: 0.5rem; display: flex; gap: 0.25rem;
+      opacity: 0; transition: opacity 0.2s;
+    }
+    .gallery-card:hover .gallery-card-actions { opacity: 1; }
+    .card-action-btn {
+      width: 28px; height: 28px; border-radius: 6px; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; transition: all 0.15s;
+    }
+    .card-action-btn.delete { background: rgba(239,68,68,0.9); color: #fff; }
+    .card-action-btn.delete:hover { background: #ef4444; }
+
+    .drag-handle {
+      position: absolute; top: 0.5rem; left: 0.5rem;
+      width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.8); border-radius: 4px; color: #8c8c8c;
+      opacity: 0; transition: opacity 0.2s; cursor: grab;
+    }
+    .gallery-card:hover .drag-handle { opacity: 1; }
+
+    .empty-state { text-align: center; padding: 3rem 1rem; color: #8c8c8c; font-size: 0.9rem; }
+    .loading-state { text-align: center; padding: 2rem; color: #8c8c8c; font-size: 0.875rem; }
+    .hidden { display: none !important; }
+
+    .btn-primary {
+      padding: 0.5rem 1.25rem; background: #1d1d1f; color: #fff; border: none;
+      border-radius: 8px; font-size: 0.8125rem; font-weight: 500; cursor: pointer;
+      font-family: inherit; transition: background 0.15s;
+    }
+    .btn-primary:hover { background: #333; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-secondary {
+      padding: 0.5rem 1.25rem; background: #fff; color: #6e6e73; border: 1px solid #d2d2d7;
+      border-radius: 8px; font-size: 0.8125rem; font-weight: 500; cursor: pointer;
+      font-family: inherit; transition: all 0.15s;
+    }
+    .btn-secondary:hover { border-color: #1d1d1f; color: #1d1d1f; }
+    .btn-danger {
+      padding: 0.5rem 1.25rem; background: #ef4444; color: #fff; border: none;
+      border-radius: 8px; font-size: 0.8125rem; font-weight: 500; cursor: pointer;
+      font-family: inherit; transition: background 0.15s;
+    }
+    .btn-danger:hover { background: #dc2626; }
+
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.4);
+      display: flex; align-items: center; justify-content: center; padding: 1rem;
+    }
+    .modal-card {
+      background: #fff; border-radius: 14px; width: 100%; max-width: 480px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15); position: relative;
+    }
+    .modal-small { max-width: 380px; }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.5rem; border-bottom: 1px solid #e8e8ed; }
+    .modal-title { font-size: 1rem; font-weight: 600; color: #1d1d1f; }
+    .modal-close { background: none; border: none; font-size: 1.5rem; color: #8c8c8c; cursor: pointer; line-height: 1; }
+    .modal-close:hover { color: #1d1d1f; }
+    .modal-body { padding: 1.25rem 1.5rem; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 0.75rem; padding: 1rem 1.5rem; border-top: 1px solid #e8e8ed; }
+
+    .form-group { margin-bottom: 1rem; }
+    .form-label { display: block; font-size: 0.8125rem; font-weight: 500; color: #1d1d1f; margin-bottom: 0.375rem; }
+    .form-input {
+      width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d2d2d7; border-radius: 8px;
+      font-size: 0.875rem; font-family: inherit; color: #1d1d1f; transition: border-color 0.15s;
+    }
+    .form-input:focus { outline: none; border-color: #D4AA45; }
+    select.form-input { appearance: auto; }
+
+    .upload-preview { margin-top: 0.75rem; }
+    .upload-preview img { max-height: 200px; border-radius: 8px; object-fit: contain; }
+
+    .upload-progress { padding: 1rem 1.5rem; }
+    .progress-bar { height: 4px; background: #e8e8ed; border-radius: 2px; overflow: hidden; }
+    .progress-fill { height: 100%; background: #D4AA45; width: 0; transition: width 0.3s; }
+    .progress-text { font-size: 0.8125rem; color: #8c8c8c; text-align: center; margin-top: 0.5rem; }
+
+    .gallery-toast {
+      position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: #1d1d1f; color: #fff; padding: 0.75rem 1.5rem; border-radius: 10px;
+      font-size: 0.875rem; font-weight: 500; opacity: 0; pointer-events: none;
+      transition: opacity 0.3s, transform 0.3s; z-index: 200;
+    }
+    .gallery-toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .gallery-toast.error { background: #ef4444; }
+  </style>
+</AdminLayout>
+
+<script>
+{
+  let currentCutType = document.querySelector('.tab-btn.active')?.getAttribute('data-cut-type') || '2컷';
+  let deleteTargetId: number | null = null;
+
+  const toast = document.getElementById('ps-toast')!;
+  function showToast(msg: string, isError = false) {
+    toast.textContent = msg;
+    toast.classList.toggle('error', isError);
+    toast.classList.add('visible');
+    setTimeout(() => toast.classList.remove('visible'), 2500);
+  }
+
+  // === Tab switching ===
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentCutType = (btn as HTMLElement).dataset.cutType || '2컷';
+      // Sync upload modal select
+      const sel = document.getElementById('upload-cut-type') as HTMLSelectElement;
+      if (sel) sel.value = currentCutType;
+      loadPhotostrips();
+    });
+  });
+
+  // === Load ===
+  async function loadPhotostrips() {
+    const grid = document.getElementById('ps-grid')!;
+    const empty = document.getElementById('ps-empty')!;
+    const loading = document.getElementById('ps-loading')!;
+    loading.classList.remove('hidden');
+    empty.classList.add('hidden');
+
+    try {
+      const res = await fetch(`/api/portfolio?page_tag=wedding&tags=포토스트립&cut_type=${encodeURIComponent(currentCutType)}`);
+      const items: any[] = await res.json();
+      loading.classList.add('hidden');
+
+      if (items.length === 0) {
+        empty.classList.remove('hidden');
+        grid.innerHTML = '';
+        return;
+      }
+
+      grid.innerHTML = items.map(item => `
+        <div class="gallery-card" draggable="true" data-id="${item.id}" data-sort="${item.sort_order || 0}">
+          <div class="drag-handle">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="9" cy="5" r="1"/><circle cx="15" cy="5" r="1"/>
+              <circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/>
+              <circle cx="9" cy="19" r="1"/><circle cx="15" cy="19" r="1"/>
+            </svg>
+          </div>
+          <div class="gallery-card-actions">
+            <button class="card-action-btn delete" data-id="${item.id}" title="삭제">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+              </svg>
+            </button>
+          </div>
+          <img src="${item.image_url}" alt="${item.title || '포토스트립'}" loading="lazy" />
+          <div class="gallery-card-info">
+            <div class="gallery-card-title">${item.title || '(제목 없음)'}</div>
+            <div class="gallery-card-meta">${item.cut_type || ''}</div>
+          </div>
+        </div>
+      `).join('');
+
+      bindCardEvents(grid);
+    } catch {
+      loading.classList.add('hidden');
+      empty.classList.remove('hidden');
+    }
+  }
+
+  function bindCardEvents(gridEl: HTMLElement) {
+    // Delete buttons
+    gridEl.querySelectorAll('.card-action-btn.delete').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteTargetId = Number((btn as HTMLElement).dataset.id);
+        document.getElementById('delete-modal')!.classList.remove('hidden');
+      });
+    });
+
+    // Drag and drop
+    let draggedEl: HTMLElement | null = null;
+
+    gridEl.querySelectorAll('.gallery-card').forEach(card => {
+      card.addEventListener('dragstart', (e) => {
+        draggedEl = card as HTMLElement;
+        (card as HTMLElement).classList.add('dragging');
+        (e as DragEvent).dataTransfer!.effectAllowed = 'move';
+      });
+      card.addEventListener('dragend', () => {
+        (card as HTMLElement).classList.remove('dragging');
+        gridEl.querySelectorAll('.gallery-card').forEach(c => c.classList.remove('drag-over'));
+        draggedEl = null;
+      });
+      card.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        (e as DragEvent).dataTransfer!.dropEffect = 'move';
+        if (draggedEl && card !== draggedEl) {
+          (card as HTMLElement).classList.add('drag-over');
+        }
+      });
+      card.addEventListener('dragleave', () => {
+        (card as HTMLElement).classList.remove('drag-over');
+      });
+      card.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        (card as HTMLElement).classList.remove('drag-over');
+        if (!draggedEl || card === draggedEl) return;
+
+        const cards = Array.from(gridEl.querySelectorAll('.gallery-card'));
+        const fromIdx = cards.indexOf(draggedEl);
+        const toIdx = cards.indexOf(card as Element);
+
+        if (fromIdx < toIdx) card.after(draggedEl);
+        else card.before(draggedEl);
+
+        // Save new order via portfolio reorder API
+        const reordered = Array.from(gridEl.querySelectorAll('.gallery-card'));
+        try {
+          const items = reordered.map((c, i) => ({
+            id: Number((c as HTMLElement).dataset.id),
+            sort_order: i,
+          }));
+          const res = await fetch('/api/portfolio/reorder', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items }),
+          });
+          if (res.ok) showToast('순서가 저장되었습니다.');
+          else throw new Error();
+        } catch { showToast('순서 저장 실패', true); }
+      });
+    });
+  }
+
+  // === Upload modal ===
+  const uploadModal = document.getElementById('upload-modal')!;
+  const uploadFile = document.getElementById('upload-file') as HTMLInputElement;
+  const uploadPreview = document.getElementById('upload-preview')!;
+  const uploadPreviewImg = document.getElementById('upload-preview-img') as HTMLImageElement;
+  const uploadProgress = document.getElementById('upload-progress')!;
+  const uploadProgressBar = document.getElementById('upload-progress-bar')!;
+
+  document.getElementById('ps-upload-btn')!.addEventListener('click', () => {
+    uploadFile.value = '';
+    (document.getElementById('upload-title') as HTMLInputElement).value = '';
+    (document.getElementById('upload-cut-type') as HTMLSelectElement).value = currentCutType;
+    uploadPreview.classList.add('hidden');
+    uploadProgress.classList.add('hidden');
+    uploadModal.classList.remove('hidden');
+  });
+
+  uploadFile.addEventListener('change', () => {
+    const file = uploadFile.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        uploadPreviewImg.src = reader.result as string;
+        uploadPreview.classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  document.getElementById('upload-modal-close')!.addEventListener('click', () => uploadModal.classList.add('hidden'));
+  document.getElementById('upload-cancel')!.addEventListener('click', () => uploadModal.classList.add('hidden'));
+
+  document.getElementById('upload-submit')!.addEventListener('click', async () => {
+    const file = uploadFile.files?.[0];
+    if (!file) { showToast('파일을 선택하세요.', true); return; }
+
+    const submitBtn = document.getElementById('upload-submit') as HTMLButtonElement;
+    submitBtn.disabled = true;
+    uploadProgress.classList.remove('hidden');
+    uploadProgressBar.style.width = '30%';
+
+    const title = (document.getElementById('upload-title') as HTMLInputElement).value;
+    const cutType = (document.getElementById('upload-cut-type') as HTMLSelectElement).value;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('title', title);
+    formData.append('page', 'wedding');
+    formData.append('page_tag', 'wedding');
+    formData.append('tags', '포토스트립');
+    formData.append('cut_type', cutType);
+
+    try {
+      uploadProgressBar.style.width = '60%';
+      const res = await fetch('/api/portfolio', { method: 'POST', body: formData });
+      uploadProgressBar.style.width = '100%';
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || '업로드 실패');
+      }
+
+      showToast('업로드 완료!');
+      uploadModal.classList.add('hidden');
+      loadPhotostrips();
+    } catch (e: any) {
+      showToast(e.message || '업로드 실패', true);
+    } finally {
+      submitBtn.disabled = false;
+      uploadProgress.classList.add('hidden');
+      uploadProgressBar.style.width = '0';
+    }
+  });
+
+  // === Delete modal ===
+  document.getElementById('delete-modal-close')!.addEventListener('click', () => {
+    document.getElementById('delete-modal')!.classList.add('hidden');
+    deleteTargetId = null;
+  });
+  document.getElementById('delete-cancel')!.addEventListener('click', () => {
+    document.getElementById('delete-modal')!.classList.add('hidden');
+    deleteTargetId = null;
+  });
+  document.getElementById('delete-confirm')!.addEventListener('click', async () => {
+    if (!deleteTargetId) return;
+
+    try {
+      const res = await fetch(`/api/portfolio/${deleteTargetId}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error();
+      showToast('삭제되었습니다.');
+      loadPhotostrips();
+    } catch {
+      showToast('삭제 실패', true);
+    }
+
+    document.getElementById('delete-modal')!.classList.add('hidden');
+    deleteTargetId = null;
+  });
+
+  // Initial load
+  loadPhotostrips();
+}
+</script>
