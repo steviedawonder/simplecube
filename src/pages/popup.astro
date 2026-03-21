@@ -57,7 +57,17 @@ try {
         </div>
 
         <div id="bg-tags" class="flex flex-wrap gap-2.5 mb-8"></div>
-        <div id="bg-grid" class="grid grid-cols-3 gap-2 md:grid-cols-4 md:gap-3"></div>
+        <div id="bg-carousel" class="relative">
+          <div class="overflow-hidden py-4">
+            <div id="bg-track" class="flex transition-transform duration-700 ease-in-out"></div>
+          </div>
+          <button id="bg-prev" class="absolute -left-5 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-primary text-white shadow-lg flex items-center justify-center hover:bg-olive transition-colors z-10">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+          </button>
+          <button id="bg-next" class="absolute -right-5 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-primary text-white shadow-lg flex items-center justify-center hover:bg-olive transition-colors z-10">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+          </button>
+        </div>
       </div>
     </section>
   )}
@@ -89,7 +99,7 @@ try {
   <button id="bg-lb-close" class="absolute top-4 right-4 z-10 text-white/60 hover:text-white transition-colors" aria-label="닫기">
     <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
   </button>
-  <img id="bg-lb-img" src="" alt="" class="max-h-[85vh] max-w-[90vw] object-contain rounded-lg shadow-2xl" />
+  <img id="bg-lb-img" src="" alt="" class="max-h-[80vh] max-w-[85vw] object-contain shadow-2xl" />
   <p id="bg-lb-caption" class="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/70 text-sm"></p>
 </div>
 
@@ -101,7 +111,6 @@ try {
 {
   const backgrounds: any[] = (window as any).__backgrounds || [];
   if (backgrounds.length > 0) {
-    const grid = document.getElementById('bg-grid')!;
     const tagsContainer = document.getElementById('bg-tags')!;
 
     // Extract categories
@@ -116,7 +125,6 @@ try {
 
       tagsContainer.querySelectorAll('.bg-tag-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-          const cat = (btn as HTMLElement).dataset.cat!;
           tagsContainer.querySelectorAll('.bg-tag-btn').forEach(b => {
             if (b === btn) {
               b.classList.remove('bg-white', 'border', 'border-gray-200', 'text-secondary');
@@ -126,40 +134,122 @@ try {
               b.classList.add('bg-white', 'border', 'border-gray-200', 'text-secondary');
             }
           });
-          grid.querySelectorAll('.bg-item').forEach(item => {
-            const itemCat = (item as HTMLElement).dataset.category || '';
-            (item as HTMLElement).style.display = (!cat || itemCat === cat) ? '' : 'none';
-          });
         });
       });
     }
 
-    // Cloudinary thumbnail transform
+    // Cloudinary compressed thumbnail
     function thumbUrl(url: string) {
       if (url.includes('res.cloudinary.com') && url.includes('/upload/')) {
-        return url.replace('/upload/', '/upload/w_400,f_auto,q_auto/');
+        return url.replace('/upload/', '/upload/w_300,c_fit,f_auto,q_60/');
       }
       return url;
     }
 
-    // Render grid
-    grid.innerHTML = backgrounds.map((bg: any) => `
-      <div class="bg-item group cursor-pointer overflow-hidden rounded-lg" data-category="${bg.category || '기본'}">
-        <div class="relative">
-          <img
-            src="${thumbUrl(bg.image_url)}"
-            alt="${bg.title || '프로그램 배경'}"
-            class="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            loading="lazy"
-          />
-          <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
-            <svg class="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
-            </svg>
+    // Cloudinary lightbox
+    function lbUrl(url: string) {
+      if (url.includes('res.cloudinary.com') && url.includes('/upload/')) {
+        return url.replace('/upload/', '/upload/w_600,h_450,c_fit,f_auto,q_80/');
+      }
+      return url;
+    }
+
+    // Continuous carousel
+    const bgTrack = document.getElementById('bg-track')!;
+    const bgPrev = document.getElementById('bg-prev') as HTMLButtonElement;
+    const bgNext = document.getElementById('bg-next') as HTMLButtonElement;
+    let filteredBgs: any[] = [...backgrounds];
+    let bgIdx = 0;
+    let bgAutoTimer: any = null;
+    const isMobile = window.innerWidth < 768;
+    const VISIBLE = isMobile ? 3 : 5;
+
+    function buildBgTrack() {
+      bgTrack.innerHTML = '';
+      if (filteredBgs.length === 0) return;
+
+      filteredBgs.forEach((bg: any, i: number) => {
+        const card = document.createElement('div');
+        card.className = 'bg-slide flex-shrink-0 px-2 cursor-pointer transition-transform duration-700 ease-in-out';
+        card.style.width = `${100 / VISIBLE}%`;
+        card.dataset.idx = String(i);
+        card.innerHTML = `
+          <div class="relative overflow-hidden rounded-md shadow-[0_1px_4px_rgba(0,0,0,0.1)]">
+            <img src="${thumbUrl(bg.image_url)}" alt="${bg.title || '프로그램 배경'}" class="w-full block object-contain" loading="lazy" />
+            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300"></div>
           </div>
-        </div>
-      </div>
-    `).join('');
+        `;
+        bgTrack.appendChild(card);
+      });
+
+      bgIdx = 0;
+      updateBgTrack();
+      startBgAuto();
+    }
+
+    function updateBgTrack() {
+      const total = filteredBgs.length;
+      if (total === 0) return;
+      const slideWidth = 100 / VISIBLE;
+      // Center the active index
+      const centerOffset = Math.floor(VISIBLE / 2);
+      const offset = (bgIdx - centerOffset) * slideWidth;
+      bgTrack.style.transform = `translateX(-${offset}%)`;
+
+      // Scale: center item bigger
+      const slides = bgTrack.querySelectorAll<HTMLElement>('.bg-slide');
+      slides.forEach((s, i) => {
+        if (i === bgIdx) {
+          s.style.transform = 'scale(1.15)';
+          s.style.zIndex = '5';
+          s.style.opacity = '1';
+        } else {
+          s.style.transform = 'scale(0.9)';
+          s.style.zIndex = '1';
+          s.style.opacity = '0.7';
+        }
+      });
+    }
+
+    function nextBg() {
+      bgIdx = (bgIdx + 1) % filteredBgs.length;
+      updateBgTrack();
+    }
+    function prevBg() {
+      bgIdx = (bgIdx - 1 + filteredBgs.length) % filteredBgs.length;
+      updateBgTrack();
+    }
+
+    function startBgAuto() {
+      stopBgAuto();
+      if (filteredBgs.length > VISIBLE) {
+        bgAutoTimer = setInterval(nextBg, 2000);
+      }
+    }
+    function stopBgAuto() {
+      if (bgAutoTimer) { clearInterval(bgAutoTimer); bgAutoTimer = null; }
+    }
+
+    bgPrev.addEventListener('click', () => { prevBg(); stopBgAuto(); startBgAuto(); });
+    bgNext.addEventListener('click', () => { nextBg(); stopBgAuto(); startBgAuto(); });
+
+    // Pause on hover
+    const bgCarousel = document.getElementById('bg-carousel')!;
+    bgCarousel.addEventListener('mouseenter', stopBgAuto);
+    bgCarousel.addEventListener('mouseleave', startBgAuto);
+
+    // Category filter
+    if (categories.length > 1) {
+      tagsContainer.querySelectorAll('.bg-tag-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const cat = (btn as HTMLElement).dataset.cat!;
+          filteredBgs = cat ? backgrounds.filter((b: any) => (b.category || '기본') === cat) : [...backgrounds];
+          buildBgTrack();
+        });
+      });
+    }
+
+    buildBgTrack();
 
     // Lightbox
     const lightbox = document.getElementById('bg-lightbox')!;
@@ -168,24 +258,17 @@ try {
     const lbPrev = document.getElementById('bg-lb-prev')!;
     const lbNext = document.getElementById('bg-lb-next')!;
     const lbClose = document.getElementById('bg-lb-close')!;
-
-    let visibleItems: any[] = [];
     let currentIdx = 0;
 
-    function getFullUrl(url: string) {
-      if (url.includes('res.cloudinary.com') && url.includes('/upload/')) {
-        return url.replace('/upload/', '/upload/f_auto,q_auto/');
-      }
-      return url;
+    function showBgImage() {
+      const bg = filteredBgs[currentIdx];
+      if (!bg) return;
+      lbImg.src = lbUrl(bg.image_url);
+      lbImg.alt = bg.title || '프로그램 배경';
+      lbCaption.textContent = bg.title || '';
     }
 
     function openBgLightbox(idx: number) {
-      // Get currently visible items
-      const visible = grid.querySelectorAll('.bg-item:not([style*="display: none"])');
-      visibleItems = Array.from(visible).map(el => {
-        const img = el.querySelector('img')!;
-        return { url: img.src, title: img.alt };
-      });
       currentIdx = idx;
       showBgImage();
       lightbox.classList.remove('hidden');
@@ -199,34 +282,23 @@ try {
       document.body.style.overflow = '';
     }
 
-    function showBgImage() {
-      const item = visibleItems[currentIdx];
+    bgTrack.addEventListener('click', (e) => {
+      const item = (e.target as HTMLElement).closest('.bg-slide');
       if (!item) return;
-      // Get full URL from original background data
-      const origUrl = backgrounds.find((b: any) => (b.title || '프로그램 배경') === item.title)?.image_url || item.url;
-      lbImg.src = getFullUrl(origUrl);
-      lbImg.alt = item.title;
-      lbCaption.textContent = item.title;
-    }
-
-    grid.addEventListener('click', (e) => {
-      const item = (e.target as HTMLElement).closest('.bg-item');
-      if (!item) return;
-      const visible = Array.from(grid.querySelectorAll('.bg-item:not([style*="display: none"])'));
-      const idx = visible.indexOf(item as Element);
-      if (idx >= 0) openBgLightbox(idx);
+      const idx = parseInt((item as HTMLElement).dataset.idx || '0');
+      openBgLightbox(idx);
     });
 
-    lbPrev.addEventListener('click', (e) => { e.stopPropagation(); currentIdx = (currentIdx - 1 + visibleItems.length) % visibleItems.length; showBgImage(); });
-    lbNext.addEventListener('click', (e) => { e.stopPropagation(); currentIdx = (currentIdx + 1) % visibleItems.length; showBgImage(); });
+    lbPrev.addEventListener('click', (e) => { e.stopPropagation(); currentIdx = (currentIdx - 1 + filteredBgs.length) % filteredBgs.length; showBgImage(); });
+    lbNext.addEventListener('click', (e) => { e.stopPropagation(); currentIdx = (currentIdx + 1) % filteredBgs.length; showBgImage(); });
     lbClose.addEventListener('click', closeBgLightbox);
     lightbox.addEventListener('click', (e) => { if (e.target === lightbox) closeBgLightbox(); });
 
     document.addEventListener('keydown', (e) => {
       if (lightbox.classList.contains('hidden')) return;
       if (e.key === 'Escape') closeBgLightbox();
-      if (e.key === 'ArrowLeft') { currentIdx = (currentIdx - 1 + visibleItems.length) % visibleItems.length; showBgImage(); }
-      if (e.key === 'ArrowRight') { currentIdx = (currentIdx + 1) % visibleItems.length; showBgImage(); }
+      if (e.key === 'ArrowLeft') { currentIdx = (currentIdx - 1 + filteredBgs.length) % filteredBgs.length; showBgImage(); }
+      if (e.key === 'ArrowRight') { currentIdx = (currentIdx + 1) % filteredBgs.length; showBgImage(); }
     });
   }
 }

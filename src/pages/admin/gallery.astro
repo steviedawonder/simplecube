@@ -59,15 +59,13 @@ import AdminLayout from '@layouts/AdminLayout.astro';
       </div>
       <div class="modal-body">
         <div class="form-group">
-          <label class="form-label">이미지 파일</label>
-          <input type="file" id="upload-file" accept="image/*" class="form-input" />
-          <div id="upload-preview" class="upload-preview hidden">
-            <img id="upload-preview-img" src="" alt="미리보기" />
-          </div>
+          <label class="form-label">이미지 파일 (여러 장 선택 가능)</label>
+          <input type="file" id="upload-file" accept="image/*" multiple class="form-input" />
+          <div id="upload-file-list" class="upload-file-list hidden"></div>
         </div>
         <div id="upload-title-group" class="form-group">
           <label class="form-label">제목 (선택)</label>
-          <input type="text" id="upload-title" class="form-input" placeholder="제목을 입력하세요" />
+          <input type="text" id="upload-title" class="form-input" placeholder="비우면 각 파일명 사용, 입력하면 제목(1), 제목(2)..." />
         </div>
         <div id="upload-category-group" class="form-group hidden">
           <label class="form-label">카테고리</label>
@@ -80,7 +78,7 @@ import AdminLayout from '@layouts/AdminLayout.astro';
       </div>
       <div id="upload-progress" class="upload-progress hidden">
         <div class="progress-bar"><div id="upload-progress-bar" class="progress-fill"></div></div>
-        <p class="progress-text">업로드 중...</p>
+        <p id="upload-progress-text" class="progress-text">업로드 중...</p>
       </div>
     </div>
   </div>
@@ -222,8 +220,15 @@ import AdminLayout from '@layouts/AdminLayout.astro';
     }
     .form-input:focus { outline: none; border-color: #D4AA45; }
 
-    .upload-preview { margin-top: 0.75rem; }
-    .upload-preview img { max-height: 200px; border-radius: 8px; object-fit: contain; }
+  </style>
+  <style is:global>
+    .upload-file-list { margin-top: 0.5rem; max-height: 150px; overflow-y: auto; border: 1px solid #e8e8ed; border-radius: 8px; padding: 0.25rem 0; }
+    .upload-file-item { display: flex; align-items: center; justify-content: space-between; padding: 0.35rem 0.75rem; font-size: 0.8rem; color: #1d1d1f; }
+    .upload-file-item:not(:last-child) { border-bottom: 1px solid #f0f0f0; }
+    .upload-file-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+    .upload-file-item button { background: #f5f5f5; border: 1px solid #d0d0d0; border-radius: 6px; color: #888; cursor: pointer; font-size: 0.7rem; padding: 0.2rem 0.6rem; flex-shrink: 0; transition: all 0.15s; margin-left: 0.5rem; font-weight: 600; }
+    .upload-file-item button:hover { background: #ff3b30; border-color: #ff3b30; color: #fff; }
+    .upload-file-count { font-size: 0.75rem; color: #6e6e73; margin-top: 0.35rem; padding: 0.2rem 0.75rem; }
 
     .upload-progress { padding: 1rem 1.5rem; }
     .progress-bar { height: 4px; background: #e8e8ed; border-radius: 2px; overflow: hidden; }
@@ -494,22 +499,25 @@ import AdminLayout from '@layouts/AdminLayout.astro';
   // === Upload modal ===
   const uploadModal = document.getElementById('upload-modal')!;
   const uploadFile = document.getElementById('upload-file') as HTMLInputElement;
-  const uploadPreview = document.getElementById('upload-preview')!;
-  const uploadPreviewImg = document.getElementById('upload-preview-img') as HTMLImageElement;
+  const uploadFileList = document.getElementById('upload-file-list')!;
   const uploadTitle = document.getElementById('upload-title') as HTMLInputElement;
   const uploadCategory = document.getElementById('upload-category') as HTMLInputElement;
   const uploadCategoryGroup = document.getElementById('upload-category-group')!;
   const uploadTitleGroup = document.getElementById('upload-title-group')!;
   const uploadProgress = document.getElementById('upload-progress')!;
   const uploadProgressBar = document.getElementById('upload-progress-bar')!;
+  const uploadProgressText = document.getElementById('upload-progress-text')!;
   let uploadType = '';
+  let selectedFiles: File[] = [];
 
   function openUploadModal(type: string) {
     uploadType = type;
     uploadFile.value = '';
+    selectedFiles = [];
+    uploadFileList.innerHTML = '';
+    uploadFileList.classList.add('hidden');
     uploadTitle.value = '';
     uploadCategory.value = '기본';
-    uploadPreview.classList.add('hidden');
     uploadProgress.classList.add('hidden');
 
     const title = type === 'backgrounds' ? '배경 업로드'
@@ -517,7 +525,6 @@ import AdminLayout from '@layouts/AdminLayout.astro';
       : '모델 사진 업로드';
     document.getElementById('upload-modal-title')!.textContent = title;
 
-    // Show/hide fields
     uploadCategoryGroup.classList.toggle('hidden', type !== 'backgrounds');
     uploadTitleGroup.classList.toggle('hidden', type === 'models');
 
@@ -525,16 +532,42 @@ import AdminLayout from '@layouts/AdminLayout.astro';
   }
 
   uploadFile.addEventListener('change', () => {
-    const file = uploadFile.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        uploadPreviewImg.src = reader.result as string;
-        uploadPreview.classList.remove('hidden');
-      };
-      reader.readAsDataURL(file);
+    const files = uploadFile.files;
+    if (!files || files.length === 0) return;
+    for (let i = 0; i < files.length; i++) {
+      selectedFiles.push(files[i]);
     }
+    renderFileList();
   });
+
+  function renderFileList() {
+    uploadFileList.innerHTML = '';
+    if (selectedFiles.length === 0) {
+      uploadFileList.classList.add('hidden');
+      return;
+    }
+    uploadFileList.classList.remove('hidden');
+    selectedFiles.forEach((file, idx) => {
+      const item = document.createElement('div');
+      item.className = 'upload-file-item';
+      const name = document.createElement('span');
+      name.textContent = file.name;
+      const removeBtn = document.createElement('button');
+      removeBtn.textContent = '삭제';
+      removeBtn.addEventListener('click', () => {
+        selectedFiles.splice(idx, 1);
+        uploadFile.value = '';
+        renderFileList();
+      });
+      item.appendChild(name);
+      item.appendChild(removeBtn);
+      uploadFileList.appendChild(item);
+    });
+    const count = document.createElement('div');
+    count.className = 'upload-file-count';
+    count.textContent = `총 ${selectedFiles.length}개 파일 선택됨`;
+    uploadFileList.appendChild(count);
+  }
 
   document.getElementById('bg-upload-btn')!.addEventListener('click', () => openUploadModal('backgrounds'));
   document.getElementById('bd-upload-btn')!.addEventListener('click', () => openUploadModal('backdrops'));
@@ -544,53 +577,74 @@ import AdminLayout from '@layouts/AdminLayout.astro';
   document.getElementById('upload-cancel')!.addEventListener('click', () => uploadModal.classList.add('hidden'));
 
   document.getElementById('upload-submit')!.addEventListener('click', async () => {
-    const file = uploadFile.files?.[0];
-    if (!file) { showToast('파일을 선택하세요.', true); return; }
+    if (selectedFiles.length === 0) { showToast('파일을 선택하세요.', true); return; }
 
     const submitBtn = document.getElementById('upload-submit') as HTMLButtonElement;
     submitBtn.disabled = true;
     uploadProgress.classList.remove('hidden');
-    uploadProgressBar.style.width = '30%';
 
-    const formData = new FormData();
-    formData.append('file', file);
+    const customTitle = uploadTitle.value.trim();
+    const total = selectedFiles.length;
+    let success = 0;
+    let failed = 0;
 
-    let apiUrl = '';
-    if (uploadType === 'backgrounds') {
-      formData.append('title', uploadTitle.value);
-      formData.append('category', uploadCategory.value || '기본');
-      apiUrl = '/api/backgrounds';
-    } else if (uploadType === 'backdrops') {
-      formData.append('title', uploadTitle.value);
-      apiUrl = '/api/backdrops';
-    } else {
-      formData.append('model_id', currentModelId);
-      apiUrl = '/api/model-photos';
-    }
-
-    try {
-      uploadProgressBar.style.width = '60%';
-      const res = await fetch(apiUrl, { method: 'POST', body: formData });
-      uploadProgressBar.style.width = '100%';
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || '업로드 실패');
+    for (let i = 0; i < total; i++) {
+      const file = selectedFiles[i];
+      let title: string;
+      if (customTitle) {
+        title = total === 1 ? customTitle : `${customTitle}(${i + 1})`;
+      } else {
+        title = file.name.replace(/\.[^.]+$/, '');
       }
 
-      showToast('업로드 완료!');
-      uploadModal.classList.add('hidden');
+      const percent = Math.round((i / total) * 100);
+      uploadProgressBar.style.width = `${percent}%`;
+      uploadProgressText.textContent = `업로드 중... (${i + 1}/${total})`;
 
-      if (uploadType === 'backgrounds') loadBackgrounds();
-      else if (uploadType === 'backdrops') loadBackdrops();
-      else loadModelPhotos();
-    } catch (e: any) {
-      showToast(e.message || '업로드 실패', true);
-    } finally {
-      submitBtn.disabled = false;
-      uploadProgress.classList.add('hidden');
-      uploadProgressBar.style.width = '0';
+      const formData = new FormData();
+      formData.append('file', file);
+
+      let apiUrl = '';
+      if (uploadType === 'backgrounds') {
+        formData.append('title', title);
+        formData.append('category', uploadCategory.value || '기본');
+        apiUrl = '/api/backgrounds';
+      } else if (uploadType === 'backdrops') {
+        formData.append('title', title);
+        apiUrl = '/api/backdrops';
+      } else {
+        formData.append('model_id', currentModelId);
+        apiUrl = '/api/model-photos';
+      }
+
+      try {
+        const res = await fetch(apiUrl, { method: 'POST', body: formData });
+        if (!res.ok) { failed++; } else { success++; }
+      } catch {
+        failed++;
+      }
     }
+
+    uploadProgressBar.style.width = '100%';
+    uploadProgressText.textContent = '완료!';
+
+    if (failed === 0) {
+      showToast(`${success}개 업로드 완료!`);
+    } else {
+      showToast(`${success}개 성공, ${failed}개 실패`, true);
+    }
+
+    selectedFiles = [];
+    uploadModal.classList.add('hidden');
+
+    if (uploadType === 'backgrounds') loadBackgrounds();
+    else if (uploadType === 'backdrops') loadBackdrops();
+    else loadModelPhotos();
+
+    submitBtn.disabled = false;
+    uploadProgress.classList.add('hidden');
+    uploadProgressBar.style.width = '0';
+    uploadProgressText.textContent = '업로드 중...';
   });
 
   // === Delete modal ===
