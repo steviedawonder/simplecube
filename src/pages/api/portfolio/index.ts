@@ -62,7 +62,10 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
-    const title = (formData.get('title') as string) || '';
+    let title = (formData.get('title') as string) || '';
+    if (!title && file) {
+      title = file.name.replace(/\.[^.]+$/, '');
+    }
     const description = (formData.get('description') as string) || '';
     const page = (formData.get('page') as string) || 'popup';
     const pageTag = (formData.get('page_tag') as string) || page;

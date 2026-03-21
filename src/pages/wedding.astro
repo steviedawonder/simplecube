@@ -123,29 +123,30 @@ try {
       </div>
 
       {photostripItems.length > 0 ? (
-        <div id="ps-grid" class="gs-stagger grid grid-cols-2 gap-2 md:grid-cols-3">
-          {photostripItems.map((item: any) => (
-            <div
-              class="ps-item group cursor-pointer overflow-hidden rounded-lg"
-              data-cut-type={item.cut_type || ''}
-              data-src={item.image_url}
-              data-alt={item.title || '포토스트립'}
-            >
-              <div class="relative">
-                <img
-                  src={item.image_url}
-                  alt={item.title || '포토스트립'}
-                  class="aspect-[3/4] w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  loading="lazy"
-                />
-                <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
-                  <svg class="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
-                  </svg>
-                </div>
-              </div>
+        <div id="ps-grid" class="gs-fade-up">
+          <div id="ps-source" class="hidden">
+            {photostripItems.map((item: any) => (
+              <div
+                class="ps-item"
+                data-cut-type={item.cut_type || ''}
+                data-src={item.image_url}
+                data-alt={item.title || '포토스트립'}
+              />
+            ))}
+          </div>
+
+          <div id="ps-carousel-section" class="relative">
+            <div class="overflow-hidden">
+              <div id="ps-slider" class="flex transition-transform duration-500 ease-in-out"></div>
             </div>
-          ))}
+            <button id="ps-prev" class="absolute -left-5 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-primary text-white shadow-lg flex items-center justify-center hover:bg-olive transition-colors z-10 disabled:opacity-20 disabled:cursor-not-allowed">
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+            </button>
+            <button id="ps-next" class="absolute -right-5 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-primary text-white shadow-lg flex items-center justify-center hover:bg-olive transition-colors z-10 disabled:opacity-20 disabled:cursor-not-allowed">
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+            </button>
+            <div id="ps-page-indicator" class="flex items-center justify-center gap-2 mt-6"></div>
+          </div>
         </div>
       ) : (
         <div id="ps-empty" class="text-center py-12">
@@ -339,19 +340,121 @@ try {
 
   loadWeddingGallery();
 
-  // === Photostrip Tab Filtering + Lightbox ===
+  // === Photostrip: Unified carousel (portrait first, then landscape) ===
   const psGrid = document.getElementById('ps-grid');
   const psTabs = document.querySelectorAll<HTMLButtonElement>('.ps-tab-btn');
 
   if (psGrid) {
-    const allItems = psGrid.querySelectorAll<HTMLElement>('.ps-item');
+    const sourceItems = Array.from(psGrid.querySelectorAll<HTMLElement>('#ps-source .ps-item'));
+    const COLS = 5;
+    const PER_PAGE = 10;
+
+    interface PsData { src: string; alt: string; cutType: string; orientation?: string; }
+    let allData: PsData[] = sourceItems.map(el => ({
+      src: el.dataset.src || '',
+      alt: el.dataset.alt || '',
+      cutType: el.dataset.cutType || '',
+    }));
+
+    let classified = 0;
+    allData.forEach((d) => {
+      const img = new Image();
+      img.src = d.src;
+      img.onload = () => {
+        d.orientation = img.naturalWidth > img.naturalHeight ? 'landscape' : 'portrait';
+        classified++;
+        if (classified === allData.length) buildAll();
+      };
+      img.onerror = () => {
+        d.orientation = 'portrait';
+        classified++;
+        if (classified === allData.length) buildAll();
+      };
+    });
+
+    const psSlider = document.getElementById('ps-slider')!;
+    const psPrev = document.getElementById('ps-prev') as HTMLButtonElement;
+    const psNext = document.getElementById('ps-next') as HTMLButtonElement;
+    const psIndicator = document.getElementById('ps-page-indicator')!;
+    let psPage = 0;
+    let allVisibleData: PsData[] = [];
+
+    function makeCard(d: PsData): HTMLElement {
+      const card = document.createElement('div');
+      card.className = 'ps-item group cursor-pointer';
+      card.dataset.src = d.src;
+      card.dataset.alt = d.alt;
+      card.innerHTML = `
+        <div class="relative overflow-hidden flex items-center justify-center" style="height: ${d.orientation === 'landscape' ? '140px' : '220px'};">
+          <img src="${d.src}" alt="${d.alt}" class="max-w-full max-h-full object-contain transition-transform duration-500 group-hover:scale-105 shadow-[0_2px_8px_rgba(0,0,0,0.12)]" loading="lazy" />
+          <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+            <svg class="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
+            </svg>
+          </div>
+        </div>
+      `;
+      return card;
+    }
+
+    function updateCarousel() {
+      const totalPages = psSlider.children.length;
+      psSlider.style.transform = `translateX(-${psPage * 100}%)`;
+      psPrev.disabled = psPage <= 0;
+      psNext.disabled = psPage >= totalPages - 1;
+      psPrev.style.display = totalPages <= 1 ? 'none' : 'flex';
+      psNext.style.display = totalPages <= 1 ? 'none' : 'flex';
+
+      // Update indicator
+      psIndicator.innerHTML = '';
+      if (totalPages > 1) {
+        for (let i = 0; i < totalPages; i++) {
+          const dot = document.createElement('button');
+          dot.className = i === psPage
+            ? 'w-8 h-2 rounded-full bg-primary transition-all'
+            : 'w-2 h-2 rounded-full bg-gray-300 hover:bg-gray-400 transition-all';
+          dot.addEventListener('click', () => { psPage = i; updateCarousel(); });
+          psIndicator.appendChild(dot);
+        }
+      }
+    }
+
+    function buildAll(cutFilter = 'all') {
+      const filtered = cutFilter === 'all' ? allData : allData.filter(d => d.cutType === cutFilter);
+      // Sort: portrait first, then landscape
+      const sorted = [
+        ...filtered.filter(d => d.orientation === 'portrait'),
+        ...filtered.filter(d => d.orientation === 'landscape'),
+      ];
+      allVisibleData = sorted;
+
+      psSlider.innerHTML = '';
+      if (sorted.length === 0) { updateCarousel(); return; }
+
+      const totalPages = Math.ceil(sorted.length / PER_PAGE);
+      for (let p = 0; p < totalPages; p++) {
+        const page = document.createElement('div');
+        page.className = 'flex-shrink-0 w-full';
+        page.style.cssText = 'display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.5rem; row-gap: 2.5rem; padding: 0.5rem;';
+        const start = p * PER_PAGE;
+        const end = Math.min(start + PER_PAGE, sorted.length);
+        for (let i = start; i < end; i++) {
+          page.appendChild(makeCard(sorted[i]));
+        }
+        psSlider.appendChild(page);
+      }
+
+      psPage = 0;
+      updateCarousel();
+    }
+
+    psPrev.addEventListener('click', () => { if (psPage > 0) { psPage--; updateCarousel(); } });
+    psNext.addEventListener('click', () => { if (psPage < psSlider.children.length - 1) { psPage++; updateCarousel(); } });
 
     // Tab filtering
     psTabs.forEach(btn => {
       btn.addEventListener('click', () => {
         const cutType = btn.dataset.cutType || 'all';
-
-        // Update tab styles
         psTabs.forEach(b => {
           if (b === btn) {
             b.classList.remove('bg-white', 'border', 'border-gray-200', 'text-secondary');
@@ -361,15 +464,7 @@ try {
             b.classList.add('bg-white', 'border', 'border-gray-200', 'text-secondary');
           }
         });
-
-        // Filter items
-        allItems.forEach(item => {
-          if (cutType === 'all' || item.dataset.cutType === cutType) {
-            item.classList.remove('hidden');
-          } else {
-            item.classList.add('hidden');
-          }
-        });
+        buildAll(cutType);
       });
     });
 
@@ -388,11 +483,7 @@ try {
       psLbCaption.textContent = item.alt;
     }
     function openPsLb(idx: number) {
-      // Only include visible items in lightbox
-      psLbItems = Array.from(psGrid!.querySelectorAll('.ps-item:not(.hidden)')).map(el => ({
-        src: (el as HTMLElement).dataset.src || '',
-        alt: (el as HTMLElement).dataset.alt || '',
-      }));
+      psLbItems = allVisibleData.map(d => ({ src: d.src, alt: d.alt }));
       psLbIdx = idx;
       showPsLb();
       psLb.classList.remove('hidden');
@@ -407,9 +498,9 @@ try {
 
     psGrid.addEventListener('click', (e) => {
       const item = (e.target as HTMLElement).closest('.ps-item');
-      if (!item || (item as HTMLElement).classList.contains('hidden')) return;
-      const visibleItems = Array.from(psGrid!.querySelectorAll('.ps-item:not(.hidden)'));
-      const idx = visibleItems.indexOf(item as Element);
+      if (!item) return;
+      const src = (item as HTMLElement).dataset.src || '';
+      const idx = allVisibleData.findIndex(d => d.src === src);
       if (idx >= 0) openPsLb(idx);
     });
 
