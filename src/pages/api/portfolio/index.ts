@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { put } from '@vercel/blob';
+import { uploadToCloudinary, isConfigured } from '@lib/cloudinary';
 import db from '@lib/db';
 
 export const prerender = false;
@@ -76,18 +76,15 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    // Upload to Vercel Blob
-    const token = import.meta.env.BLOB_READ_WRITE_TOKEN;
-    if (!token) {
-      return new Response(JSON.stringify({ error: 'Blob 토큰이 설정되지 않았습니다.' }), {
+    // Upload to Cloudinary
+    if (!isConfigured()) {
+      return new Response(JSON.stringify({ error: 'Cloudinary가 설정되지 않았습니다.' }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
       });
     }
-    const blob = await put(`portfolio/${Date.now()}-${file.name}`, file, {
-      access: 'public',
-      token,
-    });
+
+    const result = await uploadToCloudinary(file, 'simplecube/portfolio');
 
     // Get max sort_order
     const maxOrder = await db.execute("SELECT COALESCE(MAX(sort_order), 0) as max_order FROM portfolio");
@@ -95,7 +92,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     await db.execute({
       sql: 'INSERT INTO portfolio (title, description, page, page_tag, image_url, public_id, tags, cut_type, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      args: [title, description, page, pageTag, blob.url, blob.url, tags, cutType, nextOrder],
+      args: [title, description, page, pageTag, result.secure_url, result.public_id, tags, cutType, nextOrder],
     });
 
     const inserted = await db.execute('SELECT last_insert_rowid() as id');
@@ -108,7 +105,8 @@ export const POST: APIRoute = async ({ request }) => {
         description,
         page,
         page_tag: pageTag,
-        image_url: blob.url,
+        image_url: result.secure_url,
+        public_id: result.public_id,
         tags,
         cut_type: cutType,
         sort_order: nextOrder,

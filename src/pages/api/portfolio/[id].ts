@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { del } from '@vercel/blob';
+import { deleteFromCloudinary } from '@lib/cloudinary';
 import db from '@lib/db';
 
 export const prerender = false;
@@ -75,9 +75,9 @@ export const DELETE: APIRoute = async ({ params }) => {
   try {
     const id = params.id;
 
-    // Get the item first to delete from Vercel Blob
+    // Get the item first to delete from Cloudinary
     const result = await db.execute({
-      sql: 'SELECT image_url FROM portfolio WHERE id = ?',
+      sql: 'SELECT public_id FROM portfolio WHERE id = ?',
       args: [id],
     });
 
@@ -88,12 +88,12 @@ export const DELETE: APIRoute = async ({ params }) => {
       });
     }
 
-    const imageUrl = (result.rows[0] as any).image_url;
-    if (imageUrl) {
+    const publicId = (result.rows[0] as any).public_id;
+    if (publicId) {
       try {
-        await del(imageUrl, { token: import.meta.env.BLOB_READ_WRITE_TOKEN });
+        await deleteFromCloudinary(publicId);
       } catch {
-        // Blob delete failure shouldn't block DB delete
+        // Cloudinary delete failure shouldn't block DB delete
       }
     }
 
