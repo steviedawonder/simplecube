@@ -137,7 +137,18 @@
       "Bash(git rm --cached -f simplecube)",
       "Bash(git add simplecube/)",
       "Bash(git reset HEAD~1)",
-      "Bash(git add .astro/ .claude/settings.local.json simplecube/)"
+      "Bash(git add .astro/ .claude/settings.local.json simplecube/)",
+      "Bash(npm run:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(git add:*)",
+      "Bash(gh run:*)",
+      "Bash(vercel ls:*)",
+      "Bash(vercel env:*)",
+      "Bash(vercel link:*)",
+      "Bash(printf \"dynkoikr6\")",
+      "Bash(vercel --prod)",
+      "Bash(turso db:*)",
+      "Bash(/Users/dawonder/Downloads/web/.env:*)"
     ]
   }
 }
