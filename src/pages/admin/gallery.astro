@@ -4,6 +4,7 @@ import AdminLayout from '@layouts/AdminLayout.astro';
 ---
 
 <AdminLayout title="배경·백드롭">
+  <script is:inline src="/js/image-compress.js"></script>
   <h2 class="page-title">배경·백드롭 관리</h2>
   <p class="page-desc">프로그램 배경, 웨딩 백드롭, 모델별 사진을 관리합니다.</p>
 
@@ -17,7 +18,14 @@ import AdminLayout from '@layouts/AdminLayout.astro';
   <!-- Tab: 프로그램 배경 -->
   <div id="tab-backgrounds" class="tab-panel active">
     <div class="panel-toolbar">
-      <button id="bg-upload-btn" class="btn-primary">+ 배경 업로드</button>
+      <div class="toolbar-normal">
+        <button id="bg-upload-btn" class="btn-primary">+ 배경 업로드</button>
+        <button class="btn-delete-mode btn-secondary" data-type="backgrounds">삭제</button>
+      </div>
+      <div class="toolbar-delete hidden">
+        <button class="btn-delete-confirm btn-danger" disabled>선택 삭제 (0)</button>
+        <button class="btn-delete-cancel btn-secondary">취소</button>
+      </div>
     </div>
     <div id="bg-grid" class="gallery-grid"></div>
     <div id="bg-empty" class="empty-state hidden">등록된 배경이 없습니다.</div>
@@ -27,7 +35,14 @@ import AdminLayout from '@layouts/AdminLayout.astro';
   <!-- Tab: 웨딩 백드롭 -->
   <div id="tab-backdrops" class="tab-panel">
     <div class="panel-toolbar">
-      <button id="bd-upload-btn" class="btn-primary">+ 백드롭 업로드</button>
+      <div class="toolbar-normal">
+        <button id="bd-upload-btn" class="btn-primary">+ 백드롭 업로드</button>
+        <button class="btn-delete-mode btn-secondary" data-type="backdrops">삭제</button>
+      </div>
+      <div class="toolbar-delete hidden">
+        <button class="btn-delete-confirm btn-danger" disabled>선택 삭제 (0)</button>
+        <button class="btn-delete-cancel btn-secondary">취소</button>
+      </div>
     </div>
     <div id="bd-grid" class="gallery-grid"></div>
     <div id="bd-empty" class="empty-state hidden">등록된 백드롭이 없습니다.</div>
@@ -43,7 +58,14 @@ import AdminLayout from '@layouts/AdminLayout.astro';
       <button class="model-tab-btn" data-model="wood-round">우드Round</button>
     </div>
     <div class="panel-toolbar">
-      <button id="mp-upload-btn" class="btn-primary">+ 사진 업로드</button>
+      <div class="toolbar-normal">
+        <button id="mp-upload-btn" class="btn-primary">+ 사진 업로드</button>
+        <button class="btn-delete-mode btn-secondary" data-type="models">삭제</button>
+      </div>
+      <div class="toolbar-delete hidden">
+        <button class="btn-delete-confirm btn-danger" disabled>선택 삭제 (0)</button>
+        <button class="btn-delete-cancel btn-secondary">취소</button>
+      </div>
     </div>
     <div id="mp-grid" class="gallery-grid"></div>
     <div id="mp-empty" class="empty-state hidden">등록된 사진이 없습니다.</div>
@@ -91,7 +113,7 @@ import AdminLayout from '@layouts/AdminLayout.astro';
         <button id="delete-modal-close" class="modal-close">&times;</button>
       </div>
       <div class="modal-body">
-        <p>이 항목을 영구적으로 삭제하시겠습니까?<br/>이 작업은 되돌릴 수 없습니다.</p>
+        <p id="delete-modal-text">이 항목을 영구적으로 삭제하시겠습니까?<br/>이 작업은 되돌릴 수 없습니다.</p>
       </div>
       <div class="modal-footer">
         <button id="delete-cancel" class="btn-secondary">취소</button>
@@ -128,6 +150,7 @@ import AdminLayout from '@layouts/AdminLayout.astro';
     .model-tab-btn.active { background: #1d1d1f; color: #fff; border-color: #1d1d1f; }
 
     .panel-toolbar { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
+    .toolbar-normal, .toolbar-delete { display: flex; gap: 0.5rem; align-items: center; }
 
     .gallery-grid {
       display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem;
@@ -222,6 +245,13 @@ import AdminLayout from '@layouts/AdminLayout.astro';
 
   </style>
   <style is:global>
+    .gallery-card { position: relative; }
+    .card-checkbox { position: absolute; top: 0.5rem; left: 0.5rem; z-index: 10; display: none; }
+    .delete-mode .card-checkbox { display: block; }
+    .card-checkbox input[type="checkbox"] { width: 22px; height: 22px; accent-color: #D4AA45; cursor: pointer; }
+    .gallery-card.selected { border-color: #D4AA45 !important; box-shadow: 0 0 0 2px rgba(212,170,69,0.4) !important; }
+    .delete-mode .gallery-card { cursor: pointer; }
+    .delete-mode .drag-handle { display: none; }
     .upload-file-list { margin-top: 0.5rem; max-height: 150px; overflow-y: auto; border: 1px solid #e8e8ed; border-radius: 8px; padding: 0.25rem 0; }
     .upload-file-item { display: flex; align-items: center; justify-content: space-between; padding: 0.35rem 0.75rem; font-size: 0.8rem; color: #1d1d1f; }
     .upload-file-item:not(:last-child) { border-bottom: 1px solid #f0f0f0; }
@@ -310,6 +340,7 @@ import AdminLayout from '@layouts/AdminLayout.astro';
             <circle cx="9" cy="19" r="1"/><circle cx="15" cy="19" r="1"/>
           </svg>
         </div>
+        <div class="card-checkbox"><input type="checkbox" data-id="${item.id}" /></div>
         <div class="gallery-card-actions">
           ${hasVisibility ? `
             <button class="card-action-btn visibility" data-id="${item.id}" data-visible="${item.visible}" title="${item.visible ? '숨기기' : '보이기'}">
@@ -321,11 +352,6 @@ import AdminLayout from '@layouts/AdminLayout.astro';
               </svg>
             </button>
           ` : ''}
-          <button class="card-action-btn delete" data-id="${item.id}" title="삭제">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-            </svg>
-          </button>
         </div>
         <img src="${thumbUrl(item.image_url)}" alt="${title}" loading="lazy" />
         <div class="gallery-card-info">
@@ -336,14 +362,98 @@ import AdminLayout from '@layouts/AdminLayout.astro';
     `;
   }
 
+  // === Delete mode ===
+  let deleteMode = false;
+  let selectedIds = new Set<number>();
+  let currentDeleteType = '';
+
+  function getActivePanel(): HTMLElement {
+    return document.querySelector('.tab-panel.active')! as HTMLElement;
+  }
+
+  function enterDeleteMode(type: string) {
+    deleteMode = true;
+    currentDeleteType = type;
+    selectedIds.clear();
+    const panel = getActivePanel();
+    panel.classList.add('delete-mode');
+    panel.querySelector('.toolbar-normal')!.classList.add('hidden');
+    panel.querySelector('.toolbar-delete')!.classList.remove('hidden');
+    const confirmBtn = panel.querySelector('.btn-delete-confirm') as HTMLButtonElement;
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = '선택 삭제 (0)';
+    // Disable drag
+    panel.querySelectorAll('.gallery-card').forEach(c => (c as HTMLElement).setAttribute('draggable', 'false'));
+  }
+
+  function exitDeleteMode() {
+    deleteMode = false;
+    selectedIds.clear();
+    currentDeleteType = '';
+    document.querySelectorAll('.tab-panel').forEach(panel => {
+      panel.classList.remove('delete-mode');
+      panel.querySelector('.toolbar-normal')?.classList.remove('hidden');
+      panel.querySelector('.toolbar-delete')?.classList.add('hidden');
+      panel.querySelectorAll('.gallery-card').forEach(c => {
+        (c as HTMLElement).setAttribute('draggable', 'true');
+        c.classList.remove('selected');
+      });
+      panel.querySelectorAll<HTMLInputElement>('.card-checkbox input').forEach(cb => cb.checked = false);
+    });
+  }
+
+  function updateDeleteCount() {
+    const panel = getActivePanel();
+    const confirmBtn = panel.querySelector('.btn-delete-confirm') as HTMLButtonElement;
+    confirmBtn.textContent = `선택 삭제 (${selectedIds.size})`;
+    confirmBtn.disabled = selectedIds.size === 0;
+  }
+
+  // Toolbar button events
+  document.querySelectorAll('.btn-delete-mode').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const type = (btn as HTMLElement).dataset.type!;
+      enterDeleteMode(type);
+    });
+  });
+  document.querySelectorAll('.btn-delete-cancel').forEach(btn => {
+    btn.addEventListener('click', exitDeleteMode);
+  });
+  document.querySelectorAll('.btn-delete-confirm').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (selectedIds.size === 0) return;
+      document.getElementById('delete-modal-text')!.innerHTML = `선택한 <strong>${selectedIds.size}개</strong> 항목을 영구적으로 삭제하시겠습니까?<br/>이 작업은 되돌릴 수 없습니다.`;
+      deleteTarget = { type: currentDeleteType, id: -1 }; // multi-delete marker
+      document.getElementById('delete-modal')!.classList.remove('hidden');
+    });
+  });
+
+  // Tab switch exits delete mode
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (deleteMode) exitDeleteMode();
+    });
+  });
+
   function bindCardEvents(gridEl: HTMLElement, type: string) {
-    // Delete buttons
-    gridEl.querySelectorAll('.card-action-btn.delete').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const id = Number((btn as HTMLElement).dataset.id);
-        deleteTarget = { type, id };
-        document.getElementById('delete-modal')!.classList.remove('hidden');
+    // Checkbox click (for delete mode)
+    gridEl.querySelectorAll('.gallery-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        if (!deleteMode) return;
+        e.preventDefault();
+        const id = Number((card as HTMLElement).dataset.id);
+        const checkbox = card.querySelector<HTMLInputElement>('.card-checkbox input');
+        if (!checkbox) return;
+        if (selectedIds.has(id)) {
+          selectedIds.delete(id);
+          checkbox.checked = false;
+          card.classList.remove('selected');
+        } else {
+          selectedIds.add(id);
+          checkbox.checked = true;
+          card.classList.add('selected');
+        }
+        updateDeleteCount();
       });
     });
 
@@ -588,13 +698,17 @@ import AdminLayout from '@layouts/AdminLayout.astro';
     let success = 0;
     let failed = 0;
 
+    // 업로드 전 전체 파일 압축
+    uploadProgressText.textContent = '이미지 압축 중...';
+    const compressedFiles = await (window as any).compressImages(selectedFiles);
+
     for (let i = 0; i < total; i++) {
-      const file = selectedFiles[i];
+      const file = compressedFiles[i];
       let title: string;
       if (customTitle) {
         title = total === 1 ? customTitle : `${customTitle}(${i + 1})`;
       } else {
-        title = file.name.replace(/\.[^.]+$/, '');
+        title = selectedFiles[i].name.replace(/\.[^.]+$/, '');
       }
 
       const percent = Math.round((i / total) * 100);
@@ -663,16 +777,33 @@ import AdminLayout from '@layouts/AdminLayout.astro';
       : type === 'backdrops' ? '/api/backdrops'
       : '/api/model-photos';
 
-    try {
-      const res = await fetch(`${apiBase}/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error();
-      showToast('삭제되었습니다.');
-      if (type === 'backgrounds') loadBackgrounds();
-      else if (type === 'backdrops') loadBackdrops();
-      else loadModelPhotos();
-    } catch {
-      showToast('삭제 실패', true);
+    if (id === -1 && selectedIds.size > 0) {
+      // Multi-delete
+      let success = 0;
+      let failed = 0;
+      for (const delId of selectedIds) {
+        try {
+          const res = await fetch(`${apiBase}/${delId}`, { method: 'DELETE' });
+          if (res.ok) success++; else failed++;
+        } catch { failed++; }
+      }
+      if (failed === 0) showToast(`${success}개 삭제 완료!`);
+      else showToast(`${success}개 삭제, ${failed}개 실패`, true);
+      exitDeleteMode();
+    } else {
+      // Single delete (fallback)
+      try {
+        const res = await fetch(`${apiBase}/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error();
+        showToast('삭제되었습니다.');
+      } catch {
+        showToast('삭제 실패', true);
+      }
     }
+
+    if (type === 'backgrounds') loadBackgrounds();
+    else if (type === 'backdrops') loadBackdrops();
+    else loadModelPhotos();
 
     document.getElementById('delete-modal')!.classList.add('hidden');
     deleteTarget = null;

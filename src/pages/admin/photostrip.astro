@@ -12,6 +12,7 @@ try {
 ---
 
 <AdminLayout title="포토스트립">
+  <script is:inline src="/js/image-compress.js"></script>
   <h2 class="page-title">포토스트립 디자인 관리</h2>
   <p class="page-desc">웨딩 포토스트립 디자인을 컷 유형별로 관리합니다.</p>
 
@@ -25,7 +26,14 @@ try {
   </div>
 
   <div class="panel-toolbar">
-    <button id="ps-upload-btn" class="btn-primary">+ 디자인 업로드</button>
+    <div class="toolbar-normal">
+      <button id="ps-upload-btn" class="btn-primary">+ 디자인 업로드</button>
+      <button id="ps-delete-mode-btn" class="btn-secondary">삭제</button>
+    </div>
+    <div id="ps-toolbar-delete" class="toolbar-delete hidden">
+      <button id="ps-delete-confirm" class="btn-danger" disabled>선택 삭제 (0)</button>
+      <button id="ps-delete-cancel" class="btn-secondary">취소</button>
+    </div>
   </div>
 
   <div id="ps-grid" class="gallery-grid"></div>
@@ -103,6 +111,13 @@ try {
     .tab-btn.active { color: #D4AA45; border-bottom-color: #D4AA45; }
 
     .panel-toolbar { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
+    .toolbar-normal, .toolbar-delete { display: flex; gap: 0.5rem; align-items: center; }
+    .card-checkbox { position: absolute; top: 0.5rem; left: 0.5rem; z-index: 10; display: none; }
+    .delete-mode .card-checkbox { display: block; }
+    .card-checkbox input[type="checkbox"] { width: 22px; height: 22px; accent-color: #D4AA45; cursor: pointer; }
+    .gallery-card.selected { border-color: #D4AA45 !important; box-shadow: 0 0 0 2px rgba(212,170,69,0.4) !important; }
+    .delete-mode .gallery-card { cursor: pointer; }
+    .delete-mode .drag-handle { display: none; }
 
     .gallery-grid {
       display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem;
@@ -272,13 +287,7 @@ try {
               <circle cx="9" cy="19" r="1"/><circle cx="15" cy="19" r="1"/>
             </svg>
           </div>
-          <div class="gallery-card-actions">
-            <button class="card-action-btn delete" data-id="${item.id}" title="삭제">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-              </svg>
-            </button>
-          </div>
+          <div class="card-checkbox"><input type="checkbox" data-id="${item.id}" /></div>
           <img src="${item.image_url}" alt="${item.title || '포토스트립'}" loading="lazy" />
           <div class="gallery-card-info">
             <div class="gallery-card-title">${item.title || '(제목 없음)'}</div>
@@ -294,13 +303,71 @@ try {
     }
   }
 
+  // === Delete mode ===
+  let psDeleteMode = false;
+  let psSelectedIds = new Set<number>();
+
+  function enterPsDeleteMode() {
+    psDeleteMode = true;
+    psSelectedIds.clear();
+    const grid = document.getElementById('ps-grid')!;
+    grid.classList.add('delete-mode');
+    document.querySelector('.toolbar-normal')!.classList.add('hidden');
+    document.getElementById('ps-toolbar-delete')!.classList.remove('hidden');
+    const confirmBtn = document.getElementById('ps-delete-confirm') as HTMLButtonElement;
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = '선택 삭제 (0)';
+    grid.querySelectorAll('.gallery-card').forEach(c => (c as HTMLElement).setAttribute('draggable', 'false'));
+  }
+
+  function exitPsDeleteMode() {
+    psDeleteMode = false;
+    psSelectedIds.clear();
+    const grid = document.getElementById('ps-grid')!;
+    grid.classList.remove('delete-mode');
+    document.querySelector('.toolbar-normal')!.classList.remove('hidden');
+    document.getElementById('ps-toolbar-delete')!.classList.add('hidden');
+    grid.querySelectorAll('.gallery-card').forEach(c => {
+      (c as HTMLElement).setAttribute('draggable', 'true');
+      c.classList.remove('selected');
+    });
+    grid.querySelectorAll<HTMLInputElement>('.card-checkbox input').forEach(cb => cb.checked = false);
+  }
+
+  function updatePsDeleteCount() {
+    const confirmBtn = document.getElementById('ps-delete-confirm') as HTMLButtonElement;
+    confirmBtn.textContent = `선택 삭제 (${psSelectedIds.size})`;
+    confirmBtn.disabled = psSelectedIds.size === 0;
+  }
+
+  document.getElementById('ps-delete-mode-btn')!.addEventListener('click', enterPsDeleteMode);
+  document.getElementById('ps-delete-cancel')!.addEventListener('click', exitPsDeleteMode);
+  document.getElementById('ps-delete-confirm')!.addEventListener('click', () => {
+    if (psSelectedIds.size === 0) return;
+    document.querySelector('#delete-modal .modal-body p')!.innerHTML = `선택한 <strong>${psSelectedIds.size}개</strong> 항목을 영구적으로 삭제하시겠습니까?<br/>이 작업은 되돌릴 수 없습니다.`;
+    deleteTargetId = -1; // multi-delete marker
+    document.getElementById('delete-modal')!.classList.remove('hidden');
+  });
+
   function bindCardEvents(gridEl: HTMLElement) {
-    // Delete buttons
-    gridEl.querySelectorAll('.card-action-btn.delete').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        deleteTargetId = Number((btn as HTMLElement).dataset.id);
-        document.getElementById('delete-modal')!.classList.remove('hidden');
+    // Checkbox click (for delete mode)
+    gridEl.querySelectorAll('.gallery-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        if (!psDeleteMode) return;
+        e.preventDefault();
+        const id = Number((card as HTMLElement).dataset.id);
+        const checkbox = card.querySelector<HTMLInputElement>('.card-checkbox input');
+        if (!checkbox) return;
+        if (psSelectedIds.has(id)) {
+          psSelectedIds.delete(id);
+          checkbox.checked = false;
+          card.classList.remove('selected');
+        } else {
+          psSelectedIds.add(id);
+          checkbox.checked = true;
+          card.classList.add('selected');
+        }
+        updatePsDeleteCount();
       });
     });
 
@@ -433,13 +500,17 @@ try {
     let success = 0;
     let failed = 0;
 
+    // 업로드 전 전체 파일 압축
+    uploadProgressText.textContent = '이미지 압축 중...';
+    const compressedFiles = await (window as any).compressImages(selectedFiles);
+
     for (let i = 0; i < total; i++) {
-      const file = selectedFiles[i];
+      const file = compressedFiles[i];
       let title: string;
       if (customTitle) {
         title = total === 1 ? customTitle : `${customTitle}(${i + 1})`;
       } else {
-        title = file.name.replace(/\.[^.]+$/, '');
+        title = selectedFiles[i].name.replace(/\.[^.]+$/, '');
       }
       const percent = Math.round(((i) / total) * 100);
       uploadProgressBar.style.width = `${percent}%`;
@@ -490,17 +561,30 @@ try {
     deleteTargetId = null;
   });
   document.getElementById('delete-confirm')!.addEventListener('click', async () => {
-    if (!deleteTargetId) return;
-
-    try {
-      const res = await fetch(`/api/portfolio/${deleteTargetId}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error();
-      showToast('삭제되었습니다.');
-      loadPhotostrips();
-    } catch {
-      showToast('삭제 실패', true);
+    if (deleteTargetId === -1 && psSelectedIds.size > 0) {
+      // Multi-delete
+      let success = 0;
+      let failed = 0;
+      for (const id of psSelectedIds) {
+        try {
+          const res = await fetch(`/api/portfolio/${id}`, { method: 'DELETE' });
+          if (res.ok) success++; else failed++;
+        } catch { failed++; }
+      }
+      if (failed === 0) showToast(`${success}개 삭제 완료!`);
+      else showToast(`${success}개 삭제, ${failed}개 실패`, true);
+      exitPsDeleteMode();
+    } else if (deleteTargetId && deleteTargetId !== -1) {
+      try {
+        const res = await fetch(`/api/portfolio/${deleteTargetId}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error();
+        showToast('삭제되었습니다.');
+      } catch {
+        showToast('삭제 실패', true);
+      }
     }
 
+    loadPhotostrips();
     document.getElementById('delete-modal')!.classList.add('hidden');
     deleteTargetId = null;
   });

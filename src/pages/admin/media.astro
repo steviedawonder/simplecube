@@ -9,6 +9,7 @@ const mediaList = result.rows as any[];
 ---
 
 <AdminLayout title="미디어 라이브러리">
+  <script is:inline src="/js/image-compress.js"></script>
   <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
     <h2 style="font-size: 1.25rem; font-weight: 700; color: #1d1d1f;">
       미디어 라이브러리
@@ -16,18 +17,25 @@ const mediaList = result.rows as any[];
         ({mediaList.length}개)
       </span>
     </h2>
-    <label
-      id="upload-btn"
-      style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background-color: #1d1d1f; color: #ffffff; border-radius: 8px; font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: background-color 0.15s;"
-    >
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-        <polyline points="17 8 12 3 7 8" />
-        <line x1="12" y1="3" x2="12" y2="15" />
-      </svg>
-      업로드
-      <input type="file" id="file-input" accept="image/*" multiple style="display: none;" />
-    </label>
+    <div id="media-toolbar-normal" style="display: flex; gap: 8px; align-items: center;">
+      <label
+        id="upload-btn"
+        style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background-color: #1d1d1f; color: #ffffff; border-radius: 8px; font-size: 0.875rem; font-weight: 500; cursor: pointer;"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="17 8 12 3 7 8" />
+          <line x1="12" y1="3" x2="12" y2="15" />
+        </svg>
+        업로드
+        <input type="file" id="file-input" accept="image/*" multiple style="display: none;" />
+      </label>
+      <button id="media-delete-mode-btn" style="padding: 8px 16px; border-radius: 8px; border: 1px solid #e8e8ed; background: #fff; color: #6e6e73; font-size: 0.875rem; font-weight: 500; cursor: pointer; font-family: inherit;">삭제</button>
+    </div>
+    <div id="media-toolbar-delete" style="display: none; gap: 8px; align-items: center;">
+      <button id="media-delete-confirm" disabled style="padding: 8px 16px; border-radius: 8px; border: none; background: #ff3b30; color: #fff; font-size: 0.875rem; font-weight: 500; cursor: pointer; font-family: inherit; opacity: 0.5;">선택 삭제 (0)</button>
+      <button id="media-delete-cancel" style="padding: 8px 16px; border-radius: 8px; border: 1px solid #e8e8ed; background: #fff; color: #6e6e73; font-size: 0.875rem; font-weight: 500; cursor: pointer; font-family: inherit;">취소</button>
+    </div>
   </div>
 
   <!-- Upload progress -->
@@ -86,17 +94,9 @@ const mediaList = result.rows as any[];
               {media.width}×{media.height}
             </div>
           </div>
-          <button
-            class="delete-media-btn"
-            data-id={media.id}
-            style="position: absolute; top: 6px; right: 6px; width: 28px; height: 28px; border-radius: 50%; border: none; background-color: rgba(0,0,0,0.6); color: #fff; cursor: pointer; display: none; align-items: center; justify-content: center;"
-            title="삭제"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
+          <div class="media-checkbox" style="position: absolute; top: 6px; left: 6px; z-index: 10; display: none;">
+            <input type="checkbox" data-id={media.id} style="width: 22px; height: 22px; accent-color: #D4AA45; cursor: pointer;" />
+          </div>
         </div>
       ))
     )}
@@ -128,8 +128,9 @@ const mediaList = result.rows as any[];
       border-color: #D4AA45;
       box-shadow: 0 2px 8px rgba(212, 170, 69, 0.12);
     }
-    .media-card:hover .delete-media-btn {
-      display: flex !important;
+    .media-card.selected {
+      border-color: #D4AA45 !important;
+      box-shadow: 0 0 0 2px rgba(212, 170, 69, 0.4) !important;
     }
   </style>
 
@@ -147,10 +148,15 @@ const mediaList = result.rows as any[];
     // File upload handler
     async function uploadFiles(files: FileList | File[]) {
       progressDiv.style.display = 'block';
-      const total = files.length;
+      const fileArray = Array.from(files);
+      const total = fileArray.length;
       let uploaded = 0;
 
-      for (const file of Array.from(files)) {
+      // 업로드 전 압축
+      statusSpan.textContent = '이미지 압축 중...';
+      const compressed = await (window as any).compressImages(fileArray);
+
+      for (const file of compressed) {
         statusSpan.textContent = `업로드 중... (${uploaded + 1}/${total})`;
         const formData = new FormData();
         formData.append('file', file);
@@ -205,11 +211,77 @@ const mediaList = result.rows as any[];
       }
     });
 
-    // Click to show URL
+    // === Delete mode ===
+    let mediaDeleteMode = false;
+    let mediaSelectedIds = new Set<number>();
+
+    function enterMediaDeleteMode() {
+      mediaDeleteMode = true;
+      mediaSelectedIds.clear();
+      document.getElementById('media-toolbar-normal')!.style.display = 'none';
+      document.getElementById('media-toolbar-delete')!.style.display = 'flex';
+      const confirmBtn = document.getElementById('media-delete-confirm') as HTMLButtonElement;
+      confirmBtn.disabled = true;
+      confirmBtn.style.opacity = '0.5';
+      confirmBtn.textContent = '선택 삭제 (0)';
+      document.querySelectorAll<HTMLElement>('.media-checkbox').forEach(cb => cb.style.display = 'block');
+    }
+
+    function exitMediaDeleteMode() {
+      mediaDeleteMode = false;
+      mediaSelectedIds.clear();
+      document.getElementById('media-toolbar-normal')!.style.display = 'flex';
+      document.getElementById('media-toolbar-delete')!.style.display = 'none';
+      document.querySelectorAll<HTMLElement>('.media-checkbox').forEach(cb => cb.style.display = 'none');
+      document.querySelectorAll<HTMLInputElement>('.media-checkbox input').forEach(cb => cb.checked = false);
+      document.querySelectorAll('.media-card').forEach(c => c.classList.remove('selected'));
+    }
+
+    function updateMediaDeleteCount() {
+      const confirmBtn = document.getElementById('media-delete-confirm') as HTMLButtonElement;
+      confirmBtn.textContent = `선택 삭제 (${mediaSelectedIds.size})`;
+      confirmBtn.disabled = mediaSelectedIds.size === 0;
+      confirmBtn.style.opacity = mediaSelectedIds.size === 0 ? '0.5' : '1';
+    }
+
+    document.getElementById('media-delete-mode-btn')!.addEventListener('click', enterMediaDeleteMode);
+    document.getElementById('media-delete-cancel')!.addEventListener('click', exitMediaDeleteMode);
+    document.getElementById('media-delete-confirm')!.addEventListener('click', async () => {
+      if (mediaSelectedIds.size === 0) return;
+      if (!confirm(`선택한 ${mediaSelectedIds.size}개 항목을 삭제하시겠습니까?`)) return;
+
+      let success = 0;
+      let failed = 0;
+      for (const id of mediaSelectedIds) {
+        try {
+          const res = await fetch(`/api/media/${id}`, { method: 'DELETE' });
+          if (res.ok) success++; else failed++;
+        } catch { failed++; }
+      }
+      exitMediaDeleteMode();
+      window.location.reload();
+    });
+
+    // Click to show URL or toggle checkbox
     document.querySelectorAll('.media-card').forEach((card) => {
       card.addEventListener('click', (e) => {
-        const target = e.target as HTMLElement;
-        if (target.closest('.delete-media-btn')) return;
+        if (mediaDeleteMode) {
+          e.preventDefault();
+          const id = Number((card as HTMLElement).dataset.id);
+          const checkbox = card.querySelector<HTMLInputElement>('.media-checkbox input');
+          if (!checkbox) return;
+          if (mediaSelectedIds.has(id)) {
+            mediaSelectedIds.delete(id);
+            checkbox.checked = false;
+            card.classList.remove('selected');
+          } else {
+            mediaSelectedIds.add(id);
+            checkbox.checked = true;
+            card.classList.add('selected');
+          }
+          updateMediaDeleteCount();
+          return;
+        }
         const url = (card as HTMLElement).dataset.url;
         if (url) {
           urlInput.value = url;
@@ -230,26 +302,6 @@ const mediaList = result.rows as any[];
     });
     urlModal.addEventListener('click', (e) => {
       if (e.target === urlModal) urlModal.style.display = 'none';
-    });
-
-    // Delete media
-    document.querySelectorAll('.delete-media-btn').forEach((btn) => {
-      btn.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        const id = (btn as HTMLElement).dataset.id;
-        if (!confirm('이 미디어를 삭제하시겠습니까?')) return;
-
-        try {
-          const res = await fetch(`/api/media/${id}`, { method: 'DELETE' });
-          if (res.ok) {
-            (btn as HTMLElement).closest('.media-card')?.remove();
-          } else {
-            alert('삭제에 실패했습니다.');
-          }
-        } catch {
-          alert('삭제에 실패했습니다.');
-        }
-      });
     });
   </script>
 </AdminLayout>
