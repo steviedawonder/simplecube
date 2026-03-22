@@ -79,6 +79,21 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
+    const originalFilename = file.name;
+    const fileSize = file.size;
+
+    // 중복 체크: 같은 파일명 + 같은 용량이면 중복
+    const dup = await db.execute({
+      sql: 'SELECT id FROM portfolio WHERE original_filename = ? AND file_size = ?',
+      args: [originalFilename, fileSize],
+    });
+    if (dup.rows.length > 0) {
+      return new Response(JSON.stringify({ error: '이미 업로드된 이미지입니다.', duplicate: true }), {
+        status: 409,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
     // Upload to Cloudinary
     if (!isConfigured()) {
       return new Response(JSON.stringify({ error: 'Cloudinary가 설정되지 않았습니다.' }), {
@@ -94,8 +109,8 @@ export const POST: APIRoute = async ({ request }) => {
     const nextOrder = Number((maxOrder.rows[0] as any).max_order) + 1;
 
     await db.execute({
-      sql: 'INSERT INTO portfolio (title, description, page, page_tag, image_url, public_id, tags, cut_type, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      args: [title, description, page, pageTag, result.secure_url, result.public_id, tags, cutType, nextOrder],
+      sql: 'INSERT INTO portfolio (title, description, page, page_tag, image_url, public_id, tags, cut_type, sort_order, original_filename, file_size) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      args: [title, description, page, pageTag, result.secure_url, result.public_id, tags, cutType, nextOrder, originalFilename, fileSize],
     });
 
     const inserted = await db.execute('SELECT last_insert_rowid() as id');

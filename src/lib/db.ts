@@ -346,6 +346,14 @@ export async function migratePortfolioColumns() {
   if (!colNames.includes('cut_type')) {
     await client.execute("ALTER TABLE portfolio ADD COLUMN cut_type TEXT DEFAULT NULL");
   }
+
+  if (!colNames.includes('original_filename')) {
+    try { await client.execute("ALTER TABLE portfolio ADD COLUMN original_filename TEXT DEFAULT ''"); } catch {}
+  }
+
+  if (!colNames.includes('file_size')) {
+    try { await client.execute("ALTER TABLE portfolio ADD COLUMN file_size INTEGER DEFAULT 0"); } catch {}
+  }
 }
 
 export async function seedPhotostripCategories() {

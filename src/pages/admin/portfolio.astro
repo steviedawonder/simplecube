@@ -418,20 +418,42 @@ const photostripCats = catResult.rows as any[];
   });
 
   function handleFiles(files: File[]) {
-    selectedFiles = files.filter(f => f.type.startsWith('image/'));
+    const newFiles = files.filter(f => f.type.startsWith('image/'));
+    if (newFiles.length === 0) return;
+
+    // 중복 제거: 이름+크기가 같으면 같은 파일로 판단
+    const existingKeys = new Set(selectedFiles.map(f => `${f.name}_${f.size}`));
+    const uniqueNew = newFiles.filter(f => !existingKeys.has(`${f.name}_${f.size}`));
+    selectedFiles = [...selectedFiles, ...uniqueNew];
+
     if (selectedFiles.length > 0) {
       fileName.textContent = selectedFiles.length === 1 ? selectedFiles[0].name : `${selectedFiles.length}개 파일 선택됨`;
       fileName.classList.remove('hidden');
       uploadSubmit.disabled = false;
 
-      previewArea.innerHTML = '';
+      // 기존 프리뷰에 새 파일만 추가
       previewArea.classList.remove('hidden');
-      selectedFiles.forEach(file => {
+      uniqueNew.forEach(file => {
         const reader = new FileReader();
         reader.onload = (e) => {
           const div = document.createElement('div');
-          div.className = 'aspect-square rounded-lg overflow-hidden';
-          div.innerHTML = `<img src="${e.target?.result}" class="w-full h-full object-cover" />`;
+          div.className = 'aspect-square rounded-lg overflow-hidden relative group';
+          div.dataset.fileKey = `${file.name}_${file.size}`;
+          div.innerHTML = `
+            <img src="${e.target?.result}" class="w-full h-full object-cover" />
+            <button type="button" class="preview-remove absolute top-1 right-1 w-5 h-5 bg-black/60 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">&times;</button>
+          `;
+          div.querySelector('.preview-remove')!.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            selectedFiles = selectedFiles.filter(f => `${f.name}_${f.size}` !== div.dataset.fileKey);
+            div.remove();
+            fileName.textContent = selectedFiles.length === 0 ? '' : selectedFiles.length === 1 ? selectedFiles[0].name : `${selectedFiles.length}개 파일 선택됨`;
+            if (selectedFiles.length === 0) {
+              fileName.classList.add('hidden');
+              previewArea.classList.add('hidden');
+              uploadSubmit.disabled = true;
+            }
+          });
           previewArea.appendChild(div);
         };
         reader.readAsDataURL(file);
@@ -466,6 +488,10 @@ const photostripCats = catResult.rows as any[];
     const tagsStr = allTags.join(', ');
 
     try {
+      let uploaded = 0;
+      let duplicates = 0;
+      const dupNames: string[] = [];
+
       for (const file of selectedFiles) {
         const formData = new FormData();
         formData.append('file', file);
@@ -476,14 +502,29 @@ const photostripCats = catResult.rows as any[];
         if (cutType) formData.append('cut_type', cutType);
 
         const res = await fetch('/api/portfolio', { method: 'POST', body: formData });
+        if (res.status === 409) {
+          duplicates++;
+          dupNames.push(file.name);
+          continue;
+        }
         if (!res.ok) {
           const err = await res.json();
           throw new Error(err.error || '업로드 실패');
         }
+        uploaded++;
       }
-      window.location.reload();
+
+      closeUploadModal();
+      if (duplicates > 0 && uploaded > 0) {
+        showPfToast(`${uploaded}개 업로드, ${duplicates}개 중복 제외`);
+      } else if (duplicates > 0 && uploaded === 0) {
+        showPfToast(`모두 이미 업로드된 이미지입니다.`, true);
+      } else {
+        showPfToast(`${uploaded}개 업로드 완료!`);
+      }
+      setTimeout(() => window.location.reload(), 1000);
     } catch (err: any) {
-      alert(err.message || '업로드 중 오류가 발생했습니다.');
+      showPfToast(err.message || '업로드 중 오류가 발생했습니다.', true);
       uploadSubmit.disabled = false;
       uploadSubmit.textContent = '업로드';
     }
