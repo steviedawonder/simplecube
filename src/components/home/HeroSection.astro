@@ -1,27 +1,178 @@
 ---
 ---
 
-<section id="hero" class="relative flex h-screen min-h-screen flex-col overflow-hidden bg-[#FAF8F5]" data-fullpage-section>
-  <!-- Top: Typography -->
-  <div class="flex flex-1 flex-col items-center justify-center px-6">
-    <p class="mb-3 text-[10px] font-medium tracking-[0.5em] text-[#D4AA45] uppercase">Est. 2015</p>
-    <h1 class="text-[clamp(3.5rem,10vw,8rem)] leading-[1.05] text-[#2E2318] text-center" style="font-family: 'ONE Mobile Title', sans-serif; letter-spacing: 0.12em;">심플큐브</h1>
-    <p class="mt-4 text-[clamp(0.8rem,1.3vw,1rem)] font-light tracking-[0.08em] text-[#8B7E72]">특별한 순간을 완성하는 포토부스</p>
-    <div class="mt-6 flex items-center gap-6">
-      <p class="text-2xl font-bold text-[#2E2318]" style="font-family: 'ONE Mobile Title', sans-serif;">12,000<span class="text-[#D4AA45]">+</span></p>
-      <div class="h-5 w-[1px] bg-[#2E2318]/10"></div>
-      <p class="text-[9px] tracking-[0.2em] text-[#8B7E72]/40 uppercase">Events</p>
+<section class="relative h-screen min-h-screen overflow-hidden bg-[#111]" id="hero" data-fullpage-section>
+
+  <!-- 배경 이미지 레이어들 (각 키워드별) -->
+  <div class="hero-bg-layer active" data-bg="wedding">
+    <img src="/images/wedding/outdoor-setup.jpg" alt="" class="h-full w-full object-cover" />
+  </div>
+  <div class="hero-bg-layer" data-bg="brand">
+    <img src="/images/popup/모듈포토부스_혼다.png" alt="" class="h-full w-full object-cover" />
+  </div>
+  <div class="hero-bg-layer" data-bg="corporate">
+    <img src="/images/popup/모듈포토부스_신세계.jpeg" alt="" class="h-full w-full object-cover" />
+  </div>
+  <div class="hero-bg-layer" data-bg="festival">
+    <img src="/images/wedding/backdrop-flower-garland.jpg" alt="" class="h-full w-full object-cover" />
+  </div>
+  <!-- "모든 순간" - 빠르게 바뀌는 이미지들 -->
+  <div class="hero-bg-layer" data-bg="all">
+    <div class="rapid-slideshow absolute inset-0">
+      <img src="/images/wedding/booth-print.jpg" alt="" class="rapid-slide absolute inset-0 h-full w-full object-cover" />
+      <img src="/images/popup/팝업포토부스_CJ.jpg" alt="" class="rapid-slide absolute inset-0 h-full w-full object-cover" />
+      <img src="/images/popup/모듈포토부스_나이키.jpg" alt="" class="rapid-slide absolute inset-0 h-full w-full object-cover" />
+      <img src="/images/wedding/backdrop-flower-garland.jpg" alt="" class="rapid-slide absolute inset-0 h-full w-full object-cover" />
+      <img src="/images/hero/main.jpg" alt="" class="rapid-slide absolute inset-0 h-full w-full object-cover" />
+      <img src="/images/popup/모듈포토부스_혼다.png" alt="" class="rapid-slide absolute inset-0 h-full w-full object-cover" />
+      <img src="/images/wedding/outdoor-setup.jpg" alt="" class="rapid-slide absolute inset-0 h-full w-full object-cover" />
+      <img src="/images/popup/모듈포토부스_신세계.jpeg" alt="" class="rapid-slide absolute inset-0 h-full w-full object-cover" />
     </div>
   </div>
 
-  <!-- Scroll Down Button -->
-  <button id="scroll-down-btn" class="absolute bottom-2 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 text-[#8B7E72]/40 hover:text-[#D4AA45] transition-colors duration-300 cursor-pointer" aria-label="아래로 스크롤">
-    <span class="text-[10px] tracking-[0.3em] uppercase">Scroll</span>
-    <div class="h-8 w-[1px] bg-[#8B7E72]/15 relative overflow-hidden"><div class="absolute top-0 left-0 w-full h-1/2 bg-[#8B7E72]/40 animate-hero-scroll-line"></div></div>
+  <!-- 어두운 오버레이 -->
+  <div class="absolute inset-0 z-[2] bg-black/70"></div>
+
+  <!-- 콘텐츠 -->
+  <div class="relative z-10 flex h-full flex-col items-center justify-center px-6">
+
+    <!-- 브랜드 -->
+    <p class="mb-12 text-[12px] font-medium tracking-[0.5em] text-[#D4AA45]/70 uppercase">Simple Cube</p>
+
+    <!-- 롤링 텍스트 영역 -->
+    <div class="text-center">
+      <p class="text-[clamp(1.2rem,2.5vw,1.6rem)] text-white/50 tracking-wide mb-4 font-medium">심플큐브는</p>
+
+      <!-- 키워드 영역 -->
+      <div class="keyword-container relative" style="height: clamp(5.5rem, 13vw, 8.8rem);">
+        <div class="keyword-item active" data-keyword="wedding">
+          <span class="hero-keyword text-white">웨딩</span>
+        </div>
+        <div class="keyword-item" data-keyword="brand">
+          <span class="hero-keyword text-white">브랜드</span>
+        </div>
+        <div class="keyword-item" data-keyword="corporate">
+          <span class="hero-keyword text-white">기업행사</span>
+        </div>
+        <div class="keyword-item" data-keyword="festival">
+          <span class="hero-keyword text-white">페스티벌</span>
+        </div>
+        <div class="keyword-item" data-keyword="all">
+          <span class="hero-keyword text-[#D4AA45]">모든 순간</span>
+        </div>
+      </div>
+
+      <p class="text-[clamp(1.1rem,2.2vw,1.4rem)] text-white/50 tracking-wide mt-4 font-light">의 파트너입니다<span class="text-[#D4AA45]">.</span></p>
+    </div>
+
+    <!-- 하단 설명 -->
+    <p class="mt-12 text-[clamp(0.77rem,1.1vw,0.88rem)] text-white/30 text-center leading-relaxed tracking-wide">
+      2019년부터 지금까지, 14,000개 이상의 행사를 함께한<br/>
+      대한민국 대표 오픈형 포토부스 브랜드
+    </p>
+
+    <!-- 프로그레스 도트 -->
+    <div class="mt-8 flex gap-2.5" id="progressDots">
+      <button class="progress-dot active" data-index="0" aria-label="웨딩"></button>
+      <button class="progress-dot" data-index="1" aria-label="브랜드"></button>
+      <button class="progress-dot" data-index="2" aria-label="기업행사"></button>
+      <button class="progress-dot" data-index="3" aria-label="페스티벌"></button>
+      <button class="progress-dot" data-index="4" aria-label="모든 순간"></button>
+    </div>
+  </div>
+
+  <!-- Scroll Down -->
+  <button id="scroll-down-btn" class="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 text-white/25 hover:text-[#D4AA45] transition-colors duration-300 cursor-pointer" aria-label="아래로 스크롤">
+    <span class="text-[9px] tracking-[0.3em] uppercase">Scroll</span>
+    <div class="h-8 w-[1px] bg-white/10 relative overflow-hidden">
+      <div class="absolute top-0 left-0 w-full h-1/2 bg-white/30 animate-hero-scroll-line"></div>
+    </div>
   </button>
 </section>
 
 <style>
+  /* ===== 배경 이미지 레이어 ===== */
+  .hero-bg-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 1.2s ease-in-out;
+    will-change: opacity;
+  }
+  .hero-bg-layer.active {
+    opacity: 1;
+  }
+  .hero-bg-layer img {
+    transform: scale(1.05);
+    transition: transform 8s ease-out;
+  }
+  .hero-bg-layer.active img {
+    transform: scale(1);
+  }
+
+  /* ===== 키워드 텍스트 ===== */
+  .keyword-item {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+    pointer-events: none;
+  }
+  .keyword-item.active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .keyword-item.exiting {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+
+  /* ===== 프로그레스 도트 ===== */
+  .progress-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    position: relative;
+  }
+  .progress-dot.active {
+    background: #D4AA45;
+    width: 24px;
+    border-radius: 3px;
+  }
+
+  /* ===== 빠른 슬라이드쇼 (모든 순간) ===== */
+  .rapid-slide {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .rapid-slide.active {
+    opacity: 1;
+  }
+
+  /* ===== 키워드 텍스트 스타일 ===== */
+  .hero-keyword {
+    font-family: 'ONE Mobile Title', sans-serif;
+    font-size: clamp(3.2rem, 11vw, 6.6rem);
+    font-weight: bold;
+    display: block;
+    line-height: 1.15;
+    white-space: nowrap;
+    letter-spacing: 0.02em;
+    text-shadow: 0 2px 20px rgba(0,0,0,0.3);
+  }
+
+  /* ===== 스크롤 라인 ===== */
   @keyframes hero-scroll-line {
     0% { transform: translateY(-100%); }
     100% { transform: translateY(200%); }
@@ -30,3 +181,87 @@
     animation: hero-scroll-line 1.8s ease-in-out infinite;
   }
 </style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const keywords = ['wedding', 'brand', 'corporate', 'festival', 'all'];
+    const keywordEls = document.querySelectorAll('.keyword-item');
+    const bgLayers = document.querySelectorAll('.hero-bg-layer');
+    const dots = document.querySelectorAll('.progress-dot');
+    const rapidSlides = document.querySelectorAll('.rapid-slide');
+
+    let currentIndex = 0;
+    let rapidIndex = 0;
+    let rapidTimer: ReturnType<typeof setInterval> | null = null;
+    let mainTimer: ReturnType<typeof setInterval> | null = null;
+
+    // 각 키워드별 표시 시간 (ms)
+    const durations = [3500, 3500, 3500, 3500, 5000];
+
+    function switchTo(index: number) {
+      const prevIndex = currentIndex;
+      currentIndex = index;
+
+      keywordEls[prevIndex]?.classList.remove('active');
+      keywordEls[prevIndex]?.classList.add('exiting');
+      setTimeout(() => {
+        keywordEls[prevIndex]?.classList.remove('exiting');
+      }, 600);
+
+      keywordEls[currentIndex]?.classList.add('active');
+
+      bgLayers.forEach(layer => layer.classList.remove('active'));
+      const targetBg = document.querySelector(`[data-bg="${keywords[currentIndex]}"]`);
+      targetBg?.classList.add('active');
+
+      dots.forEach((dot, i) => {
+        dot.classList.toggle('active', i === currentIndex);
+      });
+
+      if (keywords[currentIndex] === 'all') {
+        startRapidSlideshow();
+      } else {
+        stopRapidSlideshow();
+      }
+    }
+
+    function startRapidSlideshow() {
+      rapidIndex = 0;
+      rapidSlides.forEach(s => s.classList.remove('active'));
+      if (rapidSlides[0]) rapidSlides[0].classList.add('active');
+
+      rapidTimer = setInterval(() => {
+        rapidSlides[rapidIndex]?.classList.remove('active');
+        rapidIndex = (rapidIndex + 1) % rapidSlides.length;
+        rapidSlides[rapidIndex]?.classList.add('active');
+      }, 500);
+    }
+
+    function stopRapidSlideshow() {
+      if (rapidTimer) {
+        clearInterval(rapidTimer);
+        rapidTimer = null;
+      }
+      rapidSlides.forEach(s => s.classList.remove('active'));
+    }
+
+    function scheduleNext() {
+      mainTimer = setTimeout(() => {
+        const nextIndex = (currentIndex + 1) % keywords.length;
+        switchTo(nextIndex);
+        scheduleNext();
+      }, durations[currentIndex]);
+    }
+
+    dots.forEach((dot, i) => {
+      dot.addEventListener('click', () => {
+        if (mainTimer) clearTimeout(mainTimer);
+        switchTo(i);
+        scheduleNext();
+      });
+    });
+
+    switchTo(0);
+    scheduleNext();
+  });
+</script>
