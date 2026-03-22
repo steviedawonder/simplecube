@@ -102,6 +102,26 @@ const mediaList = result.rows as any[];
     )}
   </div>
 
+  <!-- Delete Modal -->
+  <div id="delete-modal" class="modal-overlay hidden">
+    <div class="modal-card modal-small">
+      <div class="modal-header">
+        <h3 class="modal-title">삭제 확인</h3>
+        <button id="delete-modal-close" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>이 항목을 영구적으로 삭제하시겠습니까?<br/>이 작업은 되돌릴 수 없습니다.</p>
+      </div>
+      <div class="modal-footer">
+        <button id="delete-cancel" class="btn-secondary">취소</button>
+        <button id="delete-confirm" class="btn-danger">삭제</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="media-toast" class="gallery-toast"></div>
+
   <!-- Copy URL Modal -->
   <div id="url-modal" style="display: none; position: fixed; inset: 0; z-index: 50; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center;">
     <div style="background-color: white; border-radius: 12px; padding: 24px; width: 90%; max-width: 480px;">
@@ -132,6 +152,42 @@ const mediaList = result.rows as any[];
       border-color: #D4AA45 !important;
       box-shadow: 0 0 0 2px rgba(212, 170, 69, 0.4) !important;
     }
+    .btn-secondary {
+      padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid #e8e8ed; background: #fff;
+      color: #6e6e73; font-size: 0.875rem; font-weight: 500; cursor: pointer; font-family: inherit;
+    }
+    .btn-secondary:hover { border-color: #1d1d1f; color: #1d1d1f; }
+    .btn-danger {
+      padding: 0.5rem 1rem; border-radius: 8px; border: none; background: #ef4444;
+      color: #fff; font-size: 0.875rem; font-weight: 500; cursor: pointer; font-family: inherit;
+    }
+    .btn-danger:hover { background: #dc2626; }
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 50; background: rgba(0,0,0,0.5);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .modal-overlay.hidden { display: none; }
+    .modal-card {
+      background: #fff; border-radius: 14px; width: 90%; max-width: 480px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15); overflow: hidden;
+    }
+    .modal-small { max-width: 380px; }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.5rem; border-bottom: 1px solid #e8e8ed; }
+    .modal-title { font-size: 1rem; font-weight: 600; color: #1d1d1f; }
+    .modal-close { background: none; border: none; font-size: 1.5rem; color: #8c8c8c; cursor: pointer; line-height: 1; }
+    .modal-close:hover { color: #1d1d1f; }
+    .modal-body { padding: 1.25rem 1.5rem; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 0.75rem; padding: 1rem 1.5rem; border-top: 1px solid #e8e8ed; }
+  </style>
+  <style is:global>
+    .gallery-toast {
+      position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: #1d1d1f; color: #fff; padding: 0.75rem 1.5rem; border-radius: 10px;
+      font-size: 0.875rem; font-weight: 500; opacity: 0; pointer-events: none;
+      transition: opacity 0.3s, transform 0.3s; z-index: 200;
+    }
+    .gallery-toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .gallery-toast.error { background: #ef4444; }
   </style>
 
   <script>
@@ -144,6 +200,15 @@ const mediaList = result.rows as any[];
     const urlInput = document.getElementById('url-input') as HTMLInputElement;
     const copyUrlBtn = document.getElementById('copy-url-btn')!;
     const closeModalBtn = document.getElementById('close-modal-btn')!;
+
+    // Toast
+    const toast = document.getElementById('media-toast')!;
+    function showToast(msg: string, isError = false) {
+      toast.textContent = msg;
+      toast.classList.toggle('error', isError);
+      toast.classList.add('visible');
+      setTimeout(() => toast.classList.remove('visible'), 2500);
+    }
 
     // File upload handler
     async function uploadFiles(files: FileList | File[]) {
@@ -246,20 +311,40 @@ const mediaList = result.rows as any[];
 
     document.getElementById('media-delete-mode-btn')!.addEventListener('click', enterMediaDeleteMode);
     document.getElementById('media-delete-cancel')!.addEventListener('click', exitMediaDeleteMode);
-    document.getElementById('media-delete-confirm')!.addEventListener('click', async () => {
-      if (mediaSelectedIds.size === 0) return;
-      if (!confirm(`선택한 ${mediaSelectedIds.size}개 항목을 삭제하시겠습니까?`)) return;
 
+    // Show delete modal on confirm button click
+    document.getElementById('media-delete-confirm')!.addEventListener('click', () => {
+      if (mediaSelectedIds.size === 0) return;
+      document.querySelector('#delete-modal .modal-body p')!.innerHTML =
+        `선택한 <strong>${mediaSelectedIds.size}개</strong> 항목을 영구적으로 삭제하시겠습니까?<br/>이 작업은 되돌릴 수 없습니다.`;
+      document.getElementById('delete-modal')!.classList.remove('hidden');
+    });
+
+    // Delete modal buttons
+    document.getElementById('delete-modal-close')!.addEventListener('click', () => {
+      document.getElementById('delete-modal')!.classList.add('hidden');
+    });
+    document.getElementById('delete-cancel')!.addEventListener('click', () => {
+      document.getElementById('delete-modal')!.classList.add('hidden');
+    });
+    document.getElementById('delete-confirm')!.addEventListener('click', async () => {
       let success = 0;
       let failed = 0;
       for (const id of mediaSelectedIds) {
         try {
           const res = await fetch(`/api/media/${id}`, { method: 'DELETE' });
-          if (res.ok) success++; else failed++;
+          if (res.ok) {
+            success++;
+            // Remove card from DOM
+            const card = document.querySelector(`.media-card[data-id="${id}"]`);
+            if (card) card.remove();
+          } else { failed++; }
         } catch { failed++; }
       }
+      if (failed === 0) showToast(`${success}개 삭제 완료!`);
+      else showToast(`${success}개 삭제, ${failed}개 실패`, true);
       exitMediaDeleteMode();
-      window.location.reload();
+      document.getElementById('delete-modal')!.classList.add('hidden');
     });
 
     // Click to show URL or toggle checkbox

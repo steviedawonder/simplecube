@@ -329,7 +329,7 @@ import AdminLayout from '@layouts/AdminLayout.astro';
   function renderCard(item: any, type: string) {
     const title = item.title || item.category || '';
     const meta = type === 'backgrounds' ? (item.category || '기본') : '';
-    const hasVisibility = type !== 'models';
+    const hasVisibility = false;
 
     return `
       <div class="gallery-card" draggable="true" data-id="${item.id}" data-type="${type}" data-sort="${item.sort_order || 0}">

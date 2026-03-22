@@ -27,12 +27,19 @@ const photostripCats = catResult.rows as any[];
       <h1 class="text-2xl font-bold text-gray-900">사진 관리</h1>
       <p class="text-sm text-gray-500 mt-1">이미지를 업로드하고 태그로 분류하세요.</p>
     </div>
-    <button id="upload-btn" class="px-5 py-2.5 bg-[#D4AA45] text-white rounded-lg text-sm font-medium hover:bg-[#C49A2F] transition-colors flex items-center gap-2">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-      </svg>
-      이미지 업로드
-    </button>
+    <div id="pf-toolbar-normal" class="flex gap-2 items-center">
+      <button id="upload-btn" class="px-5 py-2.5 bg-[#D4AA45] text-white rounded-lg text-sm font-medium hover:bg-[#C49A2F] transition-colors flex items-center gap-2">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+        이미지 업로드
+      </button>
+      <button id="pf-delete-mode-btn" class="px-4 py-2.5 rounded-lg border border-gray-300 bg-white text-gray-500 text-sm font-medium hover:border-gray-900 hover:text-gray-900 transition-colors">삭제</button>
+    </div>
+    <div id="pf-toolbar-delete" class="hidden flex gap-2 items-center">
+      <button id="pf-delete-confirm" class="px-4 py-2.5 rounded-lg border-none bg-[#ef4444] text-white text-sm font-medium hover:bg-[#dc2626] transition-colors disabled:opacity-50" disabled>선택 삭제 (0)</button>
+      <button id="pf-delete-cancel" class="px-4 py-2.5 rounded-lg border border-gray-300 bg-white text-gray-500 text-sm font-medium hover:border-gray-900 hover:text-gray-900 transition-colors">취소</button>
+    </div>
   </div>
 
   <!-- Tabs -->
@@ -203,29 +210,29 @@ const photostripCats = catResult.rows as any[];
   <!-- Portfolio Grid -->
   <div id="portfolio-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
     {items.map((item: any) => (
-      <div class="portfolio-card group relative bg-white rounded-xl border border-gray-200 overflow-hidden"
+      <div class="portfolio-card group relative bg-white rounded-xl border border-gray-200 overflow-hidden transition-all"
         data-id={item.id} data-tags={item.tags} data-title={item.title} data-page={item.page}
         data-page-tag={item.page_tag || item.page} data-visible={item.visible} data-cut-type={item.cut_type || ''}>
+        <div class="pf-checkbox absolute top-2 left-2 z-10 hidden">
+          <input type="checkbox" data-id={item.id} class="w-[22px] h-[22px] accent-[#D4AA45] cursor-pointer" />
+        </div>
         <div class="aspect-[4/3] overflow-hidden">
           <img src={item.image_url} alt={item.title || '포트폴리오'} class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
         </div>
         {!item.visible && (
-          <div class="absolute top-2 left-2 px-2 py-0.5 bg-red-500 text-white text-[10px] rounded-full font-medium">숨김</div>
+          <div class="absolute top-2 left-2 px-2 py-0.5 bg-red-500 text-white text-[10px] rounded-full font-medium pf-badge-hidden">숨김</div>
         )}
         {/* page_tag badge */}
         <div class:list={[
-          'absolute top-2 left-2 px-2 py-0.5 text-[10px] rounded-full font-medium',
-          !item.visible ? 'left-12' : '',
+          'absolute top-2 px-2 py-0.5 text-[10px] rounded-full font-medium pf-badge-page',
+          !item.visible ? 'left-12' : 'left-2',
           (item.page_tag || item.page) === 'wedding' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700',
         ]}>
           {(item.page_tag || item.page) === 'wedding' ? '웨딩' : '행사'}
         </div>
-        <div class="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div class="pf-card-actions absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <button class="edit-btn p-1.5 bg-white/90 rounded-lg shadow-sm hover:bg-white" title="수정">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
-          </button>
-          <button class="delete-btn p-1.5 bg-white/90 rounded-lg shadow-sm hover:bg-red-50" title="삭제">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="red" stroke-width="2"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
           </button>
         </div>
         <div class="p-3">
@@ -243,6 +250,26 @@ const photostripCats = catResult.rows as any[];
     ))}
   </div>
 
+  <!-- Delete Confirm Modal -->
+  <div id="pf-delete-modal" class="fixed inset-0 z-[100] bg-black/40 items-center justify-center p-4 hidden" style="display:none">
+    <div class="bg-white rounded-[14px] w-full max-w-[380px] shadow-[0_20px_60px_rgba(0,0,0,0.15)] overflow-hidden">
+      <div class="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+        <h3 class="text-base font-semibold text-gray-900">삭제 확인</h3>
+        <button id="pf-modal-close" class="text-gray-400 hover:text-gray-900 text-2xl leading-none">&times;</button>
+      </div>
+      <div class="px-6 py-5">
+        <p id="pf-modal-text">이 항목을 영구적으로 삭제하시겠습니까?<br/>이 작업은 되돌릴 수 없습니다.</p>
+      </div>
+      <div class="flex justify-end gap-3 px-6 py-4 border-t border-gray-100">
+        <button id="pf-modal-cancel" class="px-5 py-2 rounded-lg border border-gray-300 bg-white text-gray-500 text-sm font-medium hover:border-gray-900 hover:text-gray-900 transition-colors">취소</button>
+        <button id="pf-modal-confirm" class="px-5 py-2 rounded-lg border-none bg-[#ef4444] text-white text-sm font-medium hover:bg-[#dc2626] transition-colors">삭제</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="pf-toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 translate-y-5 bg-[#1d1d1f] text-white px-6 py-3 rounded-[10px] text-sm font-medium opacity-0 pointer-events-none transition-all duration-300 z-[200]"></div>
+
   {items.length === 0 && (
     <div class="text-center py-20">
       <svg class="mx-auto mb-4 text-gray-300" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -257,6 +284,15 @@ const photostripCats = catResult.rows as any[];
 <style>
   .page-tab { color: #6e6e73; }
   .page-tab.active { background-color: #ffffff; color: #1d1d1f; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .hidden { display: none !important; }
+  #portfolio-grid.pf-delete-mode .pf-checkbox { display: block !important; }
+  #portfolio-grid.pf-delete-mode .pf-card-actions { display: none !important; }
+  #portfolio-grid.pf-delete-mode .pf-badge-hidden { left: 2rem; }
+  #portfolio-grid.pf-delete-mode .pf-badge-page { left: 2rem; }
+  #portfolio-grid.pf-delete-mode .portfolio-card { cursor: pointer; }
+  .portfolio-card.selected { border-color: #D4AA45 !important; box-shadow: 0 0 0 2px rgba(212,170,69,0.4) !important; }
+  #pf-toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+  #pf-toast.error { background: #ef4444; }
 </style>
 
 <script define:vars={{ popupDefaultTags: POPUP_DEFAULT_TAGS, weddingDefaultTags: WEDDING_DEFAULT_TAGS }}>
@@ -509,17 +545,107 @@ const photostripCats = catResult.rows as any[];
     }
   });
 
-  // ===== Delete =====
-  document.querySelectorAll('.delete-btn').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
+  // ===== Delete Mode (bulk) =====
+  const pfGrid = document.getElementById('portfolio-grid')!;
+  const pfDeleteModal = document.getElementById('pf-delete-modal')!;
+  const pfToast = document.getElementById('pf-toast')!;
+  let pfDeleteMode = false;
+  let pfSelectedIds = new Set<number>();
+
+  function showPfToast(msg: string, isError = false) {
+    pfToast.textContent = msg;
+    pfToast.classList.toggle('error', isError);
+    pfToast.classList.add('visible');
+    setTimeout(() => pfToast.classList.remove('visible'), 2500);
+  }
+
+  function enterPfDeleteMode() {
+    pfDeleteMode = true;
+    pfSelectedIds.clear();
+    pfGrid.classList.add('pf-delete-mode');
+    document.getElementById('pf-toolbar-normal')!.classList.add('hidden');
+    document.getElementById('pf-toolbar-delete')!.classList.remove('hidden');
+    const confirmBtn = document.getElementById('pf-delete-confirm') as HTMLButtonElement;
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = '선택 삭제 (0)';
+  }
+
+  function exitPfDeleteMode() {
+    pfDeleteMode = false;
+    pfSelectedIds.clear();
+    pfGrid.classList.remove('pf-delete-mode');
+    document.getElementById('pf-toolbar-normal')!.classList.remove('hidden');
+    document.getElementById('pf-toolbar-delete')!.classList.add('hidden');
+    pfGrid.querySelectorAll('.portfolio-card').forEach(c => c.classList.remove('selected'));
+    pfGrid.querySelectorAll<HTMLInputElement>('.pf-checkbox input').forEach(cb => cb.checked = false);
+  }
+
+  function updatePfDeleteCount() {
+    const confirmBtn = document.getElementById('pf-delete-confirm') as HTMLButtonElement;
+    confirmBtn.textContent = `선택 삭제 (${pfSelectedIds.size})`;
+    confirmBtn.disabled = pfSelectedIds.size === 0;
+  }
+
+  document.getElementById('pf-delete-mode-btn')!.addEventListener('click', enterPfDeleteMode);
+  document.getElementById('pf-delete-cancel')!.addEventListener('click', exitPfDeleteMode);
+
+  // Click card to toggle selection in delete mode
+  pfGrid.querySelectorAll('.portfolio-card').forEach(card => {
+    card.addEventListener('click', (e) => {
+      if (!pfDeleteMode) return;
+      e.preventDefault();
       e.stopPropagation();
-      if (!confirm('이 이미지를 삭제하시겠습니까?')) return;
-      const card = (btn as HTMLElement).closest('.portfolio-card') as HTMLElement;
-      const id = card.dataset.id!;
-      const res = await fetch(`/api/portfolio/${id}`, { method: 'DELETE' });
-      if (res.ok) card.remove();
-      else alert('삭제 중 오류가 발생했습니다.');
+      const id = Number((card as HTMLElement).dataset.id);
+      const checkbox = card.querySelector<HTMLInputElement>('.pf-checkbox input');
+      if (!checkbox) return;
+      if (pfSelectedIds.has(id)) {
+        pfSelectedIds.delete(id);
+        checkbox.checked = false;
+        card.classList.remove('selected');
+      } else {
+        pfSelectedIds.add(id);
+        checkbox.checked = true;
+        card.classList.add('selected');
+      }
+      updatePfDeleteCount();
     });
+  });
+
+  // Show delete confirm modal
+  document.getElementById('pf-delete-confirm')!.addEventListener('click', () => {
+    if (pfSelectedIds.size === 0) return;
+    document.getElementById('pf-modal-text')!.innerHTML =
+      `선택한 <strong>${pfSelectedIds.size}개</strong> 항목을 영구적으로 삭제하시겠습니까?<br/>이 작업은 되돌릴 수 없습니다.`;
+    pfDeleteModal.style.display = 'flex';
+    pfDeleteModal.classList.remove('hidden');
+  });
+
+  // Modal close / cancel
+  document.getElementById('pf-modal-close')!.addEventListener('click', () => {
+    pfDeleteModal.style.display = 'none';
+  });
+  document.getElementById('pf-modal-cancel')!.addEventListener('click', () => {
+    pfDeleteModal.style.display = 'none';
+  });
+
+  // Modal confirm → bulk delete
+  document.getElementById('pf-modal-confirm')!.addEventListener('click', async () => {
+    let success = 0;
+    let failed = 0;
+    for (const id of pfSelectedIds) {
+      try {
+        const res = await fetch(`/api/portfolio/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+          success++;
+          const card = pfGrid.querySelector(`.portfolio-card[data-id="${id}"]`);
+          if (card) card.remove();
+        } else { failed++; }
+      } catch { failed++; }
+    }
+    if (failed === 0) showPfToast(`${success}개 삭제 완료!`);
+    else showPfToast(`${success}개 삭제, ${failed}개 실패`, true);
+    exitPfDeleteMode();
+    pfDeleteModal.style.display = 'none';
   });
 
   // ===== Tag filter =====
@@ -540,6 +666,8 @@ const photostripCats = catResult.rows as any[];
     if (e.key === 'Escape') {
       closeUploadModal();
       closeEditModal();
+      if (pfDeleteMode) exitPfDeleteMode();
+      pfDeleteModal.style.display = 'none';
     }
   });
 </script>
