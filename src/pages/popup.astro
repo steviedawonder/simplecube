@@ -44,14 +44,19 @@ try {
     </div>
   </section>
   <MachineShowcase />
+  <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
   <PortfolioGallery />
+  <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
   <CustomOptions />
   {/* 프로그램 배경 예시 섹션 */}
   {backgrounds.length > 0 && (
-    <section id="backgrounds" class="bg-bg-light py-14 lg:py-20 border-t border-border-light">
+    <Fragment>
+    <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
+    <section id="backgrounds" class="bg-bg-light py-14 lg:py-20">
       <div class="mx-auto max-w-7xl px-6 lg:px-8">
         <div class="mb-8 lg:mb-10">
-          <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">BACKGROUNDS</span>
+          <div class="inline-flex items-center justify-center w-9 h-9 rounded-full border-[1.5px] border-olive text-olive text-[13px] font-bold mb-4">04</div>
+          <span class="block text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">BACKGROUNDS</span>
           <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">프로그램 배경</h2>
           <p class="mt-4 text-sm text-secondary">다양한 배경 디자인으로 특별한 포토 경험을 제공합니다.</p>
         </div>
@@ -70,21 +75,27 @@ try {
         </div>
       </div>
     </section>
+    </Fragment>
   )}
 
+  <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
   <ClientShowcase />
 
   {faqItems.length > 0 && (
-    <section id="qna" class="bg-white py-16 lg:py-24 border-t border-border-light">
+    <Fragment>
+    <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
+    <section id="qna" class="bg-white py-16 lg:py-24">
       <div class="mx-auto max-w-3xl px-6 lg:px-8">
         <div class="mb-10">
-          <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">Q&A</span>
+          <div class="inline-flex items-center justify-center w-9 h-9 rounded-full border-[1.5px] border-olive text-olive text-[13px] font-bold mb-4">06</div>
+          <span class="block text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">Q&A</span>
           <h2 class="mt-3 text-2xl font-bold text-primary md:text-3xl">자주 묻는 질문</h2>
           <div class="mt-4 h-[2px] w-8 bg-olive"></div>
         </div>
         <AccordionList items={faqItems} />
       </div>
     </section>
+    </Fragment>
   )}
 </BaseLayout>
 

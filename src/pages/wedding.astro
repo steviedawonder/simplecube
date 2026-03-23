@@ -60,13 +60,16 @@ try {
     </div>
   </section>
   <ServiceIntro />
+  <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
   <PackageDetails />
+  <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
 
   <!-- 현장사진 갤러리 -->
-  <section id="gallery" class="bg-bg-light py-14 lg:py-20 border-t border-border-light">
+  <section id="gallery" class="bg-bg-light py-14 lg:py-20">
     <div class="mx-auto max-w-7xl px-6 lg:px-8">
       <div class="mb-8 lg:mb-10">
-        <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">GALLERY</span>
+        <div class="inline-flex items-center justify-center w-9 h-9 rounded-full border-[1.5px] border-olive text-olive text-[13px] font-bold mb-4">03</div>
+        <span class="block text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">GALLERY</span>
         <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">현장 사진</h2>
         <p class="mt-4 text-sm text-secondary">심플큐브 웨딩 포토부스의 실제 현장 모습입니다.</p>
       </div>
@@ -96,11 +99,13 @@ try {
     <p id="wg-lb-caption" class="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/70 text-sm"></p>
   </div>
 
+  <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
   <!-- 포토스트립 섹션 -->
-  <section id="photostrip" class="bg-white py-14 lg:py-20 border-t border-border-light">
+  <section id="photostrip" class="bg-white py-14 lg:py-20">
     <div class="mx-auto max-w-7xl px-6 lg:px-8">
       <div class="gs-fade-up mb-8 lg:mb-10">
-        <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">PHOTOSTRIP</span>
+        <div class="inline-flex items-center justify-center w-9 h-9 rounded-full border-[1.5px] border-olive text-olive text-[13px] font-bold mb-4">04</div>
+        <span class="block text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">PHOTOSTRIP</span>
         <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">포토스트립</h2>
         <p class="mt-4 text-sm text-secondary">다양한 포토스트립 디자인을 확인해보세요.</p>
       </div>
@@ -172,11 +177,13 @@ try {
     <p id="ps-lb-caption" class="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/70 text-sm"></p>
   </div>
 
+  <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
   <!-- 백드롭 섹션 -->
-  <section id="backdrop" class="bg-bg-light py-14 lg:py-20 border-t border-border-light">
+  <section id="backdrop" class="bg-bg-light py-14 lg:py-20">
     <div class="mx-auto max-w-7xl px-6 lg:px-8">
       <div class="gs-fade-up mb-8 lg:mb-10">
-        <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">BACKDROP</span>
+        <div class="inline-flex items-center justify-center w-9 h-9 rounded-full border-[1.5px] border-olive text-olive text-[13px] font-bold mb-4">05</div>
+        <span class="block text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">BACKDROP</span>
         <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">백드롭 선택</h2>
         <p class="mt-4 text-sm text-secondary">시퀸 2종 + 화이트 커튼 4종, 총 6가지 옵션을 제공합니다.</p>
       </div>
@@ -228,19 +235,24 @@ try {
   )}
 
   <!-- BookingInquiry removed -->
+  <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
   <PartnerHalls />
 
   {faqItems.length > 0 && (
-    <section id="qna" class="bg-white py-16 lg:py-24 border-t border-border-light">
+    <Fragment>
+    <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
+    <section id="qna" class="bg-white py-16 lg:py-24">
       <div class="mx-auto max-w-3xl px-6 lg:px-8">
         <div class="mb-10">
-          <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">Q&A</span>
+          <div class="inline-flex items-center justify-center w-9 h-9 rounded-full border-[1.5px] border-olive text-olive text-[13px] font-bold mb-4">07</div>
+          <span class="block text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">Q&A</span>
           <h2 class="mt-3 text-2xl font-bold text-primary md:text-3xl">자주 묻는 질문</h2>
           <div class="mt-4 h-[2px] w-8 bg-olive"></div>
         </div>
         <AccordionList items={faqItems} />
       </div>
     </section>
+    </Fragment>
   )}
 </BaseLayout>
 

@@ -1,5 +1,5 @@
 ---
-const clients = [
+const row1 = [
   { name: '삼성', src: '/images/logos/%EC%82%BC%EC%84%B1.png' },
   { name: 'LG', src: '/images/logos/LG.png' },
   { name: '현대', src: '/images/logos/%ED%98%84%EB%8C%80.png' },
@@ -10,6 +10,9 @@ const clients = [
   { name: 'Adidas', src: '/images/logos/%EC%95%84%EB%94%94%EB%8B%A4%EC%8A%A4%20ADIDAS.png', lg: true },
   { name: 'Coach', src: '/images/logos/COACH.png', lg: true },
   { name: 'Gucci', src: '/images/logos/%EA%B5%AC%EC%B0%8C_GUCCI.png' },
+];
+
+const row2 = [
   { name: 'Hermes', src: '/images/logos/%EC%97%90%EB%A5%B4%EB%A9%94%EC%8A%A4%20HERMES.png', lg: true },
   { name: 'Boucheron', src: '/images/logos/%EB%B6%80%EC%89%90%EB%A1%A0Boucheron.png', lg: true },
   { name: 'Netflix', src: '/images/logos/%EB%84%B7%ED%94%8C%EB%A6%AD%EC%8A%A4_NETFLIX.png' },
@@ -20,8 +23,10 @@ const clients = [
   { name: '스와로브스키', src: '/images/logos/%EC%8A%A4%EC%99%80%EB%A1%9C%EB%B8%8C%EC%8A%A4%ED%82%A4.png' },
   { name: '롯데호텔', src: '/images/logos/%EB%A1%AF%EB%8D%B0%ED%98%B8%ED%85%94.svg' },
   { name: '신한은행', src: '/images/logos/%EC%8B%A0%ED%95%9C%EC%9D%80%ED%96%89.png' },
-  { name: '우리은행', src: '/images/logos/%EC%9A%B0%EB%A6%AC%EC%9D%80%ED%96%89.png' },
+];
 
+const row3 = [
+  { name: '우리은행', src: '/images/logos/%EC%9A%B0%EB%A6%AC%EC%9D%80%ED%96%89.png' },
   { name: '유모멘트 더채플', src: '/images/logos/%EC%9C%A0%EB%AA%A8%EB%A9%98%ED%8A%B8_%EB%8D%94%EC%B1%84%ED%94%8C.png' },
   { name: '아난티', src: '/images/logos/%EC%95%84%EB%82%9C%ED%8B%B0.svg' },
   { name: '파타고니아', src: '/images/logos/%ED%8C%8C%ED%83%80%EA%B3%A0%EB%8B%88%EC%95%84.png' },
@@ -35,26 +40,106 @@ const clients = [
 ];
 ---
 
-<section class="bg-white py-14 lg:py-20">
+<section class="bg-white py-10 lg:py-20 overflow-hidden">
   <div class="mx-auto max-w-7xl px-6 lg:px-8">
     <div class="mb-8 lg:mb-10">
-      <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">CLIENTS</span>
+      <div class="inline-flex items-center justify-center w-9 h-9 rounded-full border-[1.5px] border-olive text-olive text-[13px] font-bold mb-4">05</div>
+      <span class="block text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">CLIENTS</span>
       <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">고객사</h2>
       <p class="mt-4 text-sm text-secondary">다양한 브랜드와 함께했습니다.</p>
     </div>
+  </div>
 
-    <div class="gs-stagger grid grid-cols-3 gap-4 md:grid-cols-4 lg:grid-cols-6">
-      {clients.map((client) => (
-        <div class="flex h-20 items-center justify-center rounded-lg border border-border-light bg-bg-light px-4 transition-all duration-300 hover:border-olive/40 hover:shadow-sm md:h-24">
-          <img
-            src={client.src}
-            alt={client.name}
-            class={`max-w-full object-contain opacity-70 transition-opacity duration-300 hover:opacity-100 ${client.lg ? 'max-h-14 md:max-h-16' : 'max-h-10 md:max-h-12'}`}
-            loading="lazy"
-            style="mix-blend-mode: multiply;"
-          />
-        </div>
-      ))}
+  <div class="flex flex-col gap-4">
+    <!-- Row 1: 왼쪽으로 -->
+    <div class="marquee-row">
+      <div class="marquee-track marquee-left">
+        {[...row1, ...row1].map((client) => (
+          <div class="marquee-item">
+            <img src={client.src} alt={client.name}
+              class={`max-w-full object-contain opacity-60 ${client.lg ? 'max-h-14 md:max-h-16' : 'max-h-10 md:max-h-12'}`}
+              loading="lazy" style="mix-blend-mode: multiply;" />
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- Row 2: 오른쪽으로 -->
+    <div class="marquee-row">
+      <div class="marquee-track marquee-right">
+        {[...row2, ...row2].map((client) => (
+          <div class="marquee-item">
+            <img src={client.src} alt={client.name}
+              class={`max-w-full object-contain opacity-60 ${client.lg ? 'max-h-14 md:max-h-16' : 'max-h-10 md:max-h-12'}`}
+              loading="lazy" style="mix-blend-mode: multiply;" />
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- Row 3: 왼쪽으로 -->
+    <div class="marquee-row">
+      <div class="marquee-track marquee-left">
+        {[...row3, ...row3].map((client) => (
+          <div class="marquee-item">
+            <img src={client.src} alt={client.name}
+              class={`max-w-full object-contain opacity-60 ${client.lg ? 'max-h-14 md:max-h-16' : 'max-h-10 md:max-h-12'}`}
+              loading="lazy" style="mix-blend-mode: multiply;" />
+          </div>
+        ))}
+      </div>
     </div>
   </div>
 </section>
+
+<style>
+  .marquee-row {
+    overflow: hidden;
+    width: 100%;
+  }
+
+  .marquee-track {
+    display: flex;
+    width: max-content;
+  }
+
+  .marquee-left {
+    animation: scroll-left 30s linear infinite;
+  }
+
+  .marquee-right {
+    animation: scroll-right 30s linear infinite;
+  }
+
+  .marquee-item {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 140px;
+    height: 72px;
+    margin: 0 12px;
+    border-radius: 0.5rem;
+    border: 1px solid #e5e5e5;
+    background: #f9f9f9;
+    padding: 0 16px;
+  }
+
+  @media (min-width: 768px) {
+    .marquee-item {
+      width: 170px;
+      height: 88px;
+      margin: 0 16px;
+    }
+  }
+
+  @keyframes scroll-left {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  @keyframes scroll-right {
+    0% { transform: translateX(-50%); }
+    100% { transform: translateX(0); }
+  }
+</style>
