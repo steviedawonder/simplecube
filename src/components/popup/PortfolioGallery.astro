@@ -2,7 +2,7 @@
 import { POPUP_DEFAULT_TAGS } from '@lib/defaultTags';
 ---
 
-<section id="portfolio" class="bg-bg-light py-14 lg:py-20">
+<section id="portfolio" class="bg-bg-light py-14 lg:py-20 overflow-hidden">
   <div class="mx-auto max-w-7xl px-6 lg:px-8">
     <div class="mb-8 lg:mb-10">
       <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">PORTFOLIO</span>
@@ -11,9 +11,30 @@ import { POPUP_DEFAULT_TAGS } from '@lib/defaultTags';
     </div>
 
     <div id="pf-tags" class="flex flex-wrap gap-2.5 mb-8 hidden"></div>
+  </div>
 
-    <div id="pf-grid" class="gs-stagger grid grid-cols-2 gap-2 md:grid-cols-3"></div>
+  <!-- Marquee rows with nav arrows -->
+  <div id="pf-marquee-wrap" class="relative hidden">
+    <!-- Left arrow -->
+    <button id="pf-nav-prev" class="absolute left-2 lg:left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-[#2E2318] hover:bg-white hover:scale-105 transition-all" aria-label="이전">
+      <svg class="w-5 h-5 lg:w-6 lg:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+    </button>
+    <!-- Right arrow -->
+    <button id="pf-nav-next" class="absolute right-2 lg:right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-[#2E2318] hover:bg-white hover:scale-105 transition-all" aria-label="다음">
+      <svg class="w-5 h-5 lg:w-6 lg:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+    </button>
 
+    <div class="flex flex-col gap-2">
+      <div class="pf-marquee-row overflow-hidden" data-row="0">
+        <div class="pf-marquee-track flex gap-2 will-change-transform"></div>
+      </div>
+      <div class="pf-marquee-row overflow-hidden" data-row="1">
+        <div class="pf-marquee-track flex gap-2 will-change-transform"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mx-auto max-w-7xl px-6 lg:px-8">
     <div id="pf-empty" class="text-center py-16 hidden">
       <p class="text-secondary text-sm">준비 중입니다.</p>
     </div>
@@ -39,6 +60,47 @@ import { POPUP_DEFAULT_TAGS } from '@lib/defaultTags';
   <p id="pf-lb-caption" class="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/70 text-sm"></p>
 </div>
 
+<style is:global>
+  .pf-marquee-track {
+    animation: pf-scroll var(--duration, 30s) linear infinite;
+  }
+  .pf-marquee-row:hover .pf-marquee-track,
+  #pf-marquee-wrap.paused .pf-marquee-track {
+    animation-play-state: paused;
+  }
+  /* Row 2 slightly different speed */
+  .pf-marquee-row[data-row="1"] .pf-marquee-track {
+    animation-duration: var(--duration2, 35s);
+  }
+  @keyframes pf-scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .pf-marquee-item {
+    flex-shrink: 0;
+    width: 150px;
+    height: 112px;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    cursor: pointer;
+  }
+  @media (min-width: 768px) {
+    .pf-marquee-item {
+      width: 300px;
+      height: 225px;
+    }
+  }
+  .pf-marquee-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+  .pf-marquee-item:hover img {
+    transform: scale(1.05);
+  }
+</style>
+
 <script is:inline define:vars={{ defaultTags: POPUP_DEFAULT_TAGS }}>
   window.__popupDefaultTags = defaultTags;
 </script>
@@ -47,10 +109,11 @@ import { POPUP_DEFAULT_TAGS } from '@lib/defaultTags';
   const defaultTags: string[] = (window as any).__popupDefaultTags || [];
 
   async function loadPortfolio() {
-    const grid = document.getElementById('pf-grid')!;
     const tagsContainer = document.getElementById('pf-tags')!;
+    const marqueeWrap = document.getElementById('pf-marquee-wrap')!;
     const empty = document.getElementById('pf-empty')!;
     const loading = document.getElementById('pf-loading')!;
+    const tracks = document.querySelectorAll<HTMLDivElement>('.pf-marquee-track');
 
     try {
       const res = await fetch('/api/portfolio?page_tag=popup');
@@ -63,6 +126,9 @@ import { POPUP_DEFAULT_TAGS } from '@lib/defaultTags';
         return;
       }
 
+      let allItems = items;
+      let activeTag = '';
+
       // Collect tags
       const allTags = new Set<string>();
       items.forEach((item: any) => {
@@ -72,7 +138,6 @@ import { POPUP_DEFAULT_TAGS } from '@lib/defaultTags';
       });
       const tagList = Array.from(allTags).sort();
 
-      // Render tag buttons — default tags first, then dynamic extras
       const orderedTags = [
         ...defaultTags.filter(t => tagList.includes(t)),
         ...tagList.filter(t => !defaultTags.includes(t)),
@@ -88,6 +153,7 @@ import { POPUP_DEFAULT_TAGS } from '@lib/defaultTags';
         tagsContainer.querySelectorAll('.pf-tag-btn').forEach((btn) => {
           btn.addEventListener('click', () => {
             const tag = (btn as HTMLElement).dataset.tag!;
+            activeTag = tag;
             tagsContainer.querySelectorAll('.pf-tag-btn').forEach((b) => {
               if (b === btn) {
                 b.classList.remove('bg-white', 'border', 'border-gray-200', 'text-secondary');
@@ -97,35 +163,16 @@ import { POPUP_DEFAULT_TAGS } from '@lib/defaultTags';
                 b.classList.add('bg-white', 'border', 'border-gray-200', 'text-secondary');
               }
             });
-            grid.querySelectorAll('.pf-item').forEach((item) => {
-              const itemTags = (item as HTMLElement).dataset.tags || '';
-              (item as HTMLElement).style.display = (!tag || itemTags.split(',').map(t => t.trim()).includes(tag)) ? '' : 'none';
-            });
+            renderMarquee(tag ? items.filter(i => (i.tags || '').split(',').map((t: string) => t.trim()).includes(tag)) : items);
           });
         });
       }
 
-      // Render grid
-      grid.innerHTML = items.map((item: any) => `
-        <div class="pf-item group cursor-pointer overflow-hidden rounded-lg" data-tags="${item.tags || ''}" data-src="${item.image_url}" data-alt="${item.title || '포트폴리오'}">
-          <div class="relative">
-            <img
-              src="${item.image_url}"
-              alt="${item.title || '포트폴리오'}"
-              class="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-105"
-              loading="lazy"
-            />
-            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
-              <svg class="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
-              </svg>
-            </div>
-          </div>
-        </div>
-      `).join('');
+      renderMarquee(items);
+      marqueeWrap.classList.remove('hidden');
 
-      // Lightbox
-      setupLightbox(grid);
+      // Setup lightbox
+      setupLightbox();
 
     } catch {
       loading.classList.add('hidden');
@@ -133,7 +180,107 @@ import { POPUP_DEFAULT_TAGS } from '@lib/defaultTags';
     }
   }
 
-  function setupLightbox(grid: HTMLElement) {
+  function renderMarquee(items: any[]) {
+    const tracks = document.querySelectorAll<HTMLDivElement>('.pf-marquee-track');
+    const marqueeWrap = document.getElementById('pf-marquee-wrap')!;
+
+    if (items.length === 0) {
+      marqueeWrap.classList.add('hidden');
+      document.getElementById('pf-empty')!.classList.remove('hidden');
+      return;
+    }
+    marqueeWrap.classList.remove('hidden');
+    document.getElementById('pf-empty')!.classList.add('hidden');
+
+    // Split items into 2 rows
+    const mid = Math.ceil(items.length / 2);
+    const row1Items = items.slice(0, mid);
+    const row2Items = items.slice(mid);
+
+    // If row2 is empty, duplicate row1
+    const rows = [row1Items, row2Items.length > 0 ? row2Items : [...row1Items].reverse()];
+
+    rows.forEach((rowItems, rowIdx) => {
+      const track = tracks[rowIdx];
+      if (!track) return;
+
+      // Duplicate items enough times for seamless loop
+      const minRepeats = Math.max(3, Math.ceil(20 / rowItems.length));
+      let html = '';
+      for (let r = 0; r < minRepeats * 2; r++) {
+        rowItems.forEach((item: any, i: number) => {
+          const globalIdx = rowIdx === 0 ? i : mid + i;
+          html += `
+            <div class="pf-marquee-item" data-src="${item.image_url}" data-alt="${item.title || '포트폴리오'}" data-idx="${globalIdx}">
+              <img src="${item.image_url}" alt="${item.title || '포트폴리오'}" loading="lazy" />
+            </div>
+          `;
+        });
+      }
+      track.innerHTML = html;
+
+      // Set animation duration based on actual track width for constant speed
+      // Speed: ~150px/s regardless of item count
+      const SPEED = 1000; // pixels per second
+      requestAnimationFrame(() => {
+        const trackWidth = track.scrollWidth / 2; // animation moves 50%
+        const duration = trackWidth / SPEED;
+        track.style.setProperty('--duration', `${duration}s`);
+        track.style.setProperty('--duration2', `${duration * 1.1}s`);
+      });
+    });
+
+    // Setup nav arrows
+    setupNavArrows();
+  }
+
+  function setupNavArrows() {
+    const prevBtn = document.getElementById('pf-nav-prev');
+    const nextBtn = document.getElementById('pf-nav-next');
+    const tracks = document.querySelectorAll<HTMLDivElement>('.pf-marquee-track');
+    const wrap = document.getElementById('pf-marquee-wrap')!;
+
+    function scrollTracks(direction: number) {
+      // direction: -1 = left (prev), 1 = right (next)
+      const scrollAmount = direction * 600; // px to jump
+
+      tracks.forEach(track => {
+        // Pause animation
+        wrap.classList.add('paused');
+
+        // Get current computed transform
+        const computed = getComputedStyle(track);
+        const matrix = new DOMMatrix(computed.transform);
+        const currentX = matrix.m41;
+
+        // Apply new position smoothly
+        track.style.animation = 'none';
+        track.style.transform = `translateX(${currentX}px)`;
+
+        // Force reflow
+        track.offsetHeight;
+
+        // Animate to new position
+        track.style.transition = 'transform 0.6s cubic-bezier(0.25, 0.1, 0.25, 1)';
+        track.style.transform = `translateX(${currentX + scrollAmount}px)`;
+
+        // After transition, resume CSS animation from new position
+        const onEnd = () => {
+          track.removeEventListener('transitionend', onEnd);
+          track.style.transition = '';
+          track.style.transform = '';
+          track.style.animation = '';
+          wrap.classList.remove('paused');
+        };
+        track.addEventListener('transitionend', onEnd);
+      });
+    }
+
+    prevBtn?.addEventListener('click', () => scrollTracks(1));
+    nextBtn?.addEventListener('click', () => scrollTracks(-1));
+  }
+
+  function setupLightbox() {
     const lightbox = document.getElementById('pf-lightbox')!;
     const lbImg = document.getElementById('pf-lb-img') as HTMLImageElement;
     const lbCaption = document.getElementById('pf-lb-caption')!;
@@ -144,17 +291,24 @@ import { POPUP_DEFAULT_TAGS } from '@lib/defaultTags';
     let visibleItems: { src: string; alt: string }[] = [];
     let currentIdx = 0;
 
-    function getVisible() {
-      return Array.from(grid.querySelectorAll('.pf-item:not([style*="display: none"])'));
+    function getAllItems() {
+      // Collect unique items from marquee
+      const seen = new Set<string>();
+      const result: { src: string; alt: string }[] = [];
+      document.querySelectorAll('.pf-marquee-item').forEach(el => {
+        const src = (el as HTMLElement).dataset.src || '';
+        if (!seen.has(src)) {
+          seen.add(src);
+          result.push({ src, alt: (el as HTMLElement).dataset.alt || '' });
+        }
+      });
+      return result;
     }
 
-    function openLb(idx: number) {
-      const visible = getVisible();
-      visibleItems = visible.map(el => ({
-        src: (el as HTMLElement).dataset.src || '',
-        alt: (el as HTMLElement).dataset.alt || '',
-      }));
-      currentIdx = idx;
+    function openLb(src: string) {
+      visibleItems = getAllItems();
+      currentIdx = visibleItems.findIndex(i => i.src === src);
+      if (currentIdx < 0) currentIdx = 0;
       showLbImage();
       lightbox.classList.remove('hidden');
       lightbox.classList.add('flex');
@@ -175,12 +329,10 @@ import { POPUP_DEFAULT_TAGS } from '@lib/defaultTags';
       lbCaption.textContent = item.alt;
     }
 
-    grid.addEventListener('click', (e) => {
-      const item = (e.target as HTMLElement).closest('.pf-item');
+    document.addEventListener('click', (e) => {
+      const item = (e.target as HTMLElement).closest('.pf-marquee-item');
       if (!item) return;
-      const visible = getVisible();
-      const idx = visible.indexOf(item as Element);
-      if (idx >= 0) openLb(idx);
+      openLb((item as HTMLElement).dataset.src || '');
     });
 
     lbPrev.addEventListener('click', (e) => { e.stopPropagation(); currentIdx = (currentIdx - 1 + visibleItems.length) % visibleItems.length; showLbImage(); });
