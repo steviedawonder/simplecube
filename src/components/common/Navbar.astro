@@ -49,7 +49,7 @@ const currentPath = Astro.url.pathname;
           {/* Desktop Dropdown */}
           {item.children && item.children.length > 0 && (
             <div class="nav-dropdown absolute top-full pt-2 opacity-0 invisible translate-y-1 transition-all duration-300" style="pointer-events:none;left:-1rem;">
-              <div class="rounded-xl py-2 min-w-[160px]" style="pointer-events:auto;background:rgba(255,255,255,0.45);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);box-shadow:0 4px 24px rgba(0,0,0,0.06);border:1px solid rgba(255,255,255,0.3);">
+              <div class="rounded-xl py-2 min-w-[160px]" style="pointer-events:auto;background:rgba(255,255,255,0.85);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);box-shadow:0 4px 24px rgba(0,0,0,0.12);border:1px solid rgba(255,255,255,0.4);">
                 {item.children.map((child) => (
                   <a
                     href={child.href}
@@ -149,7 +149,7 @@ const currentPath = Astro.url.pathname;
 <style>
   /* Transparent navbar (hero pages) */
   .nav-transparent {
-    background: transparent;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.35) 60%, transparent 100%);
     color: white;
   }
 

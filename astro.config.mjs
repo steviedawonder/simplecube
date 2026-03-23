@@ -10,6 +10,10 @@ export default defineConfig({
   site: 'https://simplecube.vercel.app',
   adapter: vercel(),
 
+  devToolbar: {
+    enabled: false,
+  },
+
   security: {
     checkOrigin: false,
   },
