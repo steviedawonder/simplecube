@@ -1,0 +1,386 @@
+---
+export const prerender = true;
+---
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>패키지 카드 디자인 테스트</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Pretendard Variable', sans-serif; background: #FAF8F5; color: #1d1d1f; }
+    .section { max-width: 420px; margin: 0 auto; padding: 40px 20px; }
+    .section-title { font-size: 13px; font-weight: 700; letter-spacing: 0.15em; color: #D4AA45; text-transform: uppercase; margin-bottom: 8px; }
+    .section-heading { font-size: 22px; font-weight: 800; color: #2E2318; margin-bottom: 24px; }
+    .divider { height: 1px; background: #e8e8ed; margin: 50px 0; }
+
+    /* ===== A: 가로 와이드 카드 - 어두운 오버레이 ===== */
+    .card-a {
+      position: relative;
+      width: 100%;
+      height: 100px;
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .card-a img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .card-a .overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.2) 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 20px;
+    }
+    .card-a .icon { font-size: 18px; margin-bottom: 4px; }
+    .card-a h3 { font-size: 15px; font-weight: 700; color: #fff; }
+    .card-a p { font-size: 11px; color: rgba(255,255,255,0.75); margin-top: 2px; }
+
+    /* ===== B: 컴팩트 2열 - 사진 상단 + 텍스트 하단 ===== */
+    .grid-b {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .card-b {
+      border-radius: 14px;
+      overflow: hidden;
+      background: #fff;
+      border: 1px solid #e8e8ed;
+    }
+    .card-b img {
+      width: 100%;
+      height: 90px;
+      object-fit: cover;
+    }
+    .card-b .text {
+      padding: 10px 12px 12px;
+    }
+    .card-b h3 { font-size: 13px; font-weight: 700; color: #2E2318; }
+    .card-b p { font-size: 10.5px; color: #8B7E72; margin-top: 3px; line-height: 1.4; }
+
+    /* ===== C: 풀블리드 스택 - 골드 악센트 ===== */
+    .card-c {
+      position: relative;
+      width: 100%;
+      height: 88px;
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .card-c img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .card-c .overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(46,35,24,0.85) 0%, rgba(46,35,24,0.1) 100%);
+      display: flex;
+      align-items: flex-end;
+      padding: 14px 16px;
+    }
+    .card-c .num {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      color: #D4AA45;
+      margin-bottom: 2px;
+    }
+    .card-c .content { display: flex; align-items: baseline; gap: 8px; }
+    .card-c h3 { font-size: 14px; font-weight: 700; color: #fff; white-space: nowrap; }
+    .card-c p { font-size: 11px; color: rgba(255,255,255,0.6); }
+
+    /* ===== D: 슬라이드 카드 - 좌측 텍스트 + 우측 원형 이미지 ===== */
+    .card-d {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      background: #fff;
+      border-radius: 16px;
+      border: 1px solid #e8e8ed;
+      margin-bottom: 8px;
+    }
+    .card-d .img-wrap {
+      flex-shrink: 0;
+      width: 60px;
+      height: 60px;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .card-d .img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .card-d .num {
+      font-size: 9px;
+      font-weight: 700;
+      color: #D4AA45;
+      letter-spacing: 0.1em;
+    }
+    .card-d h3 { font-size: 14px; font-weight: 700; color: #2E2318; margin-top: 1px; }
+    .card-d p { font-size: 11px; color: #8B7E72; margin-top: 2px; }
+
+    /* ===== E: 매거진 스타일 - 번호 크게 + 사진 배경 ===== */
+    .card-e {
+      position: relative;
+      width: 100%;
+      border-radius: 18px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .card-e img {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+    }
+    .card-e .overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(212,170,69,0.85) 0%, rgba(46,35,24,0.7) 100%);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 16px;
+    }
+    .card-e .big-num {
+      font-size: 42px;
+      font-weight: 900;
+      color: rgba(255,255,255,0.2);
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .card-e .text { flex: 1; }
+    .card-e h3 { font-size: 16px; font-weight: 700; color: #fff; }
+    .card-e p { font-size: 11px; color: rgba(255,255,255,0.8); margin-top: 4px; line-height: 1.4; }
+  </style>
+</head>
+<body>
+
+<div class="section">
+
+  <!-- ======= A: 가로 와이드 - 왼쪽 그라데이션 ======= -->
+  <div class="section-title">OPTION A</div>
+  <div class="section-heading">가로 와이드 오버레이</div>
+
+  <div class="card-a">
+    <img src="/images/wedding/booth-print.jpg" alt="" />
+    <div class="overlay">
+      <h3>하객 제공 사진</h3>
+      <p>동일 사진 2장 즉시 인화</p>
+    </div>
+  </div>
+  <div class="card-a">
+    <img src="/images/wedding/photo-strips.jpg" alt="" />
+    <div class="overlay">
+      <h3>포토 방명록</h3>
+      <p>사진+축하 메시지를 담은 바인더</p>
+    </div>
+  </div>
+  <div class="card-a">
+    <img src="/images/wedding/frame.jpg" alt="" />
+    <div class="overlay">
+      <h3>원목 액자</h3>
+      <p>대표 사진을 액자에 담아 제공</p>
+    </div>
+  </div>
+  <div class="card-a">
+    <img src="/images/wedding/giftbox.jpg" alt="" />
+    <div class="overlay">
+      <h3>원본 & GIF USB</h3>
+      <p>모든 원본 사진+GIF USB 전달</p>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ======= B: 2열 카드 그리드 ======= -->
+  <div class="section-title">OPTION B</div>
+  <div class="section-heading">2열 미니 카드</div>
+
+  <div class="grid-b">
+    <div class="card-b">
+      <img src="/images/wedding/booth-print.jpg" alt="" />
+      <div class="text">
+        <h3>하객 제공 사진</h3>
+        <p>동일 사진 2장 즉시 인화</p>
+      </div>
+    </div>
+    <div class="card-b">
+      <img src="/images/wedding/photo-strips.jpg" alt="" />
+      <div class="text">
+        <h3>포토 방명록</h3>
+        <p>사진+축하 메시지를 담은 바인더</p>
+      </div>
+    </div>
+    <div class="card-b">
+      <img src="/images/wedding/frame.jpg" alt="" />
+      <div class="text">
+        <h3>원목 액자</h3>
+        <p>대표 사진을 액자에 담아 제공</p>
+      </div>
+    </div>
+    <div class="card-b">
+      <img src="/images/wedding/giftbox.jpg" alt="" />
+      <div class="text">
+        <h3>원본 & GIF USB</h3>
+        <p>모든 원본 사진+GIF USB 전달</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ======= C: 하단 그라데이션 + 골드 넘버 ======= -->
+  <div class="section-title">OPTION C</div>
+  <div class="section-heading">하단 페이드 + 골드 넘버</div>
+
+  <div class="card-c">
+    <img src="/images/wedding/booth-print.jpg" alt="" />
+    <div class="overlay">
+      <div>
+        <div class="num">01</div>
+        <div class="content">
+          <h3>하객 제공 사진</h3>
+          <p>동일 사진 2장 즉시 인화</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card-c">
+    <img src="/images/wedding/photo-strips.jpg" alt="" />
+    <div class="overlay">
+      <div>
+        <div class="num">02</div>
+        <div class="content">
+          <h3>포토 방명록</h3>
+          <p>사진+축하 메시지를 담은 바인더</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card-c">
+    <img src="/images/wedding/frame.jpg" alt="" />
+    <div class="overlay">
+      <div>
+        <div class="num">03</div>
+        <div class="content">
+          <h3>원목 액자</h3>
+          <p>대표 사진을 액자에 담아 제공</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card-c">
+    <img src="/images/wedding/giftbox.jpg" alt="" />
+    <div class="overlay">
+      <div>
+        <div class="num">04</div>
+        <div class="content">
+          <h3>원본 & GIF USB</h3>
+          <p>모든 원본 사진+GIF USB 전달</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ======= D: 리스트형 - 썸네일 + 텍스트 ======= -->
+  <div class="section-title">OPTION D</div>
+  <div class="section-heading">리스트형 썸네일</div>
+
+  <div class="card-d">
+    <div class="img-wrap"><img src="/images/wedding/booth-print.jpg" alt="" /></div>
+    <div>
+      <div class="num">01</div>
+      <h3>하객 제공 사진</h3>
+      <p>동일 사진 2장 즉시 인화</p>
+    </div>
+  </div>
+  <div class="card-d">
+    <div class="img-wrap"><img src="/images/wedding/photo-strips.jpg" alt="" /></div>
+    <div>
+      <div class="num">02</div>
+      <h3>포토 방명록</h3>
+      <p>사진+축하 메시지를 담은 바인더</p>
+    </div>
+  </div>
+  <div class="card-d">
+    <div class="img-wrap"><img src="/images/wedding/frame.jpg" alt="" /></div>
+    <div>
+      <div class="num">03</div>
+      <h3>원목 액자</h3>
+      <p>대표 사진을 액자에 담아 제공</p>
+    </div>
+  </div>
+  <div class="card-d">
+    <div class="img-wrap"><img src="/images/wedding/giftbox.jpg" alt="" /></div>
+    <div>
+      <div class="num">04</div>
+      <h3>원본 & GIF USB</h3>
+      <p>모든 원본 사진+GIF USB 전달</p>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ======= E: 매거진 골드 오버레이 ======= -->
+  <div class="section-title">OPTION E</div>
+  <div class="section-heading">매거진 골드 오버레이</div>
+
+  <div class="card-e">
+    <img src="/images/wedding/booth-print.jpg" alt="" />
+    <div class="overlay">
+      <div class="big-num">01</div>
+      <div class="text">
+        <h3>하객 제공 사진</h3>
+        <p>동일 사진 2장 즉시 인화하여 한 장은 하객에게 기념으로 전달</p>
+      </div>
+    </div>
+  </div>
+  <div class="card-e">
+    <img src="/images/wedding/photo-strips.jpg" alt="" />
+    <div class="overlay">
+      <div class="big-num">02</div>
+      <div class="text">
+        <h3>포토 방명록</h3>
+        <p>사진+축하 메시지를 담은 바인더로 신랑·신부님께 전달</p>
+      </div>
+    </div>
+  </div>
+  <div class="card-e">
+    <img src="/images/wedding/frame.jpg" alt="" />
+    <div class="overlay">
+      <div class="big-num">03</div>
+      <div class="text">
+        <h3>원목 액자</h3>
+        <p>대표 사진을 원목 액자에 담아 제공</p>
+      </div>
+    </div>
+  </div>
+  <div class="card-e">
+    <img src="/images/wedding/giftbox.jpg" alt="" />
+    <div class="overlay">
+      <div class="big-num">04</div>
+      <div class="text">
+        <h3>원본 & GIF USB</h3>
+        <p>모든 원본 사진과 GIF 파일을 USB에 담아 전달</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
