@@ -200,7 +200,7 @@ try {
               <img
                 src={bd.image_url.includes('res.cloudinary.com') ? bd.image_url.replace('/upload/', '/upload/w_400,f_auto,q_auto/') : bd.image_url}
                 alt={bd.title || '백드롭'}
-                class="w-full aspect-[4/3] object-cover transition-transform duration-500 group-hover:scale-105"
+                class="w-full aspect-[4/3] object-cover object-top transition-transform duration-500 group-hover:scale-105"
                 loading="lazy"
               />
               <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
