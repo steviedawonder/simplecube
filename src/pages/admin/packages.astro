@@ -391,7 +391,9 @@ import AdminLayout from '@layouts/AdminLayout.astro';
       input.onchange = async () => {
         const file = input.files?.[0];
         if (!file) return;
-        thumb.style.opacity = '0.4';
+        // 업로드 중 로딩 스피너 표시
+        const origHTML = thumb.outerHTML;
+        thumb.outerHTML = `<div class="spec-thumb w-8 h-8 rounded bg-gray-100 shrink-0 flex items-center justify-center" data-idx="${idx}"><svg class="w-4 h-4 text-[#D4AA45] animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg></div>`;
         const fd = new FormData();
         fd.append('file', file);
         try {
