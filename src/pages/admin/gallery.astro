@@ -598,7 +598,17 @@ import AdminLayout from '@layouts/AdminLayout.astro';
       const items: any[] = await res.json();
       loading.classList.add('hidden');
       if (items.length === 0) { empty.classList.remove('hidden'); grid.innerHTML = ''; return; }
-      grid.innerHTML = items.map(item => renderCard({ ...item, title: '' }, 'models')).join('');
+      grid.innerHTML = items.map((item, idx) => {
+        const card = renderCard({ ...item, title: '' }, 'models');
+        // 첫 번째 사진에 *썸네일 라벨 추가
+        if (idx === 0) {
+          return card.replace(
+            '<div class="gallery-card-info">',
+            '<div style="position:absolute;top:6px;left:6px;background:#D4AA45;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;z-index:5;">*썸네일</div><div class="gallery-card-info">'
+          );
+        }
+        return card;
+      }).join('');
       bindCardEvents(grid, 'models');
     } catch {
       loading.classList.add('hidden');

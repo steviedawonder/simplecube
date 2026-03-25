@@ -48,6 +48,13 @@ try {
   }
 } catch { /* table may not exist yet */ }
 
+// 각 모델의 DB 첫 번째 사진을 썸네일로 사용
+function getModelThumbnail(componentId: string, fallback: string): string {
+  const dbModelId = modelIdMap[componentId];
+  const photos = dbModelId ? modelPhotosMap[dbModelId] : null;
+  return photos && photos.length > 0 ? photos[0].src : fallback;
+}
+
 const models = [
   {
     id: 'popup-booth',
@@ -55,7 +62,7 @@ const models = [
     name: '팝업부스',
     badge: '추천',
     badgeColor: 'bg-olive',
-    image: '/images/popup/popup-model.png',
+    image: getModelThumbnail('popup-booth', '/images/popup/popup-model.png'),
     specs: [
       { label: '소재', value: '알루미늄 (화이트)' },
       { label: '크기', value: 'W460mm × L480mm × H1700mm' },
@@ -77,7 +84,7 @@ const models = [
     name: '모듈형',
     badge: '추천',
     badgeColor: 'bg-olive',
-    image: '/images/popup/module-model.png',
+    image: getModelThumbnail('module', '/images/popup/module-model.png'),
     specs: [
       { label: '소재', value: '아크릴 (블랙)' },
       { label: '크기', value: 'W600mm × L450mm × H1900mm' },
@@ -102,7 +109,7 @@ const models = [
     name: '우드 (Edge)',
     badge: '',
     badgeColor: '',
-    image: '/images/popup/wood-edge.jpg',
+    image: getModelThumbnail('wood-edge', '/images/popup/wood-edge.jpg'),
     specs: [
       { label: '소재', value: '원목 자체제작' },
       { label: '크기', value: 'W700mm × L480mm × H1950mm' },
@@ -122,7 +129,7 @@ const models = [
     name: '우드 (Round)',
     badge: '',
     badgeColor: '',
-    image: '/images/popup/wood-round.png',
+    image: getModelThumbnail('wood-round', '/images/popup/wood-round.png'),
     specs: [
       { label: '소재', value: '원목 자체제작 (라운드)' },
       { label: '크기', value: 'W680mm × L470mm × H1950mm' },
