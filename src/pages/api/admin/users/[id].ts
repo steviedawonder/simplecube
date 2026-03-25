@@ -16,7 +16,7 @@ export const PUT: APIRoute = async ({ locals, request, params }) => {
   try {
     const id = Number(params.id);
     const body = await request.json();
-    const { name, email, password, role, active } = body;
+    const { name, username, password, role, active } = body;
 
     if (role && !['owner', 'editor'].includes(role)) {
       return new Response(JSON.stringify({ error: '유효하지 않은 역할입니다.' }), {
@@ -25,13 +25,13 @@ export const PUT: APIRoute = async ({ locals, request, params }) => {
       });
     }
 
-    if (email) {
+    if (username) {
       const existing = await db.execute({
-        sql: 'SELECT id FROM users WHERE email = ? AND id != ?',
-        args: [email, id],
+        sql: 'SELECT id FROM users WHERE username = ? AND id != ?',
+        args: [username, id],
       });
       if (existing.rows.length > 0) {
-        return new Response(JSON.stringify({ error: '이미 등록된 이메일입니다.' }), {
+        return new Response(JSON.stringify({ error: '이미 등록된 아이디입니다.' }), {
           status: 409,
           headers: { 'Content-Type': 'application/json' },
         });
@@ -42,7 +42,7 @@ export const PUT: APIRoute = async ({ locals, request, params }) => {
     const args: any[] = [];
 
     if (name) { updates.push('name = ?'); args.push(name); }
-    if (email) { updates.push('email = ?'); args.push(email); }
+    if (username) { updates.push('username = ?'); args.push(username); }
     if (role) { updates.push('role = ?'); args.push(role); }
     if (typeof active === 'boolean') { updates.push('active = ?'); args.push(active ? 1 : 0); }
     if (password) {

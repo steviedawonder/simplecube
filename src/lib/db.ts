@@ -124,7 +124,7 @@ export async function initDB() {
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
-      email TEXT NOT NULL UNIQUE,
+      username TEXT NOT NULL UNIQUE,
       password_hash TEXT NOT NULL,
       role TEXT NOT NULL DEFAULT 'editor' CHECK(role IN ('owner', 'editor')),
       active INTEGER NOT NULL DEFAULT 1,
@@ -290,17 +290,43 @@ export async function seedSEORules() {
   }
 }
 
+export async function migrateUsersEmailToUsername() {
+  const client = getClient();
+  try {
+    // Check if old 'email' column exists
+    const tableInfo = await client.execute("PRAGMA table_info(users)");
+    const hasEmail = tableInfo.rows.some((r: any) => r.name === 'email');
+    const hasUsername = tableInfo.rows.some((r: any) => r.name === 'username');
+
+    if (hasEmail && !hasUsername) {
+      await client.execute('ALTER TABLE users RENAME COLUMN email TO username');
+      console.log('Migrated users.email → users.username');
+    }
+  } catch (e) {
+    console.error('migrateUsersEmailToUsername error:', e);
+  }
+}
+
 export async function seedOwnerAccount() {
   const client = getClient();
-  const existing = await client.execute("SELECT COUNT(*) as count FROM users WHERE email = 'simple_cube@naver.com'");
+
+  // Migrate old email-based account to username 'admin'
+  const oldAccount = await client.execute("SELECT COUNT(*) as count FROM users WHERE username = 'simple_cube@naver.com'");
+  if ((oldAccount.rows[0] as any).count > 0) {
+    await client.execute("UPDATE users SET username = 'admin' WHERE username = 'simple_cube@naver.com'");
+    console.log('Migrated owner account: simple_cube@naver.com → admin');
+    return;
+  }
+
+  const existing = await client.execute("SELECT COUNT(*) as count FROM users WHERE username = 'admin'");
   if ((existing.rows[0] as any).count > 0) return;
 
   const adminPassword = (import.meta.env.ADMIN_PASSWORD || 'admin1234').trim();
   const passwordHash = await bcrypt.hash(adminPassword, 10);
 
   await client.execute({
-    sql: 'INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)',
-    args: ['원더', 'simple_cube@naver.com', passwordHash, 'owner'],
+    sql: 'INSERT INTO users (name, username, password_hash, role) VALUES (?, ?, ?, ?)',
+    args: ['원더', 'admin', passwordHash, 'owner'],
   });
 }
 

@@ -1,6 +1,6 @@
 import { defineMiddleware } from 'astro:middleware';
 import { verifyToken, getTokenFromCookies } from './lib/auth';
-import { initDB, seedSEORules, seedOwnerAccount, seedFaqs, seedPackageItems, seedPageContents, seedCustomContents, migratePortfolioColumns, seedPhotostripCategories } from './lib/db';
+import { initDB, seedSEORules, seedOwnerAccount, seedFaqs, seedPackageItems, seedPageContents, seedCustomContents, migratePortfolioColumns, seedPhotostripCategories, migrateUsersEmailToUsername } from './lib/db';
 
 let dbInitialized = false;
 
@@ -13,6 +13,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   if (needsDB && !dbInitialized) {
     try {
       await initDB();
+      await migrateUsersEmailToUsername();
       await seedSEORules();
       await seedOwnerAccount();
       await seedFaqs();

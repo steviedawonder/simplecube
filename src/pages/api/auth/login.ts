@@ -6,18 +6,18 @@ export const prerender = false;
 export const POST: APIRoute = async ({ request }) => {
   try {
     const body = await request.json();
-    const { email, password } = body;
+    const { username, password } = body;
 
-    if (!email || !password) {
-      return new Response(JSON.stringify({ error: '이메일과 비밀번호를 입력하세요.' }), {
+    if (!username || !password) {
+      return new Response(JSON.stringify({ error: '아이디와 비밀번호를 입력하세요.' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
     }
 
-    const user = await authenticateUser(email, password);
+    const user = await authenticateUser(username, password);
     if (!user) {
-      return new Response(JSON.stringify({ error: '이메일 또는 비밀번호가 올바르지 않습니다.' }), {
+      return new Response(JSON.stringify({ error: '아이디 또는 비밀번호가 올바르지 않습니다.' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' },
       });

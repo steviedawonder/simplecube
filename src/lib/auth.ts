@@ -11,15 +11,15 @@ const EXPIRY_HOURS = 24;
 
 export interface UserPayload {
   userId: number;
-  email: string;
+  username: string;
   role: 'owner' | 'editor';
   name: string;
 }
 
-export async function authenticateUser(email: string, password: string): Promise<UserPayload | null> {
+export async function authenticateUser(username: string, password: string): Promise<UserPayload | null> {
   const result = await db.execute({
-    sql: 'SELECT id, name, email, password_hash, role, active FROM users WHERE email = ?',
-    args: [email],
+    sql: 'SELECT id, name, username, password_hash, role, active FROM users WHERE username = ?',
+    args: [username],
   });
 
   if (result.rows.length === 0) return null;
@@ -32,7 +32,7 @@ export async function authenticateUser(email: string, password: string): Promise
 
   return {
     userId: user.id,
-    email: user.email,
+    username: user.username,
     role: user.role,
     name: user.name,
   };
@@ -51,7 +51,7 @@ export async function verifyToken(token: string): Promise<UserPayload | null> {
     const { payload } = await jwtVerify(token, JWT_SECRET);
     return {
       userId: payload.userId as number,
-      email: payload.email as string,
+      username: payload.username as string,
       role: payload.role as 'owner' | 'editor',
       name: payload.name as string,
     };
