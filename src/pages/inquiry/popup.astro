@@ -1,0 +1,321 @@
+---
+export const prerender = false;
+import BaseLayout from '@layouts/BaseLayout.astro';
+
+const boothModels = [
+  {
+    id: 'wood-edge',
+    name: '원목 (Edge)',
+    image: '/images/popup/wood-edge.jpg',
+    specs: { model: 'PHOTO-W-270ED', material: '원목 자체제작', size: 'W700 × L480 × H1950mm' },
+  },
+  {
+    id: 'wood-round',
+    name: '원목 (Round)',
+    image: '/images/popup/wood-round.jpg',
+    specs: { model: 'PHOTO-W-270RD', material: '원목 자체제작 (라운드)', size: 'W680 × L470 × H1950mm' },
+  },
+  {
+    id: 'popup',
+    name: '팝업부스',
+    image: '/images/popup/popup-model.jpg',
+    specs: { model: 'PHOTO-P-320AL', material: '알루미늄 (화이트)', size: 'W460 × L480 × H1700mm' },
+  },
+  {
+    id: 'module',
+    name: '모듈형',
+    image: '/images/popup/module-model.jpg',
+    specs: { model: 'PHOTO-M-270AC', material: '아크릴 (블랙)', size: 'W600 × L450 × H1900mm' },
+  },
+];
+---
+
+<BaseLayout title="행사문의 | 심플큐브">
+  <section class="bg-white min-h-screen py-16 lg:py-24">
+    <div class="mx-auto max-w-3xl px-6 lg:px-8">
+      <!-- Header -->
+      <div class="text-center mb-12">
+        <span class="text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">EVENT INQUIRY</span>
+        <h1 class="mt-4 text-[clamp(1.75rem,3vw,2.5rem)] font-bold text-primary">행사 문의</h1>
+        <p class="mt-3 text-sm text-secondary">아래 항목을 작성해 주시면 빠르게 안내드리겠습니다.</p>
+      </div>
+
+      <form id="inquiry-form" class="space-y-10">
+        <!-- 행사 정보 -->
+        <div>
+          <h2 class="text-base font-bold text-primary mb-6 flex items-center gap-2">
+            <span class="w-1 h-5 rounded-full bg-olive"></span>
+            행사 정보
+          </h2>
+          <div class="space-y-6">
+
+            <!-- 1. 포토부스 기기 (체크박스) -->
+            <div>
+              <label class="block text-sm font-medium text-primary mb-3">포토부스 기기 <span class="text-red-400 text-xs">*필수</span> <span class="text-olive text-xs">(복수 선택 가능)</span></label>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {boothModels.map((model) => (
+                  <label class="booth-label group relative cursor-pointer">
+                    <input type="checkbox" name="booth_type" value={model.name} class="peer sr-only" />
+                    <div class="rounded-xl border-2 border-border-light p-4 text-center transition-all duration-200 peer-checked:border-olive peer-checked:bg-olive/5 hover:border-olive/40">
+                      <img src={model.image} alt={model.name} class="w-full aspect-[3/4] object-cover rounded-lg mb-2" loading="lazy" />
+                      <span class="text-xs font-bold text-primary">{model.name}</span>
+                    </div>
+                    <!-- Hover tooltip -->
+                    <div class="booth-tooltip absolute z-50 hidden group-hover:block bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 bg-primary text-white rounded-xl p-4 shadow-xl text-xs pointer-events-none">
+                      <p class="font-bold mb-1">{model.specs.model}</p>
+                      <p>소재: {model.specs.material}</p>
+                      <p>크기: {model.specs.size}</p>
+                      <div class="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 rotate-45 w-3 h-3 bg-primary"></div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <!-- 행사 지역 (필수) -->
+            <div>
+              <label for="region" class="block text-sm font-medium text-primary mb-2">행사 지역 <span class="text-red-400 text-xs">*필수</span></label>
+              <select id="region" name="region" class="inq-input" required onchange="this.nextElementSibling.classList.toggle('hidden', this.value !== '기타')">
+                <option value="">선택해주세요</option>
+                <option>수도권 (서울, 경기, 인천)</option>
+                <option>강원</option>
+                <option>충청 (대전, 세종 등)</option>
+                <option>경상 (대구, 부산 등)</option>
+                <option>전라 (광주, 전주 등)</option>
+                <option value="기타">기타</option>
+              </select>
+              <input type="text" name="region_etc" placeholder="지역을 직접 입력해주세요" class="inq-input mt-2 hidden" />
+            </div>
+
+            <!-- 랩핑 진행 여부 (선택) -->
+            <div>
+              <label for="wrapping" class="block text-sm font-medium text-primary mb-2">랩핑 진행 여부 <span class="text-secondary text-xs">(선택)</span></label>
+              <select id="wrapping" name="wrapping" class="inq-input">
+                <option value="">선택해주세요</option>
+                <option>랩핑 안함</option>
+                <option>레터링</option>
+                <option>전체 랩핑</option>
+              </select>
+            </div>
+
+            <!-- 행사명 (선택) -->
+            <div>
+              <label for="event_name" class="block text-sm font-medium text-primary mb-2">행사명 <span class="text-secondary text-xs">(선택)</span></label>
+              <input type="text" id="event_name" name="event_name" placeholder="예) OO 팝업스토어, OO학교 행사 등" class="inq-input" />
+            </div>
+
+            <!-- 설치 장소 (선택) -->
+            <div>
+              <label for="venue" class="block text-sm font-medium text-primary mb-2">설치 장소 <span class="text-secondary text-xs">(선택 / 미정 시 대략적인 장소 작성)</span></label>
+              <input type="text" id="venue" name="venue" placeholder="예) 서울시 마포구 OO동 디퓨즈 건물 1층" class="inq-input" />
+            </div>
+
+            <!-- 행사 일정 (선택) -->
+            <div>
+              <label for="event_schedule" class="block text-sm font-medium text-primary mb-2">행사 일정 <span class="text-secondary text-xs">(선택 / 미정 시 대략적인 일정 작성)</span></label>
+              <textarea id="event_schedule" name="event_schedule" rows="2" placeholder="예) 2026년 1월 1일 12:00-18:00 (6시간)&#10;여러 날짜인 경우 모두 적어주세요" class="inq-input resize-none"></textarea>
+            </div>
+
+            <!-- 설치 / 철거 일정 (선택) -->
+            <div>
+              <label for="setup_schedule" class="block text-sm font-medium text-primary mb-2">설치 / 철거 일정 <span class="text-secondary text-xs">(선택 / 미정 시 대략적인 일정 작성)</span></label>
+              <input type="text" id="setup_schedule" name="setup_schedule" placeholder="예) 1월 1일 설치 11:00 / 철거 18:00" class="inq-input" />
+            </div>
+
+            <!-- 상세 문의 내용 (선택) -->
+            <div>
+              <label for="detail" class="block text-sm font-medium text-primary mb-2">상세 문의 내용 <span class="text-secondary text-xs">(선택)</span></label>
+              <textarea id="detail" name="detail" rows="4" placeholder="추가 문의사항이나 요청사항을 적어주세요" class="inq-input resize-none"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <hr class="border-border-light" />
+
+        <!-- 고객 정보 -->
+        <div>
+          <h2 class="text-base font-bold text-primary mb-6 flex items-center gap-2">
+            <span class="w-1 h-5 rounded-full bg-olive"></span>
+            고객 정보
+          </h2>
+          <div class="space-y-6">
+            <div>
+              <label for="company" class="block text-sm font-medium text-primary mb-2">고객사명 <span class="text-secondary text-xs">(개인 or 사업자명)</span> <span class="text-red-400 text-xs">*필수</span></label>
+              <input type="text" id="company" name="company" class="inq-input" required />
+            </div>
+            <div>
+              <label for="phone" class="block text-sm font-medium text-primary mb-2">연락처 <span class="text-red-400 text-xs">*필수</span></label>
+              <input type="tel" id="phone" name="phone" placeholder="010-0000-0000" class="inq-input" required />
+            </div>
+            <div>
+              <label for="email" class="block text-sm font-medium text-primary mb-2">이메일 주소 <span class="text-red-400 text-xs">*필수</span></label>
+              <input type="email" id="email" name="email" class="inq-input" required />
+            </div>
+            <div>
+              <label for="contact_name" class="block text-sm font-medium text-primary mb-2">담당자 정보 <span class="text-secondary text-xs">(선택 / 성함, 직책)</span></label>
+              <input type="text" id="contact_name" name="contact_name" class="inq-input" />
+            </div>
+          </div>
+        </div>
+
+        <hr class="border-border-light" />
+
+        <!-- 인지 경로 -->
+        <div>
+          <h2 class="text-base font-bold text-primary mb-6 flex items-center gap-2">
+            <span class="w-1 h-5 rounded-full bg-olive"></span>
+            심플큐브 인지 경로
+          </h2>
+          <select id="referral" name="referral" class="inq-input" required onchange="this.nextElementSibling.classList.toggle('hidden', this.value !== '기타')">
+            <option value="">선택해주세요</option>
+            <option>네이버 검색</option>
+            <option>구글 검색</option>
+            <option>인스타그램</option>
+            <option>블로그</option>
+            <option>지인 소개</option>
+            <option>유사 서비스 직접 경험</option>
+            <option>심플큐브 기존 이용 경험 (웨딩, 행사)</option>
+            <option value="기타">기타</option>
+          </select>
+          <input type="text" name="referral_etc" placeholder="직접 입력해주세요" class="inq-input mt-2 hidden" />
+        </div>
+
+        <hr class="border-border-light" />
+
+        <!-- 개인정보 동의 -->
+        <div>
+          <label class="flex items-start gap-3 cursor-pointer">
+            <input type="checkbox" id="privacy" name="privacy" class="mt-1 h-4 w-4 rounded border-border text-olive focus:ring-olive" required />
+            <span class="text-sm text-secondary leading-relaxed">
+              <strong class="text-primary">개인정보 수집 및 이용 동의</strong><br />
+              문의 접수 및 상담 목적으로 개인정보(고객사명, 담당자 정보, 연락처, 이메일)를 수집합니다. 수집된 정보는 상담 완료 후 3개월 이내 파기됩니다.
+            </span>
+          </label>
+        </div>
+
+        <!-- Submit -->
+        <div class="pt-4">
+          <button
+            type="submit"
+            id="submit-btn"
+            class="w-full rounded-xl bg-primary text-white py-4 text-base font-bold transition-all duration-300 hover:bg-primary/90 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            작성 완료
+          </button>
+        </div>
+      </form>
+
+      <!-- Success message -->
+      <div id="success-msg" class="hidden text-center py-20">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-olive/10 text-olive mb-6">
+          <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+        </div>
+        <h2 class="text-2xl font-bold text-primary mb-3">문의가 접수되었습니다</h2>
+        <p class="text-secondary">빠른 시일 내에 담당자가 연락드리겠습니다.</p>
+        <a href="/" class="inline-block mt-8 px-8 py-3 rounded-full bg-bg-light text-primary font-medium text-sm hover:bg-border-light transition-colors">홈으로 돌아가기</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style is:global>
+  .inq-input {
+    width: 100%;
+    border-radius: 0.75rem;
+    border: 1px solid var(--color-border-light, #e5e5e5);
+    background: var(--color-bg-light, #f9f8f6);
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    color: var(--color-primary, #1d1d1f);
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .inq-input::placeholder { color: rgba(134,134,139,0.5); }
+  .inq-input:focus {
+    border-color: var(--color-olive, #b8a88a);
+    background: #fff;
+    outline: none;
+  }
+  select.inq-input {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23999' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 8.25l-7.5 7.5-7.5-7.5'/%3E%3C/svg%3E");
+    background-size: 1rem;
+    background-position: right 1rem center;
+    background-repeat: no-repeat;
+    padding-right: 2.5rem;
+  }
+</style>
+
+<script>
+{
+  const form = document.getElementById('inquiry-form') as HTMLFormElement;
+  const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+  const successMsg = document.getElementById('success-msg')!;
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    // Validate booth type checkboxes (required)
+    const boothChecked = form.querySelectorAll('input[name="booth_type"]:checked');
+    if (boothChecked.length === 0) {
+      alert('포토부스 기기를 1개 이상 선택해주세요.');
+      return;
+    }
+
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = '전송 중...';
+
+    const formData = new FormData(form);
+
+    // Collect booth types (checkboxes)
+    const boothTypes = formData.getAll('booth_type').join(', ');
+
+    // Handle "기타" for region and referral
+    let region = formData.get('region') as string;
+    if (region === '기타') region = `기타: ${formData.get('region_etc') || ''}`;
+
+    let referral = formData.get('referral') as string;
+    if (referral === '기타') referral = `기타: ${formData.get('referral_etc') || ''}`;
+
+    const data = {
+      booth_type: boothTypes,
+      wrapping: formData.get('wrapping'),
+      region,
+      event_name: formData.get('event_name'),
+      venue: formData.get('venue'),
+      event_schedule: formData.get('event_schedule'),
+      setup_schedule: formData.get('setup_schedule'),
+      detail: formData.get('detail'),
+      company: formData.get('company'),
+      contact_name: formData.get('contact_name'),
+      phone: formData.get('phone'),
+      email: formData.get('email'),
+      referral,
+    };
+
+    try {
+      const res = await fetch('/api/inquiry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (res.ok) {
+        form.classList.add('hidden');
+        successMsg.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        throw new Error('전송 실패');
+      }
+    } catch {
+      alert('문의 전송에 실패했습니다. 잠시 후 다시 시도해주세요.');
+      submitBtn.disabled = false;
+      submitBtn.textContent = '작성 완료';
+    }
+  });
+}
+</script>

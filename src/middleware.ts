@@ -8,7 +8,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const { pathname } = context.url;
 
   // 정적 페이지는 DB 초기화 불필요 — admin/api/blog 경로만 DB 사용
-  const needsDB = pathname.startsWith('/admin') || pathname.startsWith('/api/') || pathname.startsWith('/blog') || pathname === '/popup' || pathname === '/wedding' || pathname === '/';
+  const needsDB = pathname.startsWith('/admin') || pathname.startsWith('/api/') || pathname.startsWith('/blog') || pathname.startsWith('/inquiry') || pathname === '/popup' || pathname === '/wedding' || pathname === '/';
 
   if (needsDB && !dbInitialized) {
     try {
@@ -39,8 +39,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   // Protect mutating API routes
   if (pathname.startsWith('/api/') && context.request.method !== 'GET') {
-    // Allow login endpoint without auth
-    if (pathname === '/api/auth/login') {
+    // Allow public endpoints without auth
+    if (pathname === '/api/auth/login' || pathname === '/api/inquiry') {
       return next();
     }
     const token = getTokenFromCookies(context.request.headers.get('cookie'));

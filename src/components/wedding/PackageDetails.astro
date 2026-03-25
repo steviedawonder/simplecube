@@ -3,7 +3,7 @@ import db from '@lib/db';
 
 // Icon mapping by package name
 const iconMap: Record<string, string> = {
-  '하객 제공 사진': '📸',
+  '무제한 사진 인화': '📸',
   '포토 방명록': '📖',
   '원목 액자': '🖼️',
   '원본 & GIF USB': '💾',
@@ -11,7 +11,7 @@ const iconMap: Record<string, string> = {
 
 // Hardcoded fallback
 const defaultItems = [
-  { name: '하객 제공 사진', desc: '동일 사진 2장 즉시 인화', detail: '한 장은 하객에게 기념으로, 한 장은 방명록용으로 제공됩니다.', image_url: '/images/wedding/booth-print.jpg' },
+  { name: '무제한 사진 인화', desc: '동일 사진 2장 즉시 인화', detail: '한 장은 하객에게 기념으로, 한 장은 방명록용으로 제공됩니다.', image_url: '/images/wedding/booth-print.jpg' },
   { name: '포토 방명록', desc: '사진+축하 메시지를 담은 바인더', detail: '바인더형 방명록에 사진과 축하 메시지를 담아 신랑·신부님께 선물합니다.', image_url: '/images/wedding/photo-strips.jpg' },
   { name: '원목 액자', desc: '대표 사진을 액자에 담아 제공', detail: '신랑·신부님의 대표 사진을 원목 액자에 넣어 전달드립니다.', image_url: '/images/wedding/frame.jpg' },
   { name: '원본 & GIF USB', desc: '모든 원본 사진+GIF USB 전달', detail: '촬영된 모든 원본 사진과 GIF 파일을 USB에 담아 드립니다.', image_url: '/images/wedding/giftbox.jpg' },
@@ -51,7 +51,6 @@ if (packageItems.length === 0) {
 
 const specs = [
   { label: '촬영 배경', value: '백드롭 6종 택 1' },
-  { label: '촬영 조명', value: '스튜디오 조명' },
   { label: '현장 스텝', value: '전담 스텝 2인' },
   { label: '촬영 소품', value: '웨딩 소품 제공' },
   { label: '사진 인화', value: '무제한' },
