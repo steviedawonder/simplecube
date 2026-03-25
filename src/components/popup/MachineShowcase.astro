@@ -48,20 +48,11 @@ try {
   }
 } catch { /* table may not exist yet */ }
 
-// 각 모델의 DB 첫 번째 사진을 썸네일로 사용 (Cloudinary trim으로 투명 여백 자동 제거)
+// 각 모델의 DB 첫 번째 사진을 썸네일로 사용
 function getModelThumbnail(componentId: string, fallback: string): string {
   const dbModelId = modelIdMap[componentId];
   const photos = dbModelId ? modelPhotosMap[dbModelId] : null;
-  if (photos && photos.length > 0) {
-    const url = photos[0].src;
-    // Cloudinary URL이면 c_trim 적용 (투명 여백 자동 제거)
-    if (url.includes('res.cloudinary.com') && url.includes('/upload/')) {
-      return url.replace('/upload/', '/upload/c_trim/');
-    }
-    return url;
-  }
-  // 폴백 이미지도 로컬이면 그대로 반환
-  return fallback;
+  return photos && photos.length > 0 ? photos[0].src : fallback;
 }
 
 const models = [
