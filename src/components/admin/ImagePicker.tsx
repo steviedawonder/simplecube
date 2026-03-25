@@ -19,6 +19,7 @@ export default function ImagePicker({ isOpen, onClose, onSelect }: ImagePickerPr
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
   const [selected, setSelected] = useState<string | null>(null);
   const [tab, setTab] = useState<'library' | 'url'>('library');
   const [urlInput, setUrlInput] = useState('');
@@ -37,24 +38,41 @@ export default function ImagePicker({ isOpen, onClose, onSelect }: ImagePickerPr
 
   async function fetchMedia() {
     setLoading(true);
+    setErrorMsg('');
     try {
       const res = await fetch('/api/media');
       if (res.ok) {
         const data = await res.json();
-        setMedia(data);
+        setMedia(Array.isArray(data) ? data : []);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setErrorMsg(err.error || '미디어 목록을 불러올 수 없습니다.');
       }
-    } catch {
-      // silently fail
+    } catch (e: any) {
+      setErrorMsg('서버에 연결할 수 없습니다. 네트워크를 확인하세요.');
     }
     setLoading(false);
   }
 
   async function handleUpload(files: FileList | File[]) {
     setUploading(true);
-    const total = Array.from(files).length;
+    setErrorMsg('');
+    const fileArr = Array.from(files);
+    const total = fileArr.length;
     let uploaded = 0;
+    const errors: string[] = [];
 
-    for (const file of Array.from(files)) {
+    for (const file of fileArr) {
+      // 클라이언트 사전 검증
+      if (!file.type.startsWith('image/')) {
+        errors.push(`${file.name}: 이미지 파일이 아닙니다.`);
+        continue;
+      }
+      if (file.size > 20 * 1024 * 1024) {
+        errors.push(`${file.name}: 20MB 초과`);
+        continue;
+      }
+
       setUploadProgress(`업로드 중... (${uploaded + 1}/${total})`);
       const formData = new FormData();
       formData.append('file', file);
@@ -63,16 +81,25 @@ export default function ImagePicker({ isOpen, onClose, onSelect }: ImagePickerPr
         const res = await fetch('/api/media/upload', { method: 'POST', body: formData });
         if (res.ok) {
           uploaded++;
+        } else {
+          const err = await res.json().catch(() => ({ error: '알 수 없는 오류' }));
+          errors.push(`${file.name}: ${err.error}`);
         }
-      } catch {
-        // continue
+      } catch (e: any) {
+        errors.push(`${file.name}: 네트워크 오류`);
       }
     }
 
-    setUploadProgress(`${uploaded}/${total}개 완료`);
+    if (errors.length > 0) {
+      setErrorMsg(errors.join('\n'));
+      setUploadProgress(`${uploaded}/${total}개 완료 (${errors.length}개 실패)`);
+    } else {
+      setUploadProgress(`${uploaded}/${total}개 완료`);
+    }
+
     setUploading(false);
     await fetchMedia();
-    setTimeout(() => setUploadProgress(''), 2000);
+    setTimeout(() => setUploadProgress(''), 3000);
   }
 
   // Drag and drop
@@ -290,6 +317,35 @@ export default function ImagePicker({ isOpen, onClose, onSelect }: ImagePickerPr
                   <span style={{ fontSize: '0.8125rem', color: '#6e6e73' }}>처리 중...</span>
                 )}
               </div>
+
+              {/* Error Message */}
+              {errorMsg && (
+                <div
+                  style={{
+                    padding: '10px 14px',
+                    marginBottom: 12,
+                    backgroundColor: '#FEF2F2',
+                    border: '1px solid #FECACA',
+                    borderRadius: 6,
+                    fontSize: '0.8125rem',
+                    color: '#DC2626',
+                    whiteSpace: 'pre-line',
+                    display: 'flex',
+                    gap: 8,
+                    alignItems: 'flex-start',
+                  }}
+                >
+                  <span style={{ flexShrink: 0 }}>⚠️</span>
+                  <span>{errorMsg}</span>
+                  <button
+                    type="button"
+                    onClick={() => setErrorMsg('')}
+                    style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#DC2626', fontWeight: 700, flexShrink: 0 }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
 
               {/* Media Grid */}
               {loading ? (
