@@ -27,19 +27,19 @@ export const GET: APIRoute = async ({ url }) => {
     args.push(page);
   }
 
-  // Single tag filter (legacy)
+  // Single tag filter (legacy) — 공백 허용: "태그1, 태그2" 형식 대응
   if (tag) {
-    sql += " AND (',' || tags || ',') LIKE ?";
-    args.push(`%,${tag},%`);
+    sql += " AND (',' || REPLACE(tags, ' ', '') || ',') LIKE ?";
+    args.push(`%,${tag.trim().replace(/ /g, '')},%`);
   }
 
-  // Multi-tag OR filter: ?tags=랩핑,삼성 → any match
+  // Multi-tag OR filter: ?tags=랩핑,삼성 → any match — 공백 허용
   if (tags) {
     const tagList = tags.split(',').map(t => t.trim()).filter(Boolean);
     if (tagList.length > 0) {
-      const tagConditions = tagList.map(() => "(',' || tags || ',') LIKE ?");
+      const tagConditions = tagList.map(() => "(',' || REPLACE(tags, ' ', '') || ',') LIKE ?");
       sql += ` AND (${tagConditions.join(' OR ')})`;
-      tagList.forEach(t => args.push(`%,${t},%`));
+      tagList.forEach(t => args.push(`%,${t.replace(/ /g, '')},%`));
     }
   }
 
