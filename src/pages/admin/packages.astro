@@ -189,11 +189,25 @@ import AdminLayout from '@layouts/AdminLayout.astro';
         </td>
         <td class="px-4 py-3 text-sm text-gray-500 hidden md:table-cell">${escapeHtml((item.description || '').length > 80 ? item.description.slice(0, 80) + '…' : (item.description || ''))}</td>
         <td class="px-4 py-3 text-right">
-          <button onclick="editItem(${item.id})" class="text-sm text-blue-600 hover:text-blue-800 mr-3">수정</button>
-          <button onclick="deleteItem(${item.id})" class="text-sm text-red-600 hover:text-red-800">삭제</button>
+          <button data-edit-id="${item.id}" class="text-sm text-blue-600 hover:text-blue-800 mr-3">수정</button>
+          <button data-delete-id="${item.id}" class="text-sm text-red-600 hover:text-red-800">삭제</button>
         </td>
       </tr>
     `).join('');
+
+    // Bind edit/delete buttons via event delegation
+    tbody.querySelectorAll('[data-edit-id]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = Number((btn as HTMLElement).dataset.editId);
+        editItem(id);
+      });
+    });
+    tbody.querySelectorAll('[data-delete-id]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = Number((btn as HTMLElement).dataset.deleteId);
+        deleteItemFn(id);
+      });
+    });
   }
 
   // Modal
@@ -247,7 +261,7 @@ import AdminLayout from '@layouts/AdminLayout.astro';
     }
   });
 
-  (window as any).editItem = (id: number) => {
+  function editItem(id: number) {
     const item = allItems.find((i: any) => i.id === id);
     if (!item) return;
     pkgId.value = String(id);
@@ -274,11 +288,11 @@ import AdminLayout from '@layouts/AdminLayout.astro';
     openModal(true);
   };
 
-  (window as any).deleteItem = async (id: number) => {
+  async function deleteItemFn(id: number) {
     if (!confirm('이 항목을 삭제하시겠습니까?')) return;
     await fetch(`/api/package-items/${id}`, { method: 'DELETE' });
     loadPackageItems();
-  };
+  }
 
   // ===== Branches =====
   const branchSections = ['seoul', 'busan', 'daejeon', 'jeonju'];
