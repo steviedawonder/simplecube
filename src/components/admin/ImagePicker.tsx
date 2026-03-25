@@ -54,6 +54,63 @@ export default function ImagePicker({ isOpen, onClose, onSelect }: ImagePickerPr
     setLoading(false);
   }
 
+  // 2MB 초과 이미지를 자동 압축
+  async function compressImage(file: File, maxBytes: number = 2 * 1024 * 1024): Promise<File> {
+    if (file.size <= maxBytes) return file;
+
+    // SVG는 압축 불가 — 그대로 반환
+    if (file.type === 'image/svg+xml') return file;
+
+    return new Promise((resolve, reject) => {
+      const img = new window.Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+
+        let { width, height } = img;
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d')!;
+
+        // 큰 이미지는 비율 유지하며 리사이즈
+        const maxDim = 2400;
+        if (width > maxDim || height > maxDim) {
+          const ratio = Math.min(maxDim / width, maxDim / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // quality를 단계적으로 낮춰서 2MB 이하 찾기
+        let quality = 0.85;
+        const tryCompress = () => {
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) return reject(new Error('압축 실패'));
+              if (blob.size <= maxBytes || quality <= 0.3) {
+                const compressed = new File([blob], file.name, { type: 'image/jpeg' });
+                resolve(compressed);
+              } else {
+                quality -= 0.1;
+                tryCompress();
+              }
+            },
+            'image/jpeg',
+            quality
+          );
+        };
+        tryCompress();
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        resolve(file); // 압축 실패 시 원본 사용
+      };
+      img.src = url;
+    });
+  }
+
   async function handleUpload(files: FileList | File[]) {
     setUploading(true);
     setErrorMsg('');
@@ -62,18 +119,28 @@ export default function ImagePicker({ isOpen, onClose, onSelect }: ImagePickerPr
     let uploaded = 0;
     const errors: string[] = [];
 
-    for (const file of fileArr) {
-      // 클라이언트 사전 검증
+    for (let i = 0; i < fileArr.length; i++) {
+      let file = fileArr[i];
+
+      // 이미지 파일 검증
       if (!file.type.startsWith('image/')) {
         errors.push(`${file.name}: 이미지 파일이 아닙니다.`);
         continue;
       }
-      if (file.size > 20 * 1024 * 1024) {
-        errors.push(`${file.name}: 20MB 초과`);
-        continue;
+
+      // 2MB 초과 시 자동 압축
+      if (file.size > 2 * 1024 * 1024) {
+        const origSize = (file.size / 1024 / 1024).toFixed(1);
+        setUploadProgress(`압축 중... ${file.name} (${origSize}MB)`);
+        try {
+          file = await compressImage(file);
+        } catch {
+          errors.push(`${file.name}: 압축 실패`);
+          continue;
+        }
       }
 
-      setUploadProgress(`업로드 중... (${uploaded + 1}/${total})`);
+      setUploadProgress(`업로드 중... (${i + 1}/${total})`);
       const formData = new FormData();
       formData.append('file', file);
 

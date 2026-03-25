@@ -4,9 +4,7 @@ import db from '@lib/db';
 
 export const prerender = false;
 
-// 허용 파일 타입
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'image/avif'];
-const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB (클라이언트에서 2MB로 압축 후 전송)
 
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -40,18 +38,11 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    // 3. 파일 검증
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      return new Response(
-        JSON.stringify({ error: `지원하지 않는 파일 형식입니다: ${file.type}. (jpg, png, gif, webp, svg, avif만 가능)` }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
+    // 3. 파일 크기 검증 (클라이언트에서 2MB 이하로 압축 후 전송)
     if (file.size > MAX_FILE_SIZE) {
       const sizeMB = (file.size / 1024 / 1024).toFixed(1);
       return new Response(
-        JSON.stringify({ error: `파일이 너무 큽니다 (${sizeMB}MB). 최대 20MB까지 업로드 가능합니다.` }),
+        JSON.stringify({ error: `파일이 너무 큽니다 (${sizeMB}MB). 최대 10MB까지 업로드 가능합니다.` }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
