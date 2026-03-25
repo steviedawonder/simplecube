@@ -1,4 +1,4 @@
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, NodeViewWrapper, ReactNodeViewRenderer } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
@@ -6,8 +6,175 @@ import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
 import TextAlign from '@tiptap/extension-text-align';
 import Heading from '@tiptap/extension-heading';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
+import type { ReactNode } from 'react';
 
+/* ================================================================
+   Resizable Image Node View
+   ================================================================ */
+function ResizableImageView({ node, updateAttributes, selected }: any) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [resizing, setResizing] = useState(false);
+  const startX = useRef(0);
+  const startW = useRef(0);
+
+  const onMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const img = containerRef.current?.querySelector('img');
+    if (!img) return;
+    startX.current = e.clientX;
+    startW.current = img.offsetWidth;
+    setResizing(true);
+
+    const onMouseMove = (ev: MouseEvent) => {
+      const diff = ev.clientX - startX.current;
+      const newW = Math.max(50, startW.current + diff);
+      const parent = containerRef.current?.closest('.tiptap');
+      const maxW = parent ? (parent as HTMLElement).offsetWidth - 48 : 800;
+      const clampedW = Math.min(newW, maxW);
+      updateAttributes({ width: `${Math.round(clampedW)}px` });
+    };
+
+    const onMouseUp = () => {
+      setResizing(false);
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  }, [updateAttributes]);
+
+  const width = node.attrs.width || undefined;
+
+  return (
+    <NodeViewWrapper as="div" style={{ display: 'inline-block', position: 'relative', maxWidth: '100%' }}>
+      <div
+        ref={containerRef}
+        style={{
+          display: 'inline-block',
+          position: 'relative',
+          width: width || 'auto',
+          maxWidth: '100%',
+          lineHeight: 0,
+        }}
+        data-drag-handle
+      >
+        <img
+          src={node.attrs.src}
+          alt={node.attrs.alt || ''}
+          title={node.attrs.title || undefined}
+          style={{
+            width: '100%',
+            height: 'auto',
+            borderRadius: 6,
+            display: 'block',
+            outline: selected ? '2px solid #D4AA45' : undefined,
+            cursor: 'default',
+          }}
+          draggable={false}
+        />
+        {/* Right edge handle */}
+        {selected && (
+          <div
+            onMouseDown={onMouseDown}
+            style={{
+              position: 'absolute',
+              top: 0,
+              right: -4,
+              width: 8,
+              height: '100%',
+              cursor: 'ew-resize',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 10,
+            }}
+          >
+            <div
+              style={{
+                width: 4,
+                height: 40,
+                maxHeight: '50%',
+                borderRadius: 2,
+                background: '#D4AA45',
+                opacity: resizing ? 1 : 0.7,
+                transition: 'opacity 0.15s',
+              }}
+            />
+          </div>
+        )}
+        {/* Bottom-right corner handle */}
+        {selected && (
+          <div
+            onMouseDown={onMouseDown}
+            style={{
+              position: 'absolute',
+              bottom: -4,
+              right: -4,
+              width: 14,
+              height: 14,
+              cursor: 'nwse-resize',
+              background: '#D4AA45',
+              borderRadius: 3,
+              border: '2px solid #fff',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
+              zIndex: 10,
+            }}
+          />
+        )}
+        {/* Width indicator while resizing */}
+        {selected && resizing && (
+          <div
+            style={{
+              position: 'absolute',
+              top: -28,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              background: '#1d1d1f',
+              color: '#fff',
+              fontSize: '0.7rem',
+              fontWeight: 600,
+              padding: '2px 8px',
+              borderRadius: 4,
+              whiteSpace: 'nowrap',
+              zIndex: 20,
+            }}
+          >
+            {width || 'auto'}
+          </div>
+        )}
+      </div>
+    </NodeViewWrapper>
+  );
+}
+
+/* ================================================================
+   Custom Image Extension with NodeView
+   ================================================================ */
+const ResizableImage = Image.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      width: {
+        default: null,
+        parseHTML: (element: HTMLElement) => element.getAttribute('width') || element.style.width || null,
+        renderHTML: (attributes: Record<string, any>) => {
+          if (!attributes.width) return {};
+          return { width: attributes.width, style: `width: ${attributes.width}` };
+        },
+      },
+    };
+  },
+  addNodeView() {
+    return ReactNodeViewRenderer(ResizableImageView);
+  },
+});
+
+/* ================================================================
+   Toolbar Components
+   ================================================================ */
 interface TipTapEditorProps {
   content: string;
   onChange: (html: string) => void;
@@ -23,7 +190,7 @@ function ToolbarButton({
   active?: boolean;
   onClick: () => void;
   title: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <button
@@ -72,6 +239,9 @@ function ToolbarSeparator() {
   );
 }
 
+/* ================================================================
+   Main Editor Component
+   ================================================================ */
 export default function TipTapEditor({ content, onChange, onImageButtonClick }: TipTapEditorProps) {
   const editor = useEditor({
     immediatelyRender: false,
@@ -90,7 +260,7 @@ export default function TipTapEditor({ content, onChange, onImageButtonClick }: 
           target: '_blank',
         },
       }),
-      Image.configure({
+      ResizableImage.configure({
         HTMLAttributes: {
           class: 'blog-image',
         },
@@ -159,6 +329,7 @@ export default function TipTapEditor({ content, onChange, onImageButtonClick }: 
         borderRadius: 8,
         overflow: 'hidden',
         backgroundColor: '#ffffff',
+        position: 'relative',
       }}
     >
       {/* Toolbar */}
@@ -173,7 +344,6 @@ export default function TipTapEditor({ content, onChange, onImageButtonClick }: 
           backgroundColor: '#fafafa',
         }}
       >
-        {/* Bold, Italic, Underline */}
         <ToolbarButton
           active={editor.isActive('bold')}
           onClick={() => editor.chain().focus().toggleBold().run()}
@@ -198,7 +368,6 @@ export default function TipTapEditor({ content, onChange, onImageButtonClick }: 
 
         <ToolbarSeparator />
 
-        {/* Headings */}
         <ToolbarButton
           active={editor.isActive('heading', { level: 2 })}
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
@@ -223,7 +392,6 @@ export default function TipTapEditor({ content, onChange, onImageButtonClick }: 
 
         <ToolbarSeparator />
 
-        {/* Lists */}
         <ToolbarButton
           active={editor.isActive('bulletList')}
           onClick={() => editor.chain().focus().toggleBulletList().run()}
@@ -255,7 +423,6 @@ export default function TipTapEditor({ content, onChange, onImageButtonClick }: 
 
         <ToolbarSeparator />
 
-        {/* Blockquote, Code block */}
         <ToolbarButton
           active={editor.isActive('blockquote')}
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
@@ -278,7 +445,6 @@ export default function TipTapEditor({ content, onChange, onImageButtonClick }: 
 
         <ToolbarSeparator />
 
-        {/* Link, Image */}
         <ToolbarButton
           active={editor.isActive('link')}
           onClick={setLink}
@@ -299,7 +465,6 @@ export default function TipTapEditor({ content, onChange, onImageButtonClick }: 
 
         <ToolbarSeparator />
 
-        {/* Text align */}
         <ToolbarButton
           active={editor.isActive({ textAlign: 'left' })}
           onClick={() => editor.chain().focus().setTextAlign('left').run()}
@@ -438,8 +603,13 @@ export default function TipTapEditor({ content, onChange, onImageButtonClick }: 
           margin: 1rem 0;
         }
 
-        .tiptap-editor-wrapper .tiptap img.ProseMirror-selectednode {
+        .tiptap-editor-wrapper .tiptap .ProseMirror-selectednode img {
           outline: 2px solid #D4AA45;
+        }
+
+        /* NodeView wrapper for images */
+        .tiptap-editor-wrapper .tiptap [data-node-view-wrapper] {
+          margin: 1rem 0;
         }
       `}</style>
     </div>

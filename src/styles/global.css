@@ -34,6 +34,14 @@
   src: url('/fonts/ONEMobileTitle.ttf') format('truetype');
 }
 
+/* ===== Audrey Font (Logo) ===== */
+@font-face {
+  font-family: 'Audrey';
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/Audrey-Normal.otf') format('opentype');
+}
+
 /* ===== Tailwind v4 Theme ===== */
 @theme {
   --font-sans: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
