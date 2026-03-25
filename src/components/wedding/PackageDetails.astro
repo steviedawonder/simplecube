@@ -147,31 +147,20 @@ try {
       ))}
     </div>
 
-    {/* Included items - card style with hover */}
-    <div class="mt-6 rounded-xl border border-border-light bg-white p-5 md:p-8">
+    {/* Included items */}
+    <div class="mt-8 border-t border-border-light pt-6 md:pt-8 px-1">
       <h4 class="text-sm font-bold text-primary mb-5">기본 구성에 포함</h4>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-5">
         {specs.map((spec: any, i: number) => (
           <div
-            class="spec-item relative group cursor-pointer rounded-xl border border-[#e8e8ed] bg-[#FAFAF8] p-4 transition-all duration-300 hover:border-[#D4AA45]/40 hover:shadow-md hover:-translate-y-0.5"
+            class="spec-item relative group cursor-pointer py-3 border-b border-transparent hover:border-[#D4AA45]/30 transition-all duration-300"
             data-spec-idx={i}
           >
-            {/* Icon dot */}
-            <div class="flex items-center gap-2 mb-2">
-              <div class="w-1.5 h-1.5 rounded-full bg-[#D4AA45]/50 group-hover:bg-[#D4AA45] transition-colors"></div>
-              <span class="text-[10px] font-medium text-[#8B7E72]/60 uppercase tracking-wider">{spec.label}</span>
-            </div>
-            <p class="text-sm font-bold text-[#2E2318] group-hover:text-[#D4AA45] transition-colors leading-snug">{spec.value}</p>
-            {/* Subtle hint for hoverable items */}
-            {(spec.desc || spec.image_url) && (
-              <div class="mt-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <svg class="w-3 h-3 text-[#D4AA45]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                <span class="text-[9px] text-[#D4AA45] font-medium">상세보기</span>
-              </div>
-            )}
+            <span class="text-[10px] font-medium text-[#8B7E72]/60 uppercase tracking-wider">{spec.label}</span>
+            <p class="text-sm font-bold text-[#2E2318] mt-1 group-hover:text-[#D4AA45] transition-colors">{spec.value}</p>
             {/* Hover popover */}
             {(spec.desc || spec.image_url) && (
-              <div class="spec-popover absolute z-30 bottom-full left-1/2 -translate-x-1/2 mb-3 w-72 bg-white rounded-xl shadow-2xl border border-[#e8e8ed] overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none">
+              <div class="spec-popover absolute z-30 bottom-full left-1/2 -translate-x-1/2 mb-3 w-72 bg-white shadow-2xl border border-[#e8e8ed] overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none">
                 {spec.image_url && (
                   <img src={spec.image_url} alt={spec.label} class="w-full h-[200px] object-cover" loading="lazy" />
                 )}
