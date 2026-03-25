@@ -107,7 +107,6 @@ import AdminLayout from '@layouts/AdminLayout.astro';
   const pkgName = document.getElementById('pkg-name') as HTMLInputElement;
   const pkgSubtitle = document.getElementById('pkg-subtitle') as HTMLInputElement;
   const pkgDetail = document.getElementById('pkg-detail') as HTMLTextAreaElement;
-  const pkgPrice = document.getElementById('pkg-price') as HTMLInputElement;
   const pkgImage = document.getElementById('pkg-image') as HTMLInputElement;
   const pkgImgPreview = document.getElementById('pkg-img-preview') as HTMLDivElement;
   const pkgFileInput = document.getElementById('pkg-file-input') as HTMLInputElement;
@@ -239,7 +238,6 @@ import AdminLayout from '@layouts/AdminLayout.astro';
       page: currentTab,
       name: pkgName.value,
       description,
-      price: pkgPrice.value,
       image_url: pkgImage.value,
     };
 
@@ -282,7 +280,6 @@ import AdminLayout from '@layouts/AdminLayout.astro';
         pkgDetail.value = '';
       }
     }
-    pkgPrice.value = item.price || '';
     pkgImage.value = item.image_url || '';
     updateImgPreview();
     openModal(true);
