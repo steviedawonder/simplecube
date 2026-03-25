@@ -36,6 +36,20 @@ import AdminLayout from '@layouts/AdminLayout.astro';
     </table>
   </div>
 
+  <!-- Specs Section (기본 구성에 포함) - wedding only -->
+  <div id="specs-section" class="mt-6 bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div class="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+      <h3 class="text-sm font-semibold text-gray-700">기본 구성에 포함</h3>
+      <button id="add-spec-btn" class="text-xs text-[#D4AA45] hover:text-[#C49A2F] font-medium">+ 항목 추가</button>
+    </div>
+    <div id="specs-list" class="divide-y divide-gray-100 p-4 space-y-3">
+      <p class="text-sm text-gray-400 text-center py-4">로딩 중...</p>
+    </div>
+    <div class="px-4 py-3 border-t border-gray-200 flex justify-end">
+      <button id="save-specs-btn" class="px-5 py-2 bg-[#D4AA45] text-white rounded-lg text-sm font-medium hover:bg-[#C49A2F] transition-colors">저장</button>
+    </div>
+  </div>
+
   <!-- Branch Section -->
   <div id="branch-section" class="hidden">
     <div id="branch-cards" class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -291,6 +305,95 @@ import AdminLayout from '@layouts/AdminLayout.astro';
     loadPackageItems();
   }
 
+  // ===== Specs (기본 구성에 포함) =====
+  const specsSection = document.getElementById('specs-section') as HTMLDivElement;
+  const specsList = document.getElementById('specs-list') as HTMLDivElement;
+  const addSpecBtn = document.getElementById('add-spec-btn') as HTMLButtonElement;
+  const saveSpecsBtn = document.getElementById('save-specs-btn') as HTMLButtonElement;
+
+  let specsData: { label: string; value: string; desc: string; image_url: string }[] = [];
+
+  async function loadSpecs() {
+    try {
+      const res = await fetch('/api/page-contents?page=wedding&section=package&key=specs');
+      if (res.ok) {
+        const data = await res.json();
+        const row = data.find((r: any) => r.key === 'specs');
+        if (row) {
+          specsData = JSON.parse(row.value);
+        }
+      }
+    } catch {}
+    if (specsData.length === 0) {
+      specsData = [
+        { label: '촬영 배경', value: '백드롭 6종 택 1', desc: '', image_url: '' },
+        { label: '현장 스텝', value: '전담 스텝 2인', desc: '', image_url: '' },
+        { label: '촬영 소품', value: '웨딩 소품 제공', desc: '', image_url: '' },
+        { label: '사진 인화', value: '무제한', desc: '', image_url: '' },
+        { label: '개별 포장', value: '필름 개별 포장', desc: '', image_url: '' },
+        { label: '방명록 용지', value: '무제한 제공', desc: '', image_url: '' },
+        { label: '안내 카드', value: '동봉카드 100매', desc: '', image_url: '' },
+      ];
+    }
+    renderSpecs();
+  }
+
+  function renderSpecs() {
+    specsList.innerHTML = specsData.map((s, i) => `
+      <div class="flex flex-col gap-2 p-3 bg-gray-50 rounded-lg" data-spec-row="${i}">
+        <div class="flex gap-2 items-center">
+          <input type="text" value="${escapeHtml(s.label)}" placeholder="항목명" class="spec-label flex-1 rounded border border-gray-300 px-2 py-1.5 text-sm focus:border-[#D4AA45] focus:outline-none" />
+          <input type="text" value="${escapeHtml(s.value)}" placeholder="내용" class="spec-value flex-1 rounded border border-gray-300 px-2 py-1.5 text-sm focus:border-[#D4AA45] focus:outline-none" />
+          <button type="button" class="spec-remove text-red-400 hover:text-red-600 text-lg px-1" title="삭제">✕</button>
+        </div>
+        <div class="flex gap-2 items-start">
+          <input type="text" value="${escapeHtml(s.image_url || '')}" placeholder="이미지 URL (선택)" class="spec-image flex-1 rounded border border-gray-200 px-2 py-1.5 text-xs text-gray-500 focus:border-[#D4AA45] focus:outline-none" />
+          <input type="text" value="${escapeHtml(s.desc || '')}" placeholder="호버 설명 (선택)" class="spec-desc flex-1 rounded border border-gray-200 px-2 py-1.5 text-xs text-gray-500 focus:border-[#D4AA45] focus:outline-none" />
+        </div>
+      </div>
+    `).join('');
+
+    // Remove buttons
+    specsList.querySelectorAll('.spec-remove').forEach((btn, i) => {
+      btn.addEventListener('click', () => {
+        specsData.splice(i, 1);
+        renderSpecs();
+      });
+    });
+  }
+
+  addSpecBtn.addEventListener('click', () => {
+    specsData.push({ label: '', value: '', desc: '', image_url: '' });
+    renderSpecs();
+  });
+
+  saveSpecsBtn.addEventListener('click', async () => {
+    // Collect current values from inputs
+    const rows = specsList.querySelectorAll('[data-spec-row]');
+    specsData = Array.from(rows).map(row => ({
+      label: (row.querySelector('.spec-label') as HTMLInputElement).value.trim(),
+      value: (row.querySelector('.spec-value') as HTMLInputElement).value.trim(),
+      image_url: (row.querySelector('.spec-image') as HTMLInputElement).value.trim(),
+      desc: (row.querySelector('.spec-desc') as HTMLInputElement).value.trim(),
+    })).filter(s => s.label || s.value);
+
+    try {
+      await fetch('/api/page-contents', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ page: 'wedding', section: 'package', key: 'specs', value: JSON.stringify(specsData) }),
+      });
+      alert('저장되었습니다.');
+    } catch {
+      alert('저장 실패');
+    }
+  });
+
+  // Show/hide specs section based on tab
+  function updateSpecsVisibility() {
+    specsSection.classList.toggle('hidden', currentTab !== 'wedding');
+  }
+
   // ===== Branches =====
   const branchSections = ['seoul', 'busan', 'daejeon', 'jeonju'];
   const branchLabels: Record<string, string> = { seoul: '서울 본점', busan: '부산 지점', daejeon: '대전 지점', jeonju: '전주 지점' };
@@ -383,10 +486,13 @@ import AdminLayout from '@layouts/AdminLayout.astro';
         addBtn.classList.remove('hidden');
         loadPackageItems();
       }
+      updateSpecsVisibility();
     });
   });
 
   // Initial load
   addBtn.classList.remove('hidden');
   loadPackageItems();
+  loadSpecs();
+  updateSpecsVisibility();
 </script>
