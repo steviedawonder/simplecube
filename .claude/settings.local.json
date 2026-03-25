@@ -1,5 +1,6 @@
 {
   "permissions": {
+    "defaultMode": "dontAsk",
     "allow": [
       "Bash(node --version)",
       "Bash(npm --version)",
@@ -148,7 +149,9 @@
       "Bash(printf \"dynkoikr6\")",
       "Bash(vercel --prod)",
       "Bash(turso db:*)",
-      "Bash(/Users/dawonder/Downloads/web/.env:*)"
+      "Bash(/Users/dawonder/Downloads/web/.env:*)",
+      "Skill(update-config)",
+      "Skill(update-config:*)"
     ]
   }
 }
