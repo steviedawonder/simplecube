@@ -1,20 +1,8 @@
 import type { APIRoute } from 'astro';
 import { uploadToCloudinary, isConfigured } from '@lib/cloudinary';
 import db from '@lib/db';
-import sharp from 'sharp';
 
 export const prerender = false;
-
-// PNG 투명 여백 자동 제거
-async function trimTransparent(file: File): Promise<File> {
-  try {
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const trimmed = await sharp(buffer).trim().png().toBuffer();
-    return new File([trimmed], file.name, { type: 'image/png' });
-  } catch {
-    return file; // 트리밍 실패 시 원본 반환
-  }
-}
 
 export const GET: APIRoute = async ({ url }) => {
   try {
@@ -69,9 +57,7 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    // PNG 파일이면 투명 여백 자동 제거
-    const uploadFile = file.type === 'image/png' ? await trimTransparent(file) : file;
-    const result = await uploadToCloudinary(uploadFile, `simplecube/models/${modelId}`);
+    const result = await uploadToCloudinary(file, `simplecube/models/${modelId}`);
 
     await db.execute({
       sql: 'INSERT INTO model_photos (model_id, image_url, public_id) VALUES (?, ?, ?)',

@@ -294,6 +294,56 @@ import AdminLayout from '@layouts/AdminLayout.astro';
     setTimeout(() => toast.classList.remove('visible'), 2500);
   }
 
+  // PNG 투명 여백 자동 제거 (Canvas 기반)
+  async function trimPngTransparency(file: File): Promise<File> {
+    if (!file.type.includes('png')) return file;
+    return new Promise((resolve) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d')!;
+        ctx.drawImage(img, 0, 0);
+        const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+        // 투명하지 않은 픽셀의 바운딩 박스 찾기
+        let top = canvas.height, left = canvas.width, bottom = 0, right = 0;
+        for (let y = 0; y < canvas.height; y++) {
+          for (let x = 0; x < canvas.width; x++) {
+            const alpha = data[(y * canvas.width + x) * 4 + 3];
+            if (alpha > 10) {
+              if (y < top) top = y;
+              if (y > bottom) bottom = y;
+              if (x < left) left = x;
+              if (x > right) right = x;
+            }
+          }
+        }
+        if (bottom <= top || right <= left) { resolve(file); return; }
+        // 약간의 패딩 추가
+        const pad = 4;
+        top = Math.max(0, top - pad);
+        left = Math.max(0, left - pad);
+        bottom = Math.min(canvas.height - 1, bottom + pad);
+        right = Math.min(canvas.width - 1, right + pad);
+        const w = right - left + 1;
+        const h = bottom - top + 1;
+        const trimCanvas = document.createElement('canvas');
+        trimCanvas.width = w;
+        trimCanvas.height = h;
+        trimCanvas.getContext('2d')!.drawImage(canvas, left, top, w, h, 0, 0, w, h);
+        trimCanvas.toBlob((blob) => {
+          if (blob) { resolve(new File([blob], file.name, { type: 'image/png' })); }
+          else { resolve(file); }
+        }, 'image/png');
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+      img.src = url;
+    });
+  }
+
   function thumbUrl(url: string) {
     if (url.includes('res.cloudinary.com') && url.includes('/upload/')) {
       return url.replace('/upload/', '/upload/w_400,f_auto,q_auto/');
@@ -710,7 +760,13 @@ import AdminLayout from '@layouts/AdminLayout.astro';
 
     // 업로드 전 전체 파일 압축
     uploadProgressText.textContent = '이미지 압축 중...';
-    const compressedFiles = await (window as any).compressImages(selectedFiles);
+    let compressedFiles = await (window as any).compressImages(selectedFiles);
+
+    // 모델 사진: PNG 투명 여백 자동 제거
+    if (uploadType === 'models') {
+      uploadProgressText.textContent = '투명 여백 제거 중...';
+      compressedFiles = await Promise.all(compressedFiles.map((f: File) => trimPngTransparency(f)));
+    }
 
     for (let i = 0; i < total; i++) {
       const file = compressedFiles[i];
