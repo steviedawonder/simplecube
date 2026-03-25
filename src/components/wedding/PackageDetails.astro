@@ -157,9 +157,9 @@ try {
             <p class="text-xs md:text-sm font-semibold text-primary group-hover:text-[#D4AA45] transition-colors">{spec.value}</p>
             {/* Hover popover — only if desc or image exists */}
             {(spec.desc || spec.image_url) && (
-              <div class="spec-popover absolute z-30 bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-white rounded-lg shadow-xl border border-[#e8e8ed] p-2.5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none">
+              <div class="spec-popover absolute z-30 bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 bg-white rounded-lg shadow-xl border border-[#e8e8ed] p-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none">
                 {spec.image_url && (
-                  <img src={spec.image_url} alt={spec.label} class="w-full h-24 object-cover rounded-md mb-2" loading="lazy" />
+                  <img src={spec.image_url} alt={spec.label} class="w-full h-36 object-cover rounded-md mb-2" loading="lazy" />
                 )}
                 {spec.desc && (
                   <p class="text-xs text-[#6B5B4D] leading-relaxed">{spec.desc}</p>
