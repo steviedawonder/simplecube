@@ -12,6 +12,8 @@ async function compressImage(file, maxSizeBytes = 2 * 1024 * 1024) {
   // 이미지가 아니면 그대로 반환
   if (!file.type.startsWith('image/')) return file;
 
+  const isPng = file.type === 'image/png';
+
   return new Promise((resolve) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
@@ -35,39 +37,63 @@ async function compressImage(file, maxSizeBytes = 2 * 1024 * 1024) {
       canvas.height = height;
 
       const ctx = canvas.getContext('2d');
-      // PNG 투명 배경을 흰색으로 채움 (JPEG 변환 시 검정 방지)
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, width, height);
+      if (!isPng) {
+        // JPEG 변환 시 검정 방지를 위해 흰색 배경
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, width, height);
+      }
       ctx.drawImage(img, 0, 0, width, height);
 
-      // 점진적으로 품질을 낮추며 2MB 이하가 될 때까지 시도
-      let quality = 0.85;
-      let blob = null;
+      if (isPng) {
+        // PNG는 투명도를 유지한 채 PNG로 출력
+        let blob = await new Promise((r) => canvas.toBlob(r, 'image/png'));
 
-      while (quality >= 0.3) {
-        blob = await new Promise((r) => canvas.toBlob(r, 'image/jpeg', quality));
-        if (blob.size <= maxSizeBytes) break;
-        quality -= 0.1;
+        // 그래도 크면 해상도를 줄임
+        if (blob.size > maxSizeBytes) {
+          const scale = Math.sqrt(maxSizeBytes / blob.size) * 0.9;
+          canvas.width = Math.round(width * scale);
+          canvas.height = Math.round(height * scale);
+          const ctx2 = canvas.getContext('2d');
+          ctx2.clearRect(0, 0, canvas.width, canvas.height);
+          ctx2.drawImage(img, 0, 0, canvas.width, canvas.height);
+          blob = await new Promise((r) => canvas.toBlob(r, 'image/png'));
+        }
+
+        const compressedFile = new File([blob], file.name, {
+          type: 'image/png',
+          lastModified: Date.now(),
+        });
+        console.log(`[압축] ${file.name}: ${(file.size / 1024 / 1024).toFixed(1)}MB → ${(compressedFile.size / 1024 / 1024).toFixed(1)}MB (PNG)`);
+        resolve(compressedFile);
+      } else {
+        // JPEG 압축
+        let quality = 0.85;
+        let blob = null;
+
+        while (quality >= 0.3) {
+          blob = await new Promise((r) => canvas.toBlob(r, 'image/jpeg', quality));
+          if (blob.size <= maxSizeBytes) break;
+          quality -= 0.1;
+        }
+
+        // 그래도 크면 해상도를 더 줄임
+        if (blob.size > maxSizeBytes) {
+          const scale = Math.sqrt(maxSizeBytes / blob.size) * 0.9;
+          canvas.width = Math.round(width * scale);
+          canvas.height = Math.round(height * scale);
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          blob = await new Promise((r) => canvas.toBlob(r, 'image/jpeg', 0.7));
+        }
+
+        const compressedFile = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {
+          type: 'image/jpeg',
+          lastModified: Date.now(),
+        });
+        console.log(`[압축] ${file.name}: ${(file.size / 1024 / 1024).toFixed(1)}MB → ${(compressedFile.size / 1024 / 1024).toFixed(1)}MB (q=${quality.toFixed(1)})`);
+        resolve(compressedFile);
       }
-
-      // 그래도 크면 해상도를 더 줄임
-      if (blob.size > maxSizeBytes) {
-        const scale = Math.sqrt(maxSizeBytes / blob.size) * 0.9;
-        canvas.width = Math.round(width * scale);
-        canvas.height = Math.round(height * scale);
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        blob = await new Promise((r) => canvas.toBlob(r, 'image/jpeg', 0.7));
-      }
-
-      const compressedFile = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {
-        type: 'image/jpeg',
-        lastModified: Date.now(),
-      });
-
-      console.log(`[압축] ${file.name}: ${(file.size / 1024 / 1024).toFixed(1)}MB → ${(compressedFile.size / 1024 / 1024).toFixed(1)}MB (q=${quality.toFixed(1)})`);
-      resolve(compressedFile);
     };
 
     img.onerror = () => {
