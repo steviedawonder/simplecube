@@ -10,7 +10,15 @@ export const GET: APIRoute = async ({ request }) => {
   const authHeader = request.headers.get('authorization');
   const cronSecret = import.meta.env.CRON_SECRET;
 
-  // Allow if cron secret matches or if no secret is configured (dev mode)
+  // In production, CRON_SECRET is required
+  if (import.meta.env.PROD && !cronSecret) {
+    console.error('[CRON] CRON_SECRET 환경변수가 설정되지 않았습니다.');
+    return new Response(JSON.stringify({ error: 'Server misconfigured' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
       status: 401,

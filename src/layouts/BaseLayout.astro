@@ -20,6 +20,7 @@ const {
 } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const ogImageURL = new URL(ogImage, Astro.site).href;
 ---
 
 <!doctype html>
@@ -35,8 +36,15 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <meta property="og:url" content={canonicalURL} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:image" content={`${Astro.site}${ogImage}`} />
+    <meta property="og:image" content={{ogImageURL}} />
     <meta property="og:locale" content="ko_KR" />
+    <meta property="og:site_name" content="심플큐브" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={{ogImageURL}} />
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />

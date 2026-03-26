@@ -7,7 +7,7 @@ import vercel from '@astrojs/vercel';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://simplecube.vercel.app',
+  site: 'https://simplecube.net',
   adapter: vercel(),
 
   devToolbar: {
@@ -22,5 +22,10 @@ export default defineConfig({
     plugins: [tailwindcss()],
   },
 
-  integrations: [sitemap(), react()],
+  integrations: [
+    sitemap({
+      filter: (page) => !page.includes('/admin/') && !page.includes('/api/'),
+    }),
+    react(),
+  ],
 });

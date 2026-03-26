@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Block admin and API routes
+Disallow: /admin/
+Disallow: /api/
+
+# Sitemap
+Sitemap: https://simplecube.net/sitemap-index.xml

@@ -2,9 +2,11 @@ import { SignJWT, jwtVerify } from 'jose';
 import bcrypt from 'bcryptjs';
 import db from './db';
 
-const JWT_SECRET = new TextEncoder().encode(
-  import.meta.env.JWT_SECRET || 'dev-secret-change-in-production-32ch'
-);
+const jwtSecretStr = import.meta.env.JWT_SECRET || 'dev-secret-change-in-production-32ch';
+if (!import.meta.env.JWT_SECRET && import.meta.env.PROD) {
+  console.error('[SECURITY] JWT_SECRET 환경변수가 설정되지 않았습니다! 프로덕션에서 기본값 사용은 매우 위험합니다.');
+}
+const JWT_SECRET = new TextEncoder().encode(jwtSecretStr);
 
 const COOKIE_NAME = 'sc_admin_session';
 const EXPIRY_HOURS = 24;
@@ -61,11 +63,13 @@ export async function verifyToken(token: string): Promise<UserPayload | null> {
 }
 
 export function getSessionCookie(token: string): string {
-  return `${COOKIE_NAME}=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${EXPIRY_HOURS * 3600}`;
+  const secure = import.meta.env.PROD ? '; Secure' : '';
+  return `${COOKIE_NAME}=${token}; Path=/; HttpOnly; SameSite=Lax${secure}; Max-Age=${EXPIRY_HOURS * 3600}`;
 }
 
 export function clearSessionCookie(): string {
-  return `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`;
+  const secure = import.meta.env.PROD ? '; Secure' : '';
+  return `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax${secure}; Max-Age=0`;
 }
 
 export function getTokenFromCookies(cookieHeader: string | null): string | null {
