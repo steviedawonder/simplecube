@@ -59,7 +59,7 @@ const models = [
   {
     id: 'popup-booth',
     modelNo: 'PHOTO-P-320AL',
-    name: '팝업부스',
+    name: '팝업 (랩핑가능)',
     badge: '추천',
     badgeColor: 'bg-olive',
     image: getModelThumbnail('popup-booth', '/images/popup/popup-model.png'),
@@ -81,7 +81,7 @@ const models = [
   {
     id: 'module',
     modelNo: 'PHOTO-M-270AC',
-    name: '모듈형',
+    name: '모듈 (랩핑가능)',
     badge: '추천',
     badgeColor: 'bg-olive',
     image: getModelThumbnail('module', '/images/popup/module-model.png'),
@@ -187,7 +187,7 @@ const models = [
 
           {/* Name only */}
           <div class="px-3 py-2.5 lg:px-4 lg:py-3 text-center">
-            <h3 class="text-sm lg:text-base font-bold text-primary">{model.name}</h3>
+            <h3 class="text-sm lg:text-base font-bold text-primary">{model.name.replace('(랩핑가능)', '')}<span class="text-[0.7em] font-medium">{model.name.includes('(랩핑가능)') ? '(랩핑가능)' : ''}</span></h3>
           </div>
 
           {/* Hover indicator */}
@@ -338,7 +338,7 @@ const models = [
 
         <!-- Specs -->
         <div class="px-5 py-5">
-          <h4 class="text-lg font-bold text-primary mb-4">${model.name}</h4>
+          <h4 class="text-lg font-bold text-primary mb-4">${model.name.replace('(랩핑가능)', '')}<span class="text-[0.7em] font-medium">${model.name.includes('(랩핑가능)') ? '(랩핑가능)' : ''}</span></h4>
 
           ${model.specs.map((s: any, i: number) => `
             <div class="flex items-baseline justify-between py-2.5 ${i < model.specs.length - 1 ? 'border-b border-dashed border-[#e5e5e3]' : ''}">

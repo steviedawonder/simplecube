@@ -4,28 +4,28 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 
 const boothModels = [
   {
-    id: 'wood-edge',
-    name: '원목 (Edge)',
-    image: '/images/popup/wood-edge.jpg',
-    specs: { model: 'PHOTO-W-270ED', material: '원목 자체제작', size: 'W700 × L480 × H1950mm' },
-  },
-  {
-    id: 'wood-round',
-    name: '원목 (Round)',
-    image: '/images/popup/wood-round.jpg',
-    specs: { model: 'PHOTO-W-270RD', material: '원목 자체제작 (라운드)', size: 'W680 × L470 × H1950mm' },
-  },
-  {
     id: 'popup',
-    name: '팝업부스',
-    image: '/images/popup/popup-model.jpg',
-    specs: { model: 'PHOTO-P-320AL', material: '알루미늄 (화이트)', size: 'W460 × L480 × H1700mm' },
+    name: '팝업 (랩핑가능)',
+    image: 'https://res.cloudinary.com/dynkoikr6/image/upload/v1774495396/simplecube/models/popup/j2s4lnqefx06qfhamw7l.png',
+    specs: { model: 'PHOTO-P-320AL', material: '알루미늄 (화이트) *랩핑가능', size: 'W460 × L480 × H1700mm' },
   },
   {
     id: 'module',
-    name: '모듈형',
-    image: '/images/popup/module-model.jpg',
-    specs: { model: 'PHOTO-M-270AC', material: '아크릴 (블랙)', size: 'W600 × L450 × H1900mm' },
+    name: '모듈 (랩핑가능)',
+    image: 'https://res.cloudinary.com/dynkoikr6/image/upload/v1774495442/simplecube/models/module/vusxx7ftzdw48y3zrj9r.png',
+    specs: { model: 'PHOTO-M-270AC', material: '아크릴 (블랙) *랩핑가능', size: 'W600 × L450 × H1900mm' },
+  },
+  {
+    id: 'wood-edge',
+    name: '우드 (Edge)',
+    image: 'https://res.cloudinary.com/dynkoikr6/image/upload/v1774495527/simplecube/models/wood-edge/ki4dhansskfzg8whrjch.png',
+    specs: { model: 'PHOTO-W-270ED', material: '원목 수제제작', size: 'W700 × L480 × H1950mm' },
+  },
+  {
+    id: 'wood-round',
+    name: '우드 (Round)',
+    image: 'https://res.cloudinary.com/dynkoikr6/image/upload/v1774495549/simplecube/models/wood-round/nrm8yh2c5gx2yxpcxvdl.png',
+    specs: { model: 'PHOTO-W-270RD', material: '원목 수제제작 (라운드)', size: 'W680 × L470 × H1950mm' },
   },
 ];
 ---
@@ -56,13 +56,12 @@ const boothModels = [
                 {boothModels.map((model) => (
                   <label class="booth-label group relative cursor-pointer">
                     <input type="checkbox" name="booth_type" value={model.name} class="peer sr-only" />
-                    <div class="rounded-xl border-2 border-border-light p-4 text-center transition-all duration-200 peer-checked:border-olive peer-checked:bg-olive/5 hover:border-olive/40">
-                      <img src={model.image} alt={model.name} class="w-full aspect-[3/4] object-cover rounded-lg mb-2" loading="lazy" />
-                      <span class="text-xs font-bold text-primary">{model.name}</span>
+                    <div class="rounded-xl border-2 border-border-light p-4 text-center transition-all duration-200 peer-checked:border-olive peer-checked:bg-olive/5 hover:border-olive/40 bg-[#f5f5f3]">
+                      <img src={model.image} alt={model.name} class="w-full aspect-square object-contain rounded-lg mb-2" loading="lazy" />
+                      <span class="text-xs font-bold text-primary">{model.name.replace('(랩핑가능)', '')}<span class="text-[0.6rem] font-medium">{model.name.includes('(랩핑가능)') ? '(랩핑가능)' : ''}</span></span>
                     </div>
                     <!-- Hover tooltip -->
                     <div class="booth-tooltip absolute z-50 hidden group-hover:block bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 bg-primary text-white rounded-xl p-4 shadow-xl text-xs pointer-events-none">
-                      <p class="font-bold mb-1">{model.specs.model}</p>
                       <p>소재: {model.specs.material}</p>
                       <p>크기: {model.specs.size}</p>
                       <div class="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 rotate-45 w-3 h-3 bg-primary"></div>
