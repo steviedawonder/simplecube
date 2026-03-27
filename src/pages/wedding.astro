@@ -101,7 +101,7 @@ try {
 
   <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
   <!-- 포토스트립 섹션 -->
-  <section id="photostrip" class="bg-white py-10 lg:py-14">
+  <section id="photostrip" class="bg-white py-6 lg:py-14">
     <div class="mx-auto max-w-7xl px-6 lg:px-8">
       <div class="gs-fade-up mb-8 lg:mb-10">
         <div class="inline-flex items-center justify-center w-9 h-9 rounded-full border-[1.5px] border-olive text-olive text-[13px] font-bold mb-4">03</div>
@@ -362,8 +362,9 @@ try {
 
   if (psGrid) {
     const sourceItems = Array.from(psGrid.querySelectorAll<HTMLElement>('#ps-source .ps-item'));
-    const COLS = 5;
-    const PER_PAGE = 10;
+    const isMobile = window.innerWidth < 768;
+    const COLS = isMobile ? 3 : 5;
+    const PER_PAGE = isMobile ? 6 : 10;
 
     interface PsData { src: string; alt: string; cutType: string; orientation?: string; }
     let allData: PsData[] = sourceItems.map(el => ({
@@ -400,8 +401,11 @@ try {
       card.className = 'ps-item group cursor-pointer';
       card.dataset.src = d.src;
       card.dataset.alt = d.alt;
+      const cardH = isMobile
+        ? (d.orientation === 'landscape' ? '80px' : '130px')
+        : (d.orientation === 'landscape' ? '140px' : '220px');
       card.innerHTML = `
-        <div class="relative overflow-hidden flex items-center justify-center" style="height: ${d.orientation === 'landscape' ? '140px' : '220px'};">
+        <div class="relative overflow-hidden flex items-center justify-center" style="height: ${cardH};">
           <img src="${d.src}" alt="${d.alt}" class="max-w-full max-h-full object-contain transition-transform duration-500 group-hover:scale-105 shadow-[0_2px_8px_rgba(0,0,0,0.12)]" loading="lazy" />
           <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
             <svg class="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
@@ -451,7 +455,7 @@ try {
       for (let p = 0; p < totalPages; p++) {
         const page = document.createElement('div');
         page.className = 'flex-shrink-0 w-full';
-        page.style.cssText = 'display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.5rem; row-gap: 2.5rem; padding: 0.5rem;';
+        page.style.cssText = `display: grid; grid-template-columns: repeat(${COLS}, 1fr); gap: ${isMobile ? '0.5rem' : '1.5rem'}; row-gap: ${isMobile ? '0.75rem' : '2.5rem'}; padding: 0.25rem;`;
         const start = p * PER_PAGE;
         const end = Math.min(start + PER_PAGE, sorted.length);
         for (let i = start; i < end; i++) {
