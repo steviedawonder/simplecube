@@ -36,7 +36,7 @@ const partners = [
     </div>
 
     <!-- Partner Grid - name always visible on mobile -->
-    <div class="gs-stagger grid grid-cols-3 gap-2 md:gap-3 lg:grid-cols-4 lg:gap-5">
+    <div class="gs-stagger grid grid-cols-5 gap-1.5 md:gap-2 lg:grid-cols-6 lg:gap-3">
       {partners.map((partner) => (
         <div class="group overflow-hidden rounded-xl">
           <div class="relative">
@@ -53,7 +53,7 @@ const partners = [
             </div>
           </div>
           {/* Mobile: name below image */}
-          <p class="md:hidden text-[11px] font-medium text-primary text-center py-1.5 leading-tight">{partner.name}</p>
+          <p class="md:hidden text-[9px] font-medium text-primary text-center py-1 leading-tight">{partner.name}</p>
         </div>
       ))}
     </div>
