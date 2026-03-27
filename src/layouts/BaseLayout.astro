@@ -55,10 +55,14 @@ const ogImageURL = new URL(ogImage, Astro.site).href;
     <!-- Canonical URL -->
     <link rel="canonical" href={canonicalURL} />
 
-    <!-- Pretendard + Noto Sans KR (Google Fonts CDN - 인앱 브라우저 호환성) -->
+    <!-- Preload local Pretendard (fastest) -->
+    <link rel="preload" href="/fonts/Pretendard-Regular.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/Pretendard-Bold.woff2" as="font" type="font/woff2" crossorigin />
+
+    <!-- Noto Sans KR fallback (인앱 브라우저 호환성) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&display=block" rel="stylesheet" />
 
     <title>{title}</title>
   </head>
