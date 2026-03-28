@@ -65,13 +65,12 @@ const models = [
     image: getModelThumbnail('popup-booth', '/images/popup/popup-model.png'),
     specs: [
       { label: '소재', value: '알루미늄 (화이트)' },
-      { label: '크기', value: 'W460mm × L480mm × H1700mm' },
-      { label: '사용전력', value: '300w (최대 700w)' },
-      { label: '촬영방식', value: '무료 촬영 (카메라: DSLR)' },
+      { label: '크기', value: 'W455mm × L470mm × H1430mm' },
+      { label: '사용전력', value: '400w (최대 700w)' },
+      { label: '카메라', value: '무료 촬영 (카메라: DSLR)' },
       { label: '인화지 종류', value: '2×6 inches / 4×6 inches 중 선택' },
       { label: '커스텀', value: '인화지 프레임 / UI 디자인 변경 가능' },
-      { label: '외관 커스텀', value: '전면 랩핑 가능 (기본 색상: 화이트)' },
-      { label: '1회 촬영 간격', value: '60sec' },
+      { label: '외관 커스텀', value: '전면 랩핑 가능' },
     ],
     note: '*랩핑 진행시 추가 비용이 발생합니다.',
     portfolio: [
@@ -86,14 +85,13 @@ const models = [
     badgeColor: 'bg-olive',
     image: getModelThumbnail('module', '/images/popup/module-model.png'),
     specs: [
-      { label: '소재', value: '아크릴 (블랙)' },
-      { label: '크기', value: 'W600mm × L450mm × H1900mm' },
+      { label: '소재', value: '아크릴 (블랙 기본)' },
+      { label: '크기', value: 'W460mm × L460mm × H1410mm' },
       { label: '사용전력', value: '400w (최대 700w)' },
-      { label: '촬영방식', value: '무료 촬영 (카메라: DSLR)' },
+      { label: '카메라', value: '무료 촬영 (카메라: DSLR)' },
       { label: '인화지 종류', value: '2×6 inches / 4×6 inches 중 선택' },
       { label: '커스텀', value: '인화지 프레임 / UI 디자인 변경 가능' },
       { label: '외관 커스텀', value: '등판 커스텀 가능' },
-      { label: '1회 촬영 간격', value: '60sec' },
     ],
     note: '',
     portfolio: [
@@ -112,13 +110,12 @@ const models = [
     image: getModelThumbnail('wood-edge', '/images/popup/wood-edge.jpg'),
     specs: [
       { label: '소재', value: '원목 자체제작' },
-      { label: '크기', value: 'W700mm × L480mm × H1950mm' },
+      { label: '크기', value: 'W450mm × L450mm × H1700mm' },
       { label: '사용전력', value: '400w (최대 700w)' },
-      { label: '촬영방식', value: '무료 촬영 (카메라: DSLR)' },
+      { label: '카메라', value: '무료 촬영 (카메라: DSLR)' },
       { label: '인화지 종류', value: '2×6 inches / 4×6 inches 중 선택' },
       { label: '커스텀', value: '인화지 프레임 / UI 디자인 변경 가능' },
       { label: '외관 커스텀', value: '전면 랩핑 가능' },
-      { label: '1회 촬영 간격', value: '60sec' },
     ],
     note: '*랩핑 진행시 추가 비용이 발생합니다.',
     portfolio: [],
@@ -132,13 +129,12 @@ const models = [
     image: getModelThumbnail('wood-round', '/images/popup/wood-round.png'),
     specs: [
       { label: '소재', value: '원목 자체제작 (라운드)' },
-      { label: '크기', value: 'W680mm × L470mm × H1950mm' },
+      { label: '크기', value: 'W450mm × L450mm × H1570mm' },
       { label: '사용전력', value: '400w (최대 700w)' },
-      { label: '촬영방식', value: '무료 촬영 (카메라: DSLR)' },
+      { label: '카메라', value: '무료 촬영 (카메라: DSLR)' },
       { label: '인화지 종류', value: '2×6 inches / 4×6 inches 중 선택' },
       { label: '커스텀', value: '인화지 프레임 / UI 디자인 변경 가능' },
       { label: '외관 커스텀', value: '전면 랩핑 가능' },
-      { label: '1회 촬영 간격', value: '60sec' },
     ],
     note: '*랩핑 진행시 추가 비용이 발생합니다.',
     portfolio: [],
@@ -176,11 +172,11 @@ const models = [
           )}
 
           {/* Image — big and prominent */}
-          <div class="flex items-center justify-center bg-[#f0f0f0] p-2 lg:p-3 aspect-[2/3] lg:aspect-auto lg:h-[420px]">
+          <div class="flex items-center justify-center bg-[#f0f0f0] p-2 lg:p-3 aspect-[3/5] lg:aspect-auto lg:h-[420px] overflow-hidden">
             <img
               src={model.image}
               alt={model.name}
-              class="h-full w-auto max-w-full object-contain transition-transform duration-700 group-hover:scale-105"
+              class="max-h-full max-w-full object-contain transition-transform duration-700 group-hover:scale-105"
               loading="lazy"
             />
           </div>
@@ -229,13 +225,14 @@ const models = [
 
   {/* Centered card */}
   <div class="relative z-10 h-full flex items-center justify-center px-4 lg:px-6" style="pointer-events:none;">
-    <div id="modal-card" class="w-full max-w-sm lg:max-w-md bg-white rounded-2xl overflow-hidden shadow-2xl opacity-0 scale-90 transition-all duration-400 ease-out max-h-[88vh] flex flex-col" style="pointer-events:auto;">
-      {/* Image + close */}
+    <div id="modal-card" class="relative w-full max-w-sm lg:max-w-md bg-white rounded-2xl overflow-hidden shadow-2xl opacity-0 scale-90 transition-all duration-400 ease-out max-h-[88vh] flex flex-col" style="pointer-events:auto;">
+      {/* Close button - always visible */}
+      <button id="modal-close" class="absolute top-3 right-3 z-20 p-1" style="pointer-events:auto;cursor:pointer;" aria-label="닫기">
+        <svg class="w-6 h-6 text-[#999] hover:text-[#333] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+      {/* Image */}
       <div class="relative flex items-center justify-center bg-[#f0f0f0] p-6 shrink-0">
         <img id="modal-img" src="" alt="" class="h-[160px] lg:h-[220px] w-auto object-contain" />
-        <button id="modal-close" class="absolute top-3 right-3 p-1.5 rounded-full bg-white/80 hover:bg-white transition-colors shadow-sm" style="pointer-events:auto;cursor:pointer;" aria-label="닫기">
-          <svg class="w-4 h-4 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-        </button>
       </div>
 
       {/* Scrollable content */}
