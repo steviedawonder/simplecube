@@ -52,8 +52,21 @@ const ogImageURL = new URL(ogImage, Astro.site).href;
     <!-- RSS Feed -->
     <link rel="alternate" type="application/rss+xml" title="심플큐브 블로그" href="/rss.xml" />
 
+    <!-- Search Console Verification -->
+    <meta name="google-site-verification" content="DukaOvIwHQehXec84U2y-rXabY9hmF9ORu9PRuiwMkA" />
+    <meta name="naver-site-verification" content="99c64b13d13f52803d63e4045c28cda795b4b236" />
+
     <!-- Canonical URL -->
     <link rel="canonical" href={canonicalURL} />
+
+    <!-- Google Analytics (GA4) -->
+    <script is:inline src="https://www.googletagmanager.com/gtag/js?id=G-1ZLPBMQXNH" async></script>
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-1ZLPBMQXNH');
+    </script>
 
     <!-- Preload local Pretendard (fastest) -->
     <link rel="preload" href="/fonts/Pretendard-Regular.woff2" as="font" type="font/woff2" crossorigin />
