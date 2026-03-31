@@ -78,6 +78,16 @@ const ogImageURL = new URL(ogImage, Astro.site).href;
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@900&display=block" rel="stylesheet" />
 
     <title>{title}</title>
+
+    <!-- Naver Analytics -->
+    <script type="text/javascript" src="//wcs.pstatic.net/wcslog.js"></script>
+    <script type="text/javascript">
+      if(!wcs_add) var wcs_add = {};
+      wcs_add["wa"] = "2403ec27630898";
+      if(window.wcs) {
+        wcs_do();
+      }
+    </script>
   </head>
   <body class="bg-white text-primary antialiased">
     <!-- Google Tag Manager (noscript) -->
