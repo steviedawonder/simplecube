@@ -343,18 +343,19 @@ const menus = [
                 <svg class="w-4 h-4 text-olive" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v13.5A1.5 1.5 0 003.75 21z" /></svg>
                 포트폴리오
               </h4>
-              <div class="custom-portfolio-area" data-tag={menu.tag}>
-                <div class="custom-pf-grid grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3"></div>
+              <div class="custom-portfolio-area relative" data-tag={menu.tag} data-menu-id={menu.id}>
+                <button class="custom-pf-prev absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white/90 shadow-md flex items-center justify-center text-[#2E2318] hover:bg-white hover:scale-105 transition-all hidden" aria-label="이전">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+                </button>
+                <button class="custom-pf-next absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white/90 shadow-md flex items-center justify-center text-[#2E2318] hover:bg-white hover:scale-105 transition-all hidden" aria-label="다음">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                </button>
+                <div class="custom-pf-grid flex flex-wrap content-start gap-2.5 overflow-x-auto scrollbar-hide scroll-smooth px-1" style="scrollbar-width: none; -ms-overflow-style: none;"></div>
                 <div class="custom-pf-loading text-center py-6">
                   <p class="text-secondary text-xs">불러오는 중...</p>
                 </div>
                 <div class="custom-pf-empty hidden text-center py-6">
                   <p class="text-secondary/60 text-xs">등록된 사진이 없습니다.</p>
-                </div>
-                <div class="custom-pf-more hidden mt-4 text-center">
-                  <button class="custom-more-btn text-xs font-medium text-olive hover:text-primary transition-colors">
-                    더보기 →
-                  </button>
                 </div>
               </div>
             </div>
@@ -456,7 +457,10 @@ const menus = [
     const grid = area.querySelector('.custom-pf-grid') as HTMLElement;
     const loading = area.querySelector('.custom-pf-loading') as HTMLElement;
     const empty = area.querySelector('.custom-pf-empty') as HTMLElement;
-    const moreWrap = area.querySelector('.custom-pf-more') as HTMLElement;
+    const prevBtn = area.querySelector('.custom-pf-prev') as HTMLButtonElement;
+    const nextBtn = area.querySelector('.custom-pf-next') as HTMLButtonElement;
+    const menuId = area.dataset.menuId || '';
+    const isPaper = (tag === '인화지');
 
     try {
       const res = await fetch(`/api/portfolio?page_tag=popup&tags=${encodeURIComponent(tag)}`);
@@ -468,18 +472,41 @@ const menus = [
         return;
       }
 
-      const maxShow = 8;
-      const showItems = items.slice(0, maxShow);
+      // 2행 레이아웃: flex-direction column + 고정 높이로 wrap → 가로 스크롤
+      const gap = 10; // gap-2.5 = 10px
+      const fitClass = isPaper ? 'object-contain bg-gray-50' : 'object-cover';
 
-      grid.innerHTML = showItems.map((item: any) => `
-        <div class="custom-pf-thumb group cursor-pointer overflow-hidden rounded-lg relative" data-url="${item.image_url}" data-title="${item.title || ''}">
+      // 아이템 크기 (모바일 / 데스크톱) — 모두 정사각형
+      const itemW = 130;
+      const itemH = 130;
+      const itemWMd = 160;
+      const itemHMd = 160;
+
+      grid.style.flexDirection = 'column';
+
+      // 반응형: 1줄에 다 들어가면 1줄, 안 되면 2줄
+      const mql = window.matchMedia('(min-width: 768px)');
+      function applyGridHeight() {
+        const w = mql.matches ? itemWMd : itemW;
+        const h = mql.matches ? itemHMd : itemH;
+        const totalItemsWidth = items.length * (w + gap);
+        const availableWidth = grid.parentElement?.clientWidth || grid.clientWidth || 400;
+        const needsTwoRows = totalItemsWidth > availableWidth;
+        grid.style.height = needsTwoRows ? `${h * 2 + gap}px` : `${h}px`;
+      }
+      mql.addEventListener('change', applyGridHeight);
+      // ResizeObserver로 컨테이너 크기 변화도 감지
+      new ResizeObserver(applyGridHeight).observe(grid.parentElement || grid);
+
+      grid.innerHTML = items.map((item: any) => `
+        <div class="custom-pf-thumb group cursor-pointer overflow-hidden rounded-lg relative shrink-0" style="width:${itemW}px;height:${itemH}px" data-url="${item.image_url}" data-title="${item.title || ''}">
           <img
             src="${item.image_url}"
             alt="${item.title || ''}"
-            class="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            class="w-full h-full ${fitClass} rounded-lg transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
           />
-          <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+          <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 rounded-lg flex items-center justify-center">
             <svg class="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
             </svg>
@@ -487,24 +514,38 @@ const menus = [
         </div>
       `).join('');
 
-      if (items.length > maxShow) {
-        moreWrap.classList.remove('hidden');
-        const moreBtn = moreWrap.querySelector('.custom-more-btn') as HTMLButtonElement;
-        moreBtn.addEventListener('click', () => {
-          const pfSection = document.getElementById('portfolio');
-          if (pfSection) {
-            pfSection.scrollIntoView({ behavior: 'smooth' });
-            setTimeout(() => {
-              const tagBtns = pfSection.querySelectorAll('.pf-tag-btn');
-              tagBtns.forEach(b => {
-                if ((b as HTMLElement).dataset.tag === tag) {
-                  (b as HTMLElement).click();
-                }
-              });
-            }, 500);
-          }
+      // 반응형 아이템 크기 업데이트
+      function applyItemSizes() {
+        const w = mql.matches ? itemWMd : itemW;
+        const h = mql.matches ? itemHMd : itemH;
+        grid.querySelectorAll<HTMLElement>('.custom-pf-thumb').forEach(el => {
+          el.style.width = `${w}px`;
+          el.style.height = `${h}px`;
         });
+        applyGridHeight();
       }
+      mql.addEventListener('change', applyItemSizes);
+      applyItemSizes();
+      requestAnimationFrame(applyGridHeight);
+
+      // Arrow navigation
+      function updateArrows() {
+        const scrollLeft = grid.scrollLeft;
+        const maxScroll = grid.scrollWidth - grid.clientWidth;
+        prevBtn.classList.toggle('hidden', scrollLeft <= 5);
+        nextBtn.classList.toggle('hidden', maxScroll <= 5 || scrollLeft >= maxScroll - 5);
+      }
+
+      prevBtn.addEventListener('click', () => {
+        grid.scrollBy({ left: -300, behavior: 'smooth' });
+      });
+      nextBtn.addEventListener('click', () => {
+        grid.scrollBy({ left: 300, behavior: 'smooth' });
+      });
+      grid.addEventListener('scroll', updateArrows);
+
+      // Initial check (after render)
+      requestAnimationFrame(updateArrows);
 
       bindCustomLightbox(grid);
     } catch {
