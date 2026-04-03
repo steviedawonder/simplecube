@@ -1,5 +1,5 @@
 ---
-import { POPUP_DEFAULT_TAGS } from '@lib/defaultTags';
+import { POPUP_DEFAULT_TAGS, POPUP_CUSTOM_TAGS } from '@lib/defaultTags';
 ---
 
 <section id="portfolio" class="bg-bg-light py-10 lg:py-14 overflow-hidden">
@@ -102,12 +102,20 @@ import { POPUP_DEFAULT_TAGS } from '@lib/defaultTags';
   }
 </style>
 
-<script is:inline define:vars={{ defaultTags: POPUP_DEFAULT_TAGS }}>
+<script is:inline define:vars={{ defaultTags: POPUP_DEFAULT_TAGS, customTags: POPUP_CUSTOM_TAGS }}>
   window.__popupDefaultTags = defaultTags;
+  window.__popupCustomTags = customTags;
 </script>
 
 <script>
   const defaultTags: string[] = (window as any).__popupDefaultTags || [];
+  const hardcodedCustomTags: string[] = (window as any).__popupCustomTags || [];
+
+  // 커스텀 범위에서 실제 사용 중인 태그를 DOM에서 읽어 합침
+  const domCustomTags = Array.from(document.querySelectorAll('.custom-portfolio-area'))
+    .map(el => (el as HTMLElement).dataset.tag || '')
+    .filter(Boolean);
+  const customTags = [...new Set([...hardcodedCustomTags, ...domCustomTags])];
 
   async function loadPortfolio() {
     const tagsContainer = document.getElementById('pf-tags')!;
@@ -127,7 +135,14 @@ import { POPUP_DEFAULT_TAGS } from '@lib/defaultTags';
         return;
       }
 
-      let allItems = items;
+      // 커스텀 전용 태그만 가진 항목은 포트폴리오에서 제외
+      const filteredItems = items.filter((item: any) => {
+        if (!item.tags) return true;
+        const itemTags = item.tags.split(',').map((t: string) => t.trim()).filter(Boolean);
+        if (itemTags.length === 0) return true;
+        return itemTags.some((t: string) => !customTags.includes(t));
+      });
+      let allItems = filteredItems;
       let activeTag = '';
 
       // Collect tags
@@ -139,9 +154,11 @@ import { POPUP_DEFAULT_TAGS } from '@lib/defaultTags';
       });
       const tagList = Array.from(allTags).sort();
 
+      // 커스텀 범위 전용 태그는 포트폴리오 갤러리에서 제외
+      const filteredTagList = tagList.filter(t => !customTags.includes(t));
       const orderedTags = [
-        ...defaultTags.filter(t => tagList.includes(t)),
-        ...tagList.filter(t => !defaultTags.includes(t)),
+        ...defaultTags.filter(t => filteredTagList.includes(t)),
+        ...filteredTagList.filter(t => !defaultTags.includes(t)),
       ];
 
       if (orderedTags.length > 0) {
@@ -164,12 +181,12 @@ import { POPUP_DEFAULT_TAGS } from '@lib/defaultTags';
                 b.classList.add('bg-white', 'border', 'border-gray-200', 'text-secondary');
               }
             });
-            renderMarquee(tag ? items.filter(i => (i.tags || '').split(',').map((t: string) => t.trim()).includes(tag)) : items);
+            renderMarquee(tag ? filteredItems.filter(i => (i.tags || '').split(',').map((t: string) => t.trim()).includes(tag)) : filteredItems);
           });
         });
       }
 
-      renderMarquee(items);
+      renderMarquee(filteredItems);
       marqueeWrap.classList.remove('hidden');
 
       // Setup lightbox
