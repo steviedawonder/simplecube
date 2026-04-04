@@ -5,7 +5,7 @@
 
   <!-- 배경 이미지 레이어들 (각 키워드별) -->
   <div class="hero-bg-layer active" data-bg="wedding">
-    <img src="/images/hero/wedding.webp" alt="" class="h-full w-full object-cover" />
+    <img src="/images/hero/wedding.webp" alt="" class="h-full w-full object-cover md:object-center object-[85%_center]" />
   </div>
   <div class="hero-bg-layer" data-bg="brand">
     <img src="/images/popup/모듈포토부스_혼다.webp" alt="" class="h-full w-full object-cover" loading="lazy" />
@@ -201,7 +201,7 @@
     let mainTimer: ReturnType<typeof setInterval> | null = null;
 
     // 각 키워드별 표시 시간 (ms)
-    const durations = [3500, 3500, 3500, 3500, 5000];
+    const durations = [1700, 1700, 1700, 1700, 4000];
 
     function switchTo(index: number) {
       const prevIndex = currentIndex;
@@ -239,7 +239,7 @@
         rapidSlides[rapidIndex]?.classList.remove('active');
         rapidIndex = (rapidIndex + 1) % rapidSlides.length;
         rapidSlides[rapidIndex]?.classList.add('active');
-      }, 500);
+      }, 400);
     }
 
     function stopRapidSlideshow() {
