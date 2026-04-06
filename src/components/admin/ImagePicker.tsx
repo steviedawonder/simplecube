@@ -54,8 +54,8 @@ export default function ImagePicker({ isOpen, onClose, onSelect }: ImagePickerPr
     setLoading(false);
   }
 
-  // 2MB 초과 이미지를 자동 압축
-  async function compressImage(file: File, maxBytes: number = 2 * 1024 * 1024): Promise<File> {
+  // 1MB 초과 이미지를 자동 압축 — 반드시 1MB 이하로 만듦
+  async function compressImage(file: File, maxBytes: number = 1 * 1024 * 1024): Promise<File> {
     if (file.size <= maxBytes) return file;
 
     // SVG는 압축 불가 — 그대로 반환
@@ -64,48 +64,106 @@ export default function ImagePicker({ isOpen, onClose, onSelect }: ImagePickerPr
     return new Promise((resolve, reject) => {
       const img = new window.Image();
       const url = URL.createObjectURL(file);
-      img.onload = () => {
+      img.onload = async () => {
         URL.revokeObjectURL(url);
 
-        let { width, height } = img;
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d')!;
+        let { naturalWidth: width, naturalHeight: height } = img;
+        const isPng = file.type === 'image/png';
 
-        // 큰 이미지는 비율 유지하며 리사이즈
-        const maxDim = 2400;
+        // 용량 비례로 초기 리사이즈 — 파일이 클수록 더 줄임
+        const sizeRatio = file.size / maxBytes;
+        let maxDim = 1920;
+        if (sizeRatio > 10) maxDim = 1024;
+        else if (sizeRatio > 6) maxDim = 1200;
+        else if (sizeRatio > 3) maxDim = 1600;
+
         if (width > maxDim || height > maxDim) {
           const ratio = Math.min(maxDim / width, maxDim / height);
           width = Math.round(width * ratio);
           height = Math.round(height * ratio);
         }
 
+        const canvas = document.createElement('canvas');
         canvas.width = width;
         canvas.height = height;
+        const ctx = canvas.getContext('2d')!;
+
+        if (!isPng) {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, width, height);
+        }
         ctx.drawImage(img, 0, 0, width, height);
 
-        // quality를 단계적으로 낮춰서 2MB 이하 찾기
-        let quality = 0.85;
-        const tryCompress = () => {
-          canvas.toBlob(
-            (blob) => {
-              if (!blob) return reject(new Error('압축 실패'));
-              if (blob.size <= maxBytes || quality <= 0.3) {
-                const compressed = new File([blob], file.name, { type: 'image/jpeg' });
-                resolve(compressed);
-              } else {
-                quality -= 0.1;
-                tryCompress();
-              }
-            },
-            'image/jpeg',
-            quality
-          );
-        };
-        tryCompress();
+        const toBlob = (type: string, q?: number): Promise<Blob> =>
+          new Promise((r) => canvas.toBlob((b) => r(b!), type, q));
+
+        if (isPng) {
+          let blob = await toBlob('image/png');
+          // PNG가 여전히 크면 해상도를 줄임
+          if (blob.size > maxBytes) {
+            const scale = Math.sqrt(maxBytes / blob.size) * 0.85;
+            canvas.width = Math.round(width * scale);
+            canvas.height = Math.round(height * scale);
+            const ctx2 = canvas.getContext('2d')!;
+            ctx2.clearRect(0, 0, canvas.width, canvas.height);
+            ctx2.drawImage(img, 0, 0, canvas.width, canvas.height);
+            blob = await toBlob('image/png');
+          }
+          // 그래도 크면 JPEG로 전환
+          if (blob.size > maxBytes) {
+            const ctx3 = canvas.getContext('2d')!;
+            ctx3.fillStyle = '#ffffff';
+            ctx3.fillRect(0, 0, canvas.width, canvas.height);
+            ctx3.drawImage(img, 0, 0, canvas.width, canvas.height);
+            blob = await toBlob('image/jpeg', 0.7);
+          }
+          const compressed = new File([blob], file.name, { type: blob.type, lastModified: Date.now() });
+          console.log(`[압축] ${file.name}: ${(file.size/1024/1024).toFixed(1)}MB → ${(compressed.size/1024/1024).toFixed(1)}MB`);
+          resolve(compressed);
+        } else {
+          // JPEG: quality를 단계적으로 낮춰서 1MB 이하 찾기
+          let quality = 0.8;
+          let blob = await toBlob('image/jpeg', quality);
+
+          while (blob.size > maxBytes && quality > 0.2) {
+            quality -= 0.05;
+            blob = await toBlob('image/jpeg', quality);
+          }
+
+          // 그래도 크면 해상도를 더 줄임
+          if (blob.size > maxBytes) {
+            const scale = Math.sqrt(maxBytes / blob.size) * 0.85;
+            canvas.width = Math.round(width * scale);
+            canvas.height = Math.round(height * scale);
+            const ctx2 = canvas.getContext('2d')!;
+            ctx2.fillStyle = '#ffffff';
+            ctx2.fillRect(0, 0, canvas.width, canvas.height);
+            ctx2.drawImage(img, 0, 0, canvas.width, canvas.height);
+            blob = await toBlob('image/jpeg', 0.6);
+          }
+
+          // 최종 안전장치 — 아직도 크면 더 줄임
+          while (blob.size > maxBytes) {
+            canvas.width = Math.round(canvas.width * 0.75);
+            canvas.height = Math.round(canvas.height * 0.75);
+            const ctx3 = canvas.getContext('2d')!;
+            ctx3.fillStyle = '#ffffff';
+            ctx3.fillRect(0, 0, canvas.width, canvas.height);
+            ctx3.drawImage(img, 0, 0, canvas.width, canvas.height);
+            blob = await toBlob('image/jpeg', 0.5);
+          }
+
+          const compressed = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {
+            type: 'image/jpeg',
+            lastModified: Date.now(),
+          });
+          console.log(`[압축] ${file.name}: ${(file.size/1024/1024).toFixed(1)}MB → ${(compressed.size/1024/1024).toFixed(1)}MB (q=${quality.toFixed(2)})`);
+          resolve(compressed);
+        }
       };
       img.onerror = () => {
         URL.revokeObjectURL(url);
-        resolve(file); // 압축 실패 시 원본 사용
+        resolve(file);
       };
       img.src = url;
     });
@@ -128,8 +186,8 @@ export default function ImagePicker({ isOpen, onClose, onSelect }: ImagePickerPr
         continue;
       }
 
-      // 2MB 초과 시 자동 압축
-      if (file.size > 2 * 1024 * 1024) {
+      // 1MB 초과 시 자동 압축
+      if (file.size > 1 * 1024 * 1024) {
         const origSize = (file.size / 1024 / 1024).toFixed(1);
         setUploadProgress(`압축 중... ${file.name} (${origSize}MB)`);
         try {

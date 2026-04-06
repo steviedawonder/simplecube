@@ -4,7 +4,8 @@ import db from '@lib/db';
 
 export const prerender = false;
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB (클라이언트에서 2MB로 압축 후 전송)
+// 서버 사이드 압축이 uploadToCloudinary에서 자동 수행되므로 제한 완화
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB (서버에서 1MB로 압축 후 업로드)
 
 export const POST: APIRoute = async ({ request }) => {
   try {
