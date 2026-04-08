@@ -40,8 +40,8 @@ try {
 ---
 
 <BaseLayout
-  title="WEDDING | 심플큐브"
-  description="심플큐브 웨딩 포토부스. 결혼식을 더 특별하게 만드는 맞춤형 포토부스 서비스."
+  title="웨딩 포토부스 | 심플큐브 - 결혼식 포토부스 대여"
+  description="결혼식 포토부스로 특별한 순간을 남기세요. 심플큐브 웨딩 포토부스는 맞춤 디자인과 전문 운영을 제공합니다. 패키지 확인 및 예약 문의하세요."
   transparentNav={false}
 >
   <!-- 좌측 골드 보더 히어로 (투명 배경) -->
@@ -73,7 +73,24 @@ try {
         <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">현장 사진</h2>
         <p class="mt-4 text-sm text-secondary">심플큐브 웨딩 포토부스의 실제 현장 모습입니다.</p>
       </div>
-      <div id="wedding-gallery-grid" class="grid grid-cols-2 gap-2 md:grid-cols-3"></div>
+      <!-- Tag filter buttons -->
+      <div id="wg-tag-filter" class="flex flex-wrap gap-2 mb-6 hidden"></div>
+      <!-- Gallery carousel wrapper -->
+      <div class="relative">
+        <!-- Sliding track -->
+        <div class="overflow-hidden" id="wg-carousel-wrap">
+          <div id="wg-track" class="flex" style="transition: transform 0.6s ease-in-out;"></div>
+        </div>
+        <!-- Prev/Next buttons -->
+        <button id="wg-prev" class="hidden absolute -left-4 lg:-left-6 top-1/2 -translate-y-1/2 w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-primary text-white shadow-lg items-center justify-center hover:bg-olive transition-colors z-10 disabled:opacity-20 disabled:cursor-not-allowed" aria-label="이전">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+        </button>
+        <button id="wg-next" class="hidden absolute -right-4 lg:-right-6 top-1/2 -translate-y-1/2 w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-primary text-white shadow-lg items-center justify-center hover:bg-olive transition-colors z-10 disabled:opacity-20 disabled:cursor-not-allowed" aria-label="다음">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+        </button>
+      </div>
+      <!-- Page indicator -->
+      <div id="wg-page-indicator" class="flex items-center justify-center gap-2 mt-5"></div>
       <div id="wedding-gallery-empty" class="text-center py-12 hidden">
         <p class="text-secondary text-sm">등록된 현장사진이 없습니다.</p>
         <p class="text-secondary/60 text-xs mt-2">관리자에서 사진 관리 &gt; 웨딩 탭에서 현장사진 태그로 업로드 가능</p>
@@ -95,7 +112,7 @@ try {
     <button id="wg-lb-close" class="absolute top-4 right-4 z-10 text-white/60 hover:text-white transition-colors" aria-label="닫기">
       <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
     </button>
-    <img id="wg-lb-img" src="" alt="" class="max-h-[85vh] max-w-[90vw] object-contain rounded-lg shadow-2xl" />
+    <img id="wg-lb-img" src="" alt="심플큐브 웨딩 포토부스 현장사진 상세 이미지" class="max-h-[85vh] max-w-[90vw] object-contain rounded-lg shadow-2xl" />
     <p id="wg-lb-caption" class="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/70 text-sm"></p>
   </div>
 
@@ -177,7 +194,7 @@ try {
     <button id="ps-lb-close" class="absolute top-4 right-4 z-10 text-white/60 hover:text-white transition-colors" aria-label="닫기">
       <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
     </button>
-    <img id="ps-lb-img" src="" alt="" class="max-h-[85vh] max-w-[90vw] object-contain rounded-lg shadow-2xl" />
+    <img id="ps-lb-img" src="" alt="심플큐브 웨딩 포토스트립 디자인 상세 이미지" class="max-h-[85vh] max-w-[90vw] object-contain rounded-lg shadow-2xl" />
     <p id="ps-lb-caption" class="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/70 text-sm"></p>
   </div>
 
@@ -233,7 +250,7 @@ try {
       <button id="bd-lb-close" class="absolute top-4 right-4 z-10 text-white/60 hover:text-white transition-colors" aria-label="닫기">
         <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
       </button>
-      <img id="bd-lb-img" src="" alt="" class="max-h-[85vh] max-w-[90vw] object-contain rounded-lg shadow-2xl" />
+      <img id="bd-lb-img" src="" alt="심플큐브 웨딩 백드롭 상세 이미지" class="max-h-[85vh] max-w-[90vw] object-contain rounded-lg shadow-2xl" />
       <p id="bd-lb-caption" class="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/70 text-sm"></p>
     </div>
   )}
@@ -241,6 +258,31 @@ try {
   <!-- BookingInquiry removed -->
   <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
   <PartnerHalls />
+
+  <!-- Cross-link: other services -->
+  <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
+  <section class="bg-bg-light py-10 lg:py-14">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      <h2 class="text-lg font-bold text-primary mb-6">다른 서비스 보기</h2>
+      <div class="grid gap-4 sm:grid-cols-3">
+        <a href="/popup" class="group rounded-lg border border-border-light bg-white p-5 hover:border-olive/40 transition-colors">
+          <h3 class="text-base font-semibold text-primary group-hover:text-olive transition-colors">행사 포토부스</h3>
+          <p class="mt-2 text-sm text-secondary leading-relaxed">팝업스토어·기업행사·페스티벌 맞춤 포토부스</p>
+          <span class="mt-2 inline-block text-xs text-olive font-medium">자세히 보기 →</span>
+        </a>
+        <a href="/rental" class="group rounded-lg border border-border-light bg-white p-5 hover:border-olive/40 transition-colors">
+          <h3 class="text-base font-semibold text-primary group-hover:text-olive transition-colors">포토부스 대여</h3>
+          <p class="mt-2 text-sm text-secondary leading-relaxed">전국 출장 가능한 포토부스 렌탈 서비스</p>
+          <span class="mt-2 inline-block text-xs text-olive font-medium">자세히 보기 →</span>
+        </a>
+        <a href="/corporate" class="group rounded-lg border border-border-light bg-white p-5 hover:border-olive/40 transition-colors">
+          <h3 class="text-base font-semibold text-primary group-hover:text-olive transition-colors">기업행사 포토부스</h3>
+          <p class="mt-2 text-sm text-secondary leading-relaxed">기업 이벤트·컨퍼런스·전시회 포토부스</p>
+          <span class="mt-2 inline-block text-xs text-olive font-medium">자세히 보기 →</span>
+        </a>
+      </div>
+    </div>
+  </section>
 
   {faqItems.length > 0 && (
     <Fragment>
@@ -262,43 +304,219 @@ try {
 
 <script>
 {
-  // === Wedding Gallery with Lightbox ===
+  // === Wedding Gallery with Pagination, Auto-slide, Tag Filter & Lightbox ===
   async function loadWeddingGallery() {
     const grid = document.getElementById('wedding-gallery-grid')!;
     const empty = document.getElementById('wedding-gallery-empty')!;
     const loading = document.getElementById('wedding-gallery-loading')!;
-    const gallerySection = document.getElementById('gallery')!;
+    const tagFilter = document.getElementById('wg-tag-filter')!;
+    const prevBtn = document.getElementById('wg-prev') as HTMLButtonElement;
+    const nextBtn = document.getElementById('wg-next') as HTMLButtonElement;
+    const pageIndicator = document.getElementById('wg-page-indicator')!;
 
     try {
       const res = await fetch('/api/portfolio?page_tag=wedding&tags=현장사진');
-      const items: any[] = await res.json();
+      const allItems: any[] = await res.json();
 
       loading.classList.add('hidden');
 
-      if (items.length === 0) {
+      if (allItems.length === 0) {
         empty.classList.remove('hidden');
         return;
       }
 
-      grid.innerHTML = items.map((item: any) => `
-        <div class="wg-item group cursor-pointer overflow-hidden rounded-lg" data-src="${item.image_url}" data-alt="${item.title || '웨딩 현장사진'}">
+      // Extract unique tags (excluding 현장사진 itself)
+      const tagSet = new Set<string>();
+      allItems.forEach((item: any) => {
+        if (item.tags) {
+          item.tags.split(',').map((t: string) => t.trim()).filter((t: string) => t && t !== '현장사진').forEach((t: string) => tagSet.add(t));
+        }
+      });
+      const uniqueTags = Array.from(tagSet);
+
+      let activeTag = 'all';
+      let wgPage = 0;
+      let autoTimer: ReturnType<typeof setInterval> | null = null;
+      let visibleItems: any[] = [];
+
+      const isMobile = () => window.innerWidth < 768;
+      const COLS = () => isMobile() ? 2 : 3;
+      const ROWS = 3;
+      const PER_PAGE = () => COLS() * ROWS;
+
+      // Build tag filter UI
+      if (uniqueTags.length > 0) {
+        tagFilter.classList.remove('hidden');
+        function renderTagButtons() {
+          tagFilter.innerHTML = '';
+          const allBtn = document.createElement('button');
+          allBtn.className = activeTag === 'all'
+            ? 'px-4 py-1.5 text-xs rounded-full font-medium bg-primary text-white transition-colors'
+            : 'px-4 py-1.5 text-xs rounded-full font-medium bg-white border border-gray-200 text-secondary hover:border-olive hover:text-olive transition-colors';
+          allBtn.textContent = '전체';
+          allBtn.addEventListener('click', () => { activeTag = 'all'; wgPage = 0; renderTagButtons(); renderPage(); });
+          tagFilter.appendChild(allBtn);
+
+          uniqueTags.forEach(tag => {
+            const btn = document.createElement('button');
+            btn.className = activeTag === tag
+              ? 'px-4 py-1.5 text-xs rounded-full font-medium bg-primary text-white transition-colors'
+              : 'px-4 py-1.5 text-xs rounded-full font-medium bg-white border border-gray-200 text-secondary hover:border-olive hover:text-olive transition-colors';
+            btn.textContent = tag;
+            btn.addEventListener('click', () => { activeTag = tag; wgPage = 0; renderTagButtons(); renderPage(); });
+            tagFilter.appendChild(btn);
+          });
+        }
+        renderTagButtons();
+      }
+
+      function makeItemHtml(item: any): string {
+        const src = item.image_url || '';
+        const alt = item.title || '웨딩 현장사진';
+        return `<div class="wg-item group cursor-pointer overflow-hidden rounded-lg" data-src="${src}" data-alt="${alt}" data-tags="${item.tags || ''}">
           <div class="relative">
-            <img
-              src="${item.image_url}"
-              alt="${item.title || '웨딩 현장사진'}"
-              class="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-105"
-              loading="lazy"
-            />
+            <img src="${src}" alt="${alt}" class="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
             <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
               <svg class="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
               </svg>
             </div>
           </div>
-        </div>
-      `).join('');
+        </div>`;
+      }
 
-      // Lightbox for gallery
+      const track = document.getElementById('wg-track')!;
+      const carouselWrap = document.getElementById('wg-carousel-wrap')!;
+
+      function buildTrack() {
+        // Filter by tag
+        visibleItems = activeTag === 'all'
+          ? allItems
+          : allItems.filter((item: any) => {
+              if (!item.tags) return false;
+              return item.tags.split(',').map((t: string) => t.trim()).includes(activeTag);
+            });
+
+        const perPage = PER_PAGE();
+        const totalPages = Math.max(1, Math.ceil(visibleItems.length / perPage));
+        if (wgPage >= totalPages) wgPage = 0;
+
+        // Build all pages inside the track (side-by-side)
+        track.innerHTML = '';
+        for (let p = 0; p < totalPages; p++) {
+          const pageDiv = document.createElement('div');
+          pageDiv.className = 'flex-shrink-0 w-full';
+          const cols = COLS();
+          pageDiv.style.cssText = `display: grid; grid-template-columns: repeat(${cols}, 1fr); gap: 0.5rem;`;
+          const start = p * perPage;
+          const end = Math.min(start + perPage, visibleItems.length);
+          for (let i = start; i < end; i++) {
+            pageDiv.insertAdjacentHTML('beforeend', makeItemHtml(visibleItems[i]));
+          }
+          track.appendChild(pageDiv);
+        }
+
+        slideTo(wgPage, false);
+        updateNav(totalPages);
+        updateIndicator(totalPages);
+
+        // Update lightbox items for current visible page
+        updateLbItems();
+      }
+
+      function slideTo(page: number, animate = true) {
+        track.style.transition = animate ? 'transform 0.6s ease-in-out' : 'none';
+        track.style.transform = `translateX(-${page * 100}%)`;
+        wgPage = page;
+        updateLbItems();
+      }
+
+      function updateLbItems() {
+        const perPage = PER_PAGE();
+        const start = wgPage * perPage;
+        const end = Math.min(start + perPage, visibleItems.length);
+        wgItems = visibleItems.slice(start, end).map((item: any) => ({
+          src: item.image_url || '',
+          alt: item.title || '웨딩 현장사진',
+        }));
+      }
+
+      function updateNav(totalPages: number) {
+        if (totalPages > 1) {
+          prevBtn.classList.remove('hidden');
+          prevBtn.classList.add('flex');
+          nextBtn.classList.remove('hidden');
+          nextBtn.classList.add('flex');
+        } else {
+          prevBtn.classList.add('hidden');
+          prevBtn.classList.remove('flex');
+          nextBtn.classList.add('hidden');
+          nextBtn.classList.remove('flex');
+        }
+        prevBtn.disabled = wgPage === 0;
+        nextBtn.disabled = wgPage >= totalPages - 1;
+      }
+
+      function updateIndicator(totalPages: number) {
+        pageIndicator.innerHTML = '';
+        if (totalPages <= 1) return;
+        for (let i = 0; i < totalPages; i++) {
+          const dot = document.createElement('button');
+          dot.className = i === wgPage
+            ? 'w-8 h-2 rounded-full bg-primary transition-all'
+            : 'w-2 h-2 rounded-full bg-gray-300 hover:bg-gray-400 transition-all';
+          dot.addEventListener('click', () => {
+            slideTo(i);
+            updateNav(totalPages);
+            updateIndicator(totalPages);
+            resetAutoSlide();
+          });
+          pageIndicator.appendChild(dot);
+        }
+      }
+
+      function getTotalPages() {
+        return Math.max(1, Math.ceil(visibleItems.length / PER_PAGE()));
+      }
+
+      function goNext() {
+        const total = getTotalPages();
+        const next = (wgPage + 1) % total;
+        slideTo(next);
+        updateNav(total);
+        updateIndicator(total);
+      }
+
+      function goPrev() {
+        const total = getTotalPages();
+        const prev = (wgPage - 1 + total) % total;
+        slideTo(prev);
+        updateNav(total);
+        updateIndicator(total);
+      }
+
+      function startAutoSlide() {
+        if (autoTimer) clearInterval(autoTimer);
+        autoTimer = setInterval(() => {
+          if (getTotalPages() > 1) goNext();
+        }, 4000);
+      }
+
+      function resetAutoSlide() {
+        startAutoSlide();
+      }
+
+      prevBtn.addEventListener('click', () => { goPrev(); resetAutoSlide(); });
+      nextBtn.addEventListener('click', () => { goNext(); resetAutoSlide(); });
+
+      // Pause on hover
+      carouselWrap.addEventListener('mouseenter', () => { if (autoTimer) clearInterval(autoTimer); });
+      carouselWrap.addEventListener('mouseleave', () => startAutoSlide());
+
+      buildTrack();
+      startAutoSlide();
+
+      // Lightbox
       const lightbox = document.getElementById('wg-lightbox')!;
       const lbImg = document.getElementById('wg-lb-img') as HTMLImageElement;
       const lbCaption = document.getElementById('wg-lb-caption')!;
@@ -313,27 +531,25 @@ try {
         lbCaption.textContent = item.alt;
       }
       function openWg(idx: number) {
-        wgItems = Array.from(grid.querySelectorAll('.wg-item')).map(el => ({
-          src: (el as HTMLElement).dataset.src || '',
-          alt: (el as HTMLElement).dataset.alt || '',
-        }));
         wgIdx = idx;
         showWg();
         lightbox.classList.remove('hidden');
         lightbox.classList.add('flex');
         document.body.style.overflow = 'hidden';
+        if (autoTimer) clearInterval(autoTimer);
       }
       function closeWg() {
         lightbox.classList.add('hidden');
         lightbox.classList.remove('flex');
         document.body.style.overflow = '';
+        startAutoSlide();
       }
 
-      grid.addEventListener('click', (e) => {
+      track.addEventListener('click', (e) => {
         const item = (e.target as HTMLElement).closest('.wg-item');
         if (!item) return;
-        const all = Array.from(grid.querySelectorAll('.wg-item'));
-        const idx = all.indexOf(item as Element);
+        const pageItems = Array.from(track.children[wgPage]?.querySelectorAll('.wg-item') || []);
+        const idx = pageItems.indexOf(item as Element);
         if (idx >= 0) openWg(idx);
       });
 
@@ -347,6 +563,9 @@ try {
         if (e.key === 'ArrowLeft') { wgIdx = (wgIdx - 1 + wgItems.length) % wgItems.length; showWg(); }
         if (e.key === 'ArrowRight') { wgIdx = (wgIdx + 1) % wgItems.length; showWg(); }
       });
+
+      // Also need to remove unused grid reference — tag filter uses buildTrack
+      function renderPage() { buildTrack(); }
 
     } catch {
       loading.classList.add('hidden');
