@@ -1,22 +1,14 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import TipTapEditor from './TipTapEditor';
-import SEOPanel from './SEOPanel';
+import { useState, useEffect, useRef } from 'react';
+import { colors, s } from './shared/styles';
+import { calculateScores } from './shared/seoScoring';
+import { ScoreCategoryPanel, ScoreCircle } from './shared/SeoComponents';
+import RichTextEditor from './RichTextEditor';
 import ImagePicker from './ImagePicker';
 
 interface PostEditorProps {
   post?: any;
   categories: any[];
   tags: any[];
-}
-
-interface SEOCheck {
-  id: string;
-  category: string;
-  label: string;
-  status: 'pass' | 'fail' | 'warning';
-  message: string;
-  score: number;
-  maxScore: number;
 }
 
 function generateSlug(title: string): string {
@@ -33,6 +25,7 @@ function generateSlug(title: string): string {
 export default function PostEditor({ post, categories, tags }: PostEditorProps) {
   const isEditing = !!post;
 
+  // ── State ──
   const [title, setTitle] = useState(post?.title || '');
   const [slug, setSlug] = useState(post?.slug || '');
   const [content, setContent] = useState(post?.content || '');
@@ -50,65 +43,139 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(isEditing);
-  const [showOgPreview, setShowOgPreview] = useState(false);
+  const [toastMsg, setToastMsg] = useState('');
   const [showImagePicker, setShowImagePicker] = useState(false);
-  const [imagePickerTarget, setImagePickerTarget] = useState<'featured' | 'editor'>('featured');
+
+  // Image settings panel state
+  const [selectedEditorImg, setSelectedEditorImg] = useState<HTMLImageElement | null>(null);
+  const [imgAlt, setImgAlt] = useState('');
+  const [imgCaption, setImgCaption] = useState('');
+  const [imgLink, setImgLink] = useState('');
+
+  // Revision state
   const [showRevisions, setShowRevisions] = useState(false);
   const [revisions, setRevisions] = useState<any[]>([]);
   const [loadingRevisions, setLoadingRevisions] = useState(false);
 
-  // SEO state
-  const [seoScore, setSeoScore] = useState(post?.seo_score || 0);
-  const [seoChecks, setSeoChecks] = useState<SEOCheck[]>([]);
-  const seoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Auto-generate slug from title
+  // ── Auto-generate slug from title ──
   useEffect(() => {
     if (!slugManuallyEdited && title) {
       setSlug(generateSlug(title));
     }
   }, [title, slugManuallyEdited]);
 
-  // Debounced SEO analysis
-  const analyzeSEO = useCallback(() => {
-    if (seoTimerRef.current) {
-      clearTimeout(seoTimerRef.current);
+  // ── Toast helper ──
+  function showToast(msg: string) {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(''), 2500);
+  }
+
+  // ── Client-side SEO/GEO scoring ──
+  const selectedTagNames = selectedTagIds
+    .map((id) => tags.find((t: any) => t.id === id)?.name || '')
+    .filter(Boolean);
+  const categoryName = categories.find((c: any) => c.id === categoryId)?.name || '';
+  const scores = calculateScores({
+    title,
+    excerpt: seoDescription,
+    body: content,
+    focusKeyword,
+    seoTitle: seoTitle || title,
+    seoDesc: seoDescription,
+    tags: selectedTagNames,
+    category: categoryName,
+    slug,
+  });
+
+  // ── Save handler ──
+  async function handleSave(publish?: boolean) {
+    if (!title.trim()) {
+      setError('제목을 입력하세요.');
+      return;
+    }
+    if (!slug.trim()) {
+      setError('슬러그를 입력하세요.');
+      return;
     }
 
-    seoTimerRef.current = setTimeout(async () => {
-      try {
-        const res = await fetch('/api/seo/analyze', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            title,
-            seoTitle: seoTitle || title,
-            description: seoDescription,
-            content,
-            slug,
-            focusKeyword: focusKeyword,
-            postId: post?.id || 0,
-          }),
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setSeoScore(data.score);
-          setSeoChecks(data.checks || []);
-        }
-      } catch {
-        // Silently fail SEO analysis
-      }
-    }, 800);
-  }, [title, seoTitle, seoDescription, content, slug, focusKeyword, post?.id]);
+    setSaving(true);
+    setError('');
 
-  useEffect(() => {
-    analyzeSEO();
-    return () => {
-      if (seoTimerRef.current) clearTimeout(seoTimerRef.current);
+    const isDraft = publish === undefined ? draft : !publish;
+
+    const reqBody = {
+      title: title.trim(),
+      slug: slug.trim(),
+      description: seoDescription,
+      content,
+      category_id: categoryId,
+      image,
+      focus_keyword: focusKeyword,
+      seo_title: seoTitle,
+      seo_description: seoDescription,
+      seo_score: scores.totalScore,
+      draft: isDraft ? 1 : 0,
+      scheduled_at: scheduledAt || null,
+      tags: selectedTagIds,
     };
-  }, [analyzeSEO]);
 
-  // Load revisions
+    try {
+      const url = isEditing ? `/api/posts/${post.id}` : '/api/posts';
+      const method = isEditing ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reqBody),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || '저장 실패');
+        setSaving(false);
+        return;
+      }
+
+      showToast(publish ? '발행되었습니다!' : '임시저장 완료!');
+      setTimeout(() => {
+        window.location.href = '/admin/posts';
+      }, 1000);
+    } catch {
+      setError('네트워크 오류');
+      setSaving(false);
+    }
+  }
+
+  // ── Tag management (ID-based) ──
+  function handleTagInputKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addTagsFromInput();
+    }
+  }
+
+  function addTagsFromInput() {
+    const names = tagInput
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const newIds = [...selectedTagIds];
+    for (const name of names) {
+      const found = tags.find(
+        (t: any) => t.name.toLowerCase() === name.toLowerCase()
+      );
+      if (found && !newIds.includes(found.id)) {
+        newIds.push(found.id);
+      }
+    }
+    setSelectedTagIds(newIds);
+    setTagInput('');
+  }
+
+  function removeTag(tagId: number) {
+    setSelectedTagIds((prev) => prev.filter((id) => id !== tagId));
+  }
+
+  // ── Revision handlers ──
   async function loadRevisions() {
     if (!isEditing) return;
     setLoadingRevisions(true);
@@ -143,917 +210,492 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
     }
   }
 
-  // Tag management
-  function handleTagInputKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === 'Enter' || e.key === ',') {
-      e.preventDefault();
-      addTagsFromInput();
-    }
-  }
-
-  function addTagsFromInput() {
-    const names = tagInput
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean);
-
-    const newIds: number[] = [...selectedTagIds];
-    for (const name of names) {
-      const found = tags.find(
-        (t: any) => t.name.toLowerCase() === name.toLowerCase()
-      );
-      if (found && !newIds.includes(found.id)) {
-        newIds.push(found.id);
-      }
-    }
-    setSelectedTagIds(newIds);
-    setTagInput('');
-  }
-
-  function removeTag(tagId: number) {
-    setSelectedTagIds((prev) => prev.filter((id) => id !== tagId));
-  }
-
-  // Save handler
-  async function handleSave() {
-    if (!title.trim()) {
-      setError('제목을 입력하세요.');
-      return;
-    }
-    if (!slug.trim()) {
-      setError('슬러그를 입력하세요.');
-      return;
-    }
-
-    setSaving(true);
-    setError('');
-
-    const body = {
-      title: title.trim(),
-      slug: slug.trim(),
-      description: seoDescription,
-      content,
-      category_id: categoryId,
-      image,
-      focus_keyword: focusKeyword,
-      seo_title: seoTitle,
-      seo_description: seoDescription,
-      seo_score: seoScore,
-      draft: draft ? 1 : 0,
-      scheduled_at: scheduledAt || null,
-      tags: selectedTagIds,
-    };
-
-    try {
-      const url = isEditing ? `/api/posts/${post.id}` : '/api/posts';
-      const method = isEditing ? 'PUT' : 'POST';
-
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        setError(data.error || '저장에 실패했습니다.');
-        setSaving(false);
-        return;
-      }
-
-      window.location.href = '/admin/posts';
-    } catch {
-      setError('네트워크 오류가 발생했습니다.');
-      setSaving(false);
-    }
-  }
-
+  // ── Render ──
   return (
-    <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
-      {/* Left Column - 70% */}
-      <div style={{ flex: '1 1 70%', minWidth: 0 }}>
-        {/* Title Input */}
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="제목을 입력하세요"
-          style={{
-            width: '100%',
-            fontSize: '2rem',
-            fontWeight: 700,
-            fontFamily: 'inherit',
-            border: 'none',
-            outline: 'none',
-            padding: '8px 0',
-            color: '#1d1d1f',
-            backgroundColor: 'transparent',
-            marginBottom: 8,
-          }}
-        />
+    <div style={{ position: 'relative' }}>
+      {/* Toast */}
+      {toastMsg && (
+        <div style={{ position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)', background: '#1a1a1a', color: '#fff', padding: '10px 28px', borderRadius: 8, fontSize: 13, fontWeight: 600, zIndex: 9999, boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }}>
+          {toastMsg}
+        </div>
+      )}
 
-        {/* Slug Input */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-          <span style={{ fontSize: '0.8125rem', color: '#6e6e73', flexShrink: 0 }}>
-            /blog/
-          </span>
+      {/* Back link */}
+      <a
+        href="/admin/posts"
+        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: colors.textLight, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 4, textDecoration: 'none' }}
+      >
+        <span>{'<'}</span> 글 목록으로
+      </a>
+
+      {/* Grid: Left (editor) + Right (sidebar) */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20 }}>
+        {/* ── Left Column ── */}
+        <div>
+          {/* Title */}
           <input
-            type="text"
-            value={slug}
-            onChange={(e) => {
-              setSlugManuallyEdited(true);
-              setSlug(e.target.value);
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="제목을 입력하세요"
+            style={{ width: '100%', fontSize: 24, fontWeight: 800, border: `1px solid ${colors.border}`, borderRadius: 8, outline: 'none', padding: '14px 16px', marginBottom: 10, color: colors.text, fontFamily: 'inherit', background: '#fff', boxSizing: 'border-box' }}
+          />
+
+          {/* Slug */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 16, fontSize: 13, color: colors.textLight }}>
+            <span style={{ fontWeight: 600 }}>/blog/</span>
+            <input
+              value={slug}
+              onChange={(e) => {
+                setSlugManuallyEdited(true);
+                setSlug(e.target.value);
+              }}
+              onClick={() => setSlugManuallyEdited(true)}
+              placeholder="post-slug"
+              style={{ border: `1px solid ${colors.border}`, borderRadius: 4, padding: '4px 8px', fontSize: 13, color: colors.textLight, flex: 1, outline: 'none', background: '#fafafa', fontFamily: 'monospace' }}
+            />
+          </div>
+
+          {/* Rich Text Editor */}
+          <RichTextEditor
+            value={content}
+            onChange={setContent}
+            onImageSelect={(img) => {
+              setSelectedEditorImg(img);
+              if (img && img.tagName === 'IMG') {
+                setImgAlt(img.getAttribute('alt') || '');
+                const wrapper = img.closest('.img-overlay-wrapper');
+                const container = wrapper || img;
+                const figureWrapper = container.closest('.img-figure-wrapper');
+                const captionEl = figureWrapper?.querySelector('.img-caption');
+                setImgCaption(captionEl?.textContent || '');
+                const link = img.closest('a');
+                setImgLink(link?.getAttribute('href') || '');
+              } else {
+                setImgAlt('');
+                setImgCaption('');
+                setImgLink('');
+              }
             }}
-            placeholder="post-slug"
-            style={{
-              flex: 1,
-              fontSize: '0.8125rem',
-              fontFamily: 'monospace',
-              border: '1px solid #e8e8ed',
-              borderRadius: 6,
-              padding: '6px 10px',
-              color: '#1d1d1f',
-              backgroundColor: '#fafafa',
-              outline: 'none',
-            }}
-            onFocus={(e) => (e.currentTarget.style.borderColor = '#D4AA45')}
-            onBlur={(e) => (e.currentTarget.style.borderColor = '#e8e8ed')}
           />
         </div>
 
-        {/* TipTap Editor */}
-        <TipTapEditor
-          content={content}
-          onChange={setContent}
-          onImageButtonClick={() => {
-            setImagePickerTarget('editor');
-            setShowImagePicker(true);
-          }}
-        />
-      </div>
+        {/* ── Right Column (Sidebar) ── */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 
-      {/* Right Column - 30% Sticky Sidebar */}
-      <div
-        style={{
-          flex: '0 0 320px',
-          position: 'sticky',
-          top: 72,
-          maxHeight: 'calc(100vh - 88px)',
-          overflowY: 'auto',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 16,
-        }}
-      >
-        {/* Error Message */}
-        {error && (
-          <div
-            style={{
-              padding: '10px 14px',
-              backgroundColor: '#fee2e2',
-              color: '#991b1b',
-              borderRadius: 8,
-              fontSize: '0.8125rem',
-            }}
-          >
-            {error}
-          </div>
-        )}
+          {/* Panel 1: Conditional Image Settings / SEO Score */}
+          {selectedEditorImg && selectedEditorImg.tagName === 'IMG' ? (
+            <div style={s.card} className="image-settings-panel">
+              {/* Header */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, paddingBottom: 12, borderBottom: `1px solid ${colors.border}` }}>
+                <div style={{ width: 32, height: 32, borderRadius: 6, background: colors.blue, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: colors.text }}>이미지 설정</div>
+                  <div style={{ fontSize: 10, color: colors.textLight }}>다른 곳을 클릭하면 SEO 분석으로 돌아갑니다</div>
+                </div>
+              </div>
 
-        {/* SEO Score Panel - 최상단 */}
-        <div
-          style={{
-            backgroundColor: '#ffffff',
-            border: '1px solid #e8e8ed',
-            borderRadius: 10,
-            padding: 16,
-          }}
-        >
-          <h3 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: 8, color: '#1d1d1f' }}>
-            SEO 점수
-          </h3>
-          <SEOPanel score={seoScore} checks={seoChecks} />
-        </div>
+              {/* Preview thumbnail */}
+              <div style={{ marginBottom: 14, borderRadius: 8, overflow: 'hidden', border: `1px solid ${colors.border}`, background: '#f5f5f5' }}>
+                <img src={selectedEditorImg.src} style={{ width: '100%', display: 'block', maxHeight: 160, objectFit: 'contain' }} />
+              </div>
 
-        {/* Publish Section */}
-        <div
-          style={{
-            backgroundColor: '#ffffff',
-            border: '1px solid #e8e8ed',
-            borderRadius: 10,
-            padding: 16,
-          }}
-        >
-          <h3 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: 12, color: '#1d1d1f' }}>
-            발행
-          </h3>
+              {/* Alt text */}
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: colors.text, marginBottom: 4 }}>
+                  이미지 설명 (Alt Text)
+                  <span style={{ fontSize: 9, fontWeight: 500, color: '#fff', background: colors.green, padding: '1px 5px', borderRadius: 3 }}>SEO</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="검색엔진이 이미지를 이해할 수 있도록 설명을 입력하세요"
+                  value={imgAlt}
+                  onChange={(e) => {
+                    setImgAlt(e.target.value);
+                    selectedEditorImg.setAttribute('alt', e.target.value);
+                  }}
+                  style={{ ...s.input, fontSize: 12, padding: '8px 10px' }}
+                />
+              </div>
 
-          {/* Draft / Publish Toggle */}
-          <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-            <button
-              type="button"
-              onClick={() => setDraft(true)}
-              style={{
-                flex: 1,
-                padding: '8px 12px',
-                borderRadius: 6,
-                border: `1px solid ${draft ? '#D4AA45' : '#e8e8ed'}`,
-                backgroundColor: draft ? 'rgba(212, 170, 69, 0.08)' : '#ffffff',
-                color: draft ? '#D4AA45' : '#6e6e73',
-                fontWeight: draft ? 600 : 400,
-                fontSize: '0.8125rem',
-                fontFamily: 'inherit',
-                cursor: 'pointer',
-              }}
-            >
-              임시저장
-            </button>
-            <button
-              type="button"
-              onClick={() => setDraft(false)}
-              style={{
-                flex: 1,
-                padding: '8px 12px',
-                borderRadius: 6,
-                border: `1px solid ${!draft ? '#22c55e' : '#e8e8ed'}`,
-                backgroundColor: !draft ? 'rgba(34, 197, 94, 0.08)' : '#ffffff',
-                color: !draft ? '#22c55e' : '#6e6e73',
-                fontWeight: !draft ? 600 : 400,
-                fontSize: '0.8125rem',
-                fontFamily: 'inherit',
-                cursor: 'pointer',
-              }}
-            >
-              발행
-            </button>
-          </div>
+              {/* Caption */}
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ fontSize: 12, fontWeight: 600, color: colors.text, marginBottom: 4, display: 'block' }}>
+                  캡션
+                </label>
+                <input
+                  type="text"
+                  placeholder="이미지 하단 설명 (선택)"
+                  value={imgCaption}
+                  onChange={(e) => {
+                    setImgCaption(e.target.value);
+                    const wrapper = selectedEditorImg.closest('.img-overlay-wrapper');
+                    const imgEl = wrapper || selectedEditorImg;
+                    let figureEl = imgEl.closest('.img-figure-wrapper') as HTMLElement | null;
+                    let captionEl = figureEl?.querySelector('.img-caption') as HTMLElement | null;
 
-          {/* Scheduled Publishing */}
-          <div style={{ marginBottom: 12 }}>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#6e6e73', marginBottom: 4 }}>
-              예약 발행
-            </label>
-            <input
-              type="datetime-local"
-              value={scheduledAt}
-              onChange={(e) => setScheduledAt(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '6px 10px',
-                borderRadius: 6,
-                border: '1px solid #e8e8ed',
-                fontSize: '0.8125rem',
-                fontFamily: 'inherit',
-                color: '#1d1d1f',
-                outline: 'none',
-              }}
-            />
-            {scheduledAt && (
+                    if (e.target.value) {
+                      if (!figureEl) {
+                        figureEl = document.createElement('div');
+                        figureEl.className = 'img-figure-wrapper';
+                        figureEl.style.cssText = 'display:inline-block;margin:8px 0;max-width:100%;vertical-align:top;';
+                        imgEl.parentElement?.insertBefore(figureEl, imgEl);
+                        figureEl.appendChild(imgEl);
+                      }
+                      if (!captionEl) {
+                        captionEl = document.createElement('div');
+                        captionEl.className = 'img-caption';
+                        captionEl.style.cssText = 'text-align:center;font-size:13px;color:#888;margin:0;padding:2px 0;word-wrap:break-word;overflow-wrap:break-word;';
+                        figureEl.appendChild(captionEl);
+                      }
+                      captionEl.textContent = e.target.value;
+                    } else {
+                      if (captionEl) captionEl.remove();
+                      if (figureEl && !figureEl.querySelector('.img-caption')) {
+                        figureEl.parentElement?.insertBefore(imgEl, figureEl);
+                        figureEl.remove();
+                      }
+                    }
+                    setContent(document.querySelector('[contenteditable]')?.innerHTML || content);
+                  }}
+                  style={{ ...s.input, fontSize: 12, padding: '8px 10px' }}
+                />
+              </div>
+
+              {/* Link */}
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ fontSize: 12, fontWeight: 600, color: colors.text, marginBottom: 4, display: 'block' }}>
+                  클릭 시 이동 링크
+                </label>
+                <input
+                  type="text"
+                  placeholder="https://example.com (선택)"
+                  value={imgLink}
+                  onChange={(e) => {
+                    setImgLink(e.target.value);
+                    const existingLink = selectedEditorImg.closest('a');
+                    if (e.target.value) {
+                      if (existingLink) {
+                        existingLink.setAttribute('href', e.target.value);
+                      } else {
+                        const a = document.createElement('a');
+                        a.href = e.target.value;
+                        a.target = '_blank';
+                        a.rel = 'noopener';
+                        selectedEditorImg.parentElement?.insertBefore(a, selectedEditorImg);
+                        a.appendChild(selectedEditorImg);
+                      }
+                    } else {
+                      if (existingLink) {
+                        existingLink.parentElement?.insertBefore(selectedEditorImg, existingLink);
+                        existingLink.remove();
+                      }
+                    }
+                    setContent(document.querySelector('[contenteditable]')?.innerHTML || content);
+                  }}
+                  style={{ ...s.input, fontSize: 12, padding: '8px 10px' }}
+                />
+              </div>
+
+              {/* Image info */}
+              <div style={{ fontSize: 11, color: colors.textLight, padding: '8px 0', borderTop: `1px solid ${colors.border}` }}>
+                <div>크기: {selectedEditorImg.naturalWidth} x {selectedEditorImg.naturalHeight}px</div>
+              </div>
+            </div>
+          ) : (
+            /* SEO/GEO Score Panel */
+            <div style={s.card}>
+              {/* Score header with circles */}
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginBottom: 16, paddingBottom: 16, borderBottom: `1px solid ${colors.border}` }}>
+                <ScoreCircle score={scores.seoScore} label="SEO" size={48} />
+                <ScoreCircle score={scores.totalScore} label="종합" size={64} />
+                <ScoreCircle score={scores.geoScore} label="GEO" size={48} />
+              </div>
+
+              {/* SEO Categories */}
+              <div style={{ marginBottom: 8 }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: colors.text, marginBottom: 4, letterSpacing: '0.02em' }}>
+                  SEO 분석 <span style={{ fontWeight: 400, color: colors.textLight }}>({scores.seoScore}/100)</span>
+                </div>
+                {scores.seoCategories.map((cat, i) => (
+                  <ScoreCategoryPanel key={i} category={cat} defaultOpen={cat.failCount > 0 && i === 0} />
+                ))}
+              </div>
+
+              {/* GEO Categories */}
+              <div style={{ marginTop: 16, paddingTop: 12, borderTop: `2px solid ${colors.border}` }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: colors.text, marginBottom: 4, letterSpacing: '0.02em' }}>
+                  GEO 분석 (AI 검색 최적화) <span style={{ fontWeight: 400, color: colors.textLight }}>({scores.geoScore}/100)</span>
+                </div>
+                {scores.geoCategories.map((cat, i) => (
+                  <ScoreCategoryPanel key={i} category={cat} defaultOpen={cat.failCount > 0 && i === 0} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Panel 2: Error message */}
+          {error && (
+            <div style={{ padding: '10px 14px', backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: 8, fontSize: 13 }}>
+              {error}
+            </div>
+          )}
+
+          {/* Panel 3: Publish */}
+          <div style={s.card}>
+            <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 12 }}>발행</h3>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
               <button
-                type="button"
-                onClick={() => setScheduledAt('')}
-                style={{
-                  marginTop: 4,
-                  padding: '2px 6px',
-                  background: 'none',
-                  border: 'none',
-                  color: '#ef4444',
-                  fontSize: '0.6875rem',
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                }}
+                onClick={() => handleSave(false)}
+                disabled={saving}
+                style={{ ...s.btn, ...s.btnOutline, flex: 1, fontSize: 12 }}
               >
-                예약 취소
+                {saving ? '...' : '임시저장'}
               </button>
-            )}
-          </div>
+              <button
+                onClick={() => handleSave(true)}
+                disabled={saving}
+                style={{ ...s.btn, padding: '10px 20px', fontSize: 12, fontWeight: 600, borderRadius: 8, border: '2px solid #22c55e', background: '#fff', color: '#22c55e', cursor: 'pointer', flex: 1 }}
+              >
+                {saving ? '...' : '발행'}
+              </button>
+            </div>
 
-          {/* Save + Preview Buttons */}
-          <div style={{ display: 'flex', gap: 8 }}>
+            {/* Scheduled publishing */}
+            <div style={{ marginBottom: 8 }}>
+              <label style={{ fontSize: 12, fontWeight: 600, color: colors.orange }}>예약 발행</label>
+              <input
+                type="datetime-local"
+                style={{ ...s.input, fontSize: 12, marginTop: 4 }}
+                value={scheduledAt}
+                onChange={(e) => setScheduledAt(e.target.value)}
+              />
+              {scheduledAt && (
+                <button
+                  type="button"
+                  onClick={() => setScheduledAt('')}
+                  style={{ marginTop: 4, padding: '2px 6px', background: 'none', border: 'none', color: colors.red, fontSize: 11, cursor: 'pointer' }}
+                >
+                  예약 취소
+                </button>
+              )}
+            </div>
+
+            {/* Draft toggle */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, fontSize: 12 }}>
+              <input
+                type="checkbox"
+                id="draft-toggle"
+                checked={draft}
+                onChange={(e) => setDraft(e.target.checked)}
+                style={{ cursor: 'pointer' }}
+              />
+              <label htmlFor="draft-toggle" style={{ cursor: 'pointer', color: colors.textLight }}>
+                임시글 (비공개)
+              </label>
+            </div>
+
+            {/* Save button */}
             <button
-              type="button"
-              onClick={handleSave}
+              onClick={() => handleSave()}
               disabled={saving}
-              style={{
-                flex: 1,
-                padding: '10px 16px',
-                borderRadius: 6,
-                border: 'none',
-                backgroundColor: saving ? '#8c8c8c' : '#1d1d1f',
-                color: '#ffffff',
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                fontFamily: 'inherit',
-                cursor: saving ? 'not-allowed' : 'pointer',
-                transition: 'background-color 0.15s',
-              }}
+              style={{ ...s.btn, width: '100%', background: colors.text, color: '#fff', fontSize: 13, padding: '12px 0', fontWeight: 700, borderRadius: 8, border: 'none', cursor: 'pointer' }}
             >
               {saving ? '저장 중...' : '저장'}
             </button>
+
+            {/* Preview link */}
             {isEditing && !post?.draft && (
               <a
                 href={`/blog/${post.slug}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '10px 12px',
-                  borderRadius: 6,
-                  border: '1px solid #e8e8ed',
-                  backgroundColor: '#ffffff',
-                  color: '#6e6e73',
-                  fontSize: '0.8125rem',
-                  textDecoration: 'none',
-                  cursor: 'pointer',
-                }}
-                title="미리보기"
+                style={{ display: 'block', textAlign: 'center', marginTop: 8, fontSize: 12, color: colors.textLight, textDecoration: 'underline' }}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                  <polyline points="15 3 21 3 21 9" />
-                  <line x1="10" y1="14" x2="21" y2="3" />
-                </svg>
+                미리보기
               </a>
             )}
           </div>
-        </div>
 
-        {/* Category Section */}
-        <div
-          style={{
-            backgroundColor: '#ffffff',
-            border: '1px solid #e8e8ed',
-            borderRadius: 10,
-            padding: 16,
-          }}
-        >
-          <h3 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: 10, color: '#1d1d1f' }}>
-            카테고리
-          </h3>
-          <select
-            value={categoryId ?? ''}
-            onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : null)}
-            style={{
-              width: '100%',
-              padding: '8px 10px',
-              borderRadius: 6,
-              border: '1px solid #e8e8ed',
-              fontSize: '0.8125rem',
-              fontFamily: 'inherit',
-              color: '#1d1d1f',
-              backgroundColor: '#ffffff',
-              outline: 'none',
-              cursor: 'pointer',
-            }}
-          >
-            <option value="">카테고리 선택</option>
-            {categories.map((cat: any) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Tags Section */}
-        <div
-          style={{
-            backgroundColor: '#ffffff',
-            border: '1px solid #e8e8ed',
-            borderRadius: 10,
-            padding: 16,
-          }}
-        >
-          <h3 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: 10, color: '#1d1d1f' }}>
-            태그
-          </h3>
-
-          {/* Selected tags as chips */}
-          {selectedTagIds.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
-              {selectedTagIds.map((tagId) => {
-                const tag = tags.find((t: any) => t.id === tagId);
-                if (!tag) return null;
-                return (
-                  <span
-                    key={tagId}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 4,
-                      padding: '3px 8px',
-                      backgroundColor: '#f5f5f7',
-                      borderRadius: 100,
-                      fontSize: '0.75rem',
-                      color: '#1d1d1f',
-                    }}
-                  >
-                    {tag.name}
-                    <button
-                      type="button"
-                      onClick={() => removeTag(tagId)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: 0,
-                        color: '#8c8c8c',
-                        fontSize: '0.875rem',
-                        lineHeight: 1,
-                        display: 'flex',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <line x1="18" y1="6" x2="6" y2="18" />
-                        <line x1="6" y1="6" x2="18" y2="18" />
-                      </svg>
-                    </button>
-                  </span>
-                );
-              })}
-            </div>
-          )}
-
-          <input
-            type="text"
-            value={tagInput}
-            onChange={(e) => setTagInput(e.target.value)}
-            onKeyDown={handleTagInputKeyDown}
-            onBlur={addTagsFromInput}
-            placeholder="태그 입력 후 Enter"
-            list="tag-suggestions"
-            style={{
-              width: '100%',
-              padding: '8px 10px',
-              borderRadius: 6,
-              border: '1px solid #e8e8ed',
-              fontSize: '0.8125rem',
-              fontFamily: 'inherit',
-              color: '#1d1d1f',
-              outline: 'none',
-            }}
-          />
-          <datalist id="tag-suggestions">
-            {tags
-              .filter((t: any) => !selectedTagIds.includes(t.id))
-              .map((t: any) => (
-                <option key={t.id} value={t.name} />
+          {/* Panel 4: Category */}
+          <div style={s.card}>
+            <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>카테고리</h3>
+            <select
+              style={s.input}
+              value={categoryId ?? ''}
+              onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : null)}
+            >
+              <option value="">카테고리 선택</option>
+              {categories.map((cat: any) => (
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
               ))}
-          </datalist>
-        </div>
-
-        {/* Featured Image */}
-        <div
-          style={{
-            backgroundColor: '#ffffff',
-            border: '1px solid #e8e8ed',
-            borderRadius: 10,
-            padding: 16,
-          }}
-        >
-          <h3 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: 10, color: '#1d1d1f' }}>
-            대표 이미지
-          </h3>
-          {image ? (
-            <div style={{ position: 'relative', marginBottom: 10 }}>
-              <img
-                src={image}
-                alt="대표 이미지 미리보기"
-                style={{
-                  width: '100%',
-                  height: 140,
-                  objectFit: 'cover',
-                  borderRadius: 6,
-                  backgroundColor: '#f5f5f7',
-                }}
-              />
-              <button
-                type="button"
-                onClick={() => setImage('')}
-                style={{
-                  position: 'absolute',
-                  top: 6,
-                  right: 6,
-                  width: 24,
-                  height: 24,
-                  borderRadius: '50%',
-                  border: 'none',
-                  backgroundColor: 'rgba(0,0,0,0.6)',
-                  color: '#fff',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-                title="이미지 제거"
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => {
-                setImagePickerTarget('featured');
-                setShowImagePicker(true);
-              }}
-              style={{
-                width: '100%',
-                height: 100,
-                borderRadius: 6,
-                border: '2px dashed #e8e8ed',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 6,
-                marginBottom: 10,
-                color: '#8c8c8c',
-                fontSize: '0.8125rem',
-                backgroundColor: 'transparent',
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                transition: 'all 0.15s',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = '#D4AA45';
-                e.currentTarget.style.color = '#D4AA45';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = '#e8e8ed';
-                e.currentTarget.style.color = '#8c8c8c';
-              }}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                <circle cx="8.5" cy="8.5" r="1.5" />
-                <polyline points="21 15 16 10 5 21" />
-              </svg>
-              이미지 선택
-            </button>
-          )}
-          {image && (
-            <button
-              type="button"
-              onClick={() => {
-                setImagePickerTarget('featured');
-                setShowImagePicker(true);
-              }}
-              style={{
-                width: '100%',
-                padding: '6px 10px',
-                borderRadius: 6,
-                border: '1px solid #e8e8ed',
-                backgroundColor: '#ffffff',
-                color: '#6e6e73',
-                fontSize: '0.8125rem',
-                fontFamily: 'inherit',
-                cursor: 'pointer',
-                transition: 'all 0.15s',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#D4AA45')}
-              onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#e8e8ed')}
-            >
-              이미지 변경
-            </button>
-          )}
-        </div>
-
-        {/* SEO Settings */}
-        <div
-          style={{
-            backgroundColor: '#ffffff',
-            border: '1px solid #e8e8ed',
-            borderRadius: 10,
-            padding: 16,
-          }}
-        >
-          <h3 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: 12, color: '#1d1d1f' }}>
-            SEO 설정
-          </h3>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <div>
-              <label
-                style={{
-                  display: 'block',
-                  fontSize: '0.75rem',
-                  fontWeight: 500,
-                  color: '#6e6e73',
-                  marginBottom: 4,
-                }}
-              >
-                포커스 키워드
-              </label>
-              <input
-                type="text"
-                value={focusKeyword}
-                onChange={(e) => setFocusKeyword(e.target.value)}
-                placeholder="예: 웨딩 촬영"
-                style={{
-                  width: '100%',
-                  padding: '8px 10px',
-                  borderRadius: 6,
-                  border: '1px solid #e8e8ed',
-                  fontSize: '0.8125rem',
-                  fontFamily: 'inherit',
-                  color: '#1d1d1f',
-                  outline: 'none',
-                }}
-              />
-            </div>
-
-            <div>
-              <label
-                style={{
-                  display: 'block',
-                  fontSize: '0.75rem',
-                  fontWeight: 500,
-                  color: '#6e6e73',
-                  marginBottom: 4,
-                }}
-              >
-                SEO 제목
-              </label>
-              <input
-                type="text"
-                value={seoTitle}
-                onChange={(e) => setSeoTitle(e.target.value)}
-                placeholder={title || 'SEO 제목'}
-                style={{
-                  width: '100%',
-                  padding: '8px 10px',
-                  borderRadius: 6,
-                  border: '1px solid #e8e8ed',
-                  fontSize: '0.8125rem',
-                  fontFamily: 'inherit',
-                  color: '#1d1d1f',
-                  outline: 'none',
-                }}
-              />
-              <div style={{ fontSize: '0.6875rem', color: '#8c8c8c', marginTop: 2 }}>
-                {(seoTitle || title).length}/60자
-              </div>
-            </div>
-
-            <div>
-              <label
-                style={{
-                  display: 'block',
-                  fontSize: '0.75rem',
-                  fontWeight: 500,
-                  color: '#6e6e73',
-                  marginBottom: 4,
-                }}
-              >
-                SEO 설명
-              </label>
-              <textarea
-                value={seoDescription}
-                onChange={(e) => setSeoDescription(e.target.value)}
-                placeholder="검색 결과에 표시될 설명"
-                rows={3}
-                style={{
-                  width: '100%',
-                  padding: '8px 10px',
-                  borderRadius: 6,
-                  border: '1px solid #e8e8ed',
-                  fontSize: '0.8125rem',
-                  fontFamily: 'inherit',
-                  color: '#1d1d1f',
-                  outline: 'none',
-                  resize: 'vertical',
-                  lineHeight: 1.5,
-                }}
-              />
-              <div style={{ fontSize: '0.6875rem', color: '#8c8c8c', marginTop: 2 }}>
-                {seoDescription.length}/160자
-              </div>
-            </div>
+            </select>
           </div>
-        </div>
 
-        {/* OG Preview */}
-        <div
-          style={{
-            backgroundColor: '#ffffff',
-            border: '1px solid #e8e8ed',
-            borderRadius: 10,
-            padding: 16,
-          }}
-        >
-          <button
-            type="button"
-            onClick={() => setShowOgPreview(!showOgPreview)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              width: '100%',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              fontSize: '0.875rem',
-              fontWeight: 600,
-              color: '#1d1d1f',
-              padding: 0,
-            }}
-          >
-            <span>공유 미리보기</span>
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              style={{ transform: showOgPreview ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }}
-            >
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-          </button>
-          {showOgPreview && (
-            <div style={{ marginTop: 12 }}>
-              {/* Kakao / Facebook style */}
-              <div style={{ fontSize: '0.6875rem', color: '#8c8c8c', marginBottom: 4 }}>카카오톡 / Facebook</div>
-              <div
-                style={{
-                  border: '1px solid #e8e8ed',
-                  borderRadius: 8,
-                  overflow: 'hidden',
-                  backgroundColor: '#f5f5f7',
-                }}
-              >
-                {image && (
-                  <img
-                    src={image}
-                    alt="OG Preview"
-                    style={{ width: '100%', height: 160, objectFit: 'cover' }}
-                  />
-                )}
-                <div style={{ padding: '10px 12px' }}>
-                  <div style={{ fontSize: '0.6875rem', color: '#8c8c8c', marginBottom: 2 }}>
-                    simplecube.vercel.app
-                  </div>
-                  <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#1d1d1f', marginBottom: 2, lineHeight: 1.3 }}>
-                    {seoTitle || title || 'SEO 제목'}
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: '#6e6e73', lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                    {seoDescription || '메타 설명이 여기에 표시됩니다.'}
-                  </div>
-                </div>
-              </div>
-
-              {/* Google Search style */}
-              <div style={{ fontSize: '0.6875rem', color: '#8c8c8c', marginTop: 12, marginBottom: 4 }}>Google 검색결과</div>
-              <div style={{ padding: '8px 0' }}>
-                <div style={{ fontSize: '0.8125rem', color: '#1a0dab', fontWeight: 500, marginBottom: 2 }}>
-                  {seoTitle || title || 'SEO 제목'} - SIMPLE CUBE
-                </div>
-                <div style={{ fontSize: '0.6875rem', color: '#006621', marginBottom: 2 }}>
-                  simplecube.vercel.app/blog/{slug || 'post-slug'}
-                </div>
-                <div style={{ fontSize: '0.75rem', color: '#545454', lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                  {seoDescription || '메타 설명이 여기에 표시됩니다.'}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Revisions Panel (only for editing) */}
-        {isEditing && (
-          <div
-            style={{
-              backgroundColor: '#ffffff',
-              border: '1px solid #e8e8ed',
-              borderRadius: 10,
-              padding: 16,
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => {
-                setShowRevisions(!showRevisions);
-                if (!showRevisions && revisions.length === 0) {
-                  loadRevisions();
-                }
-              }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                width: '100%',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                color: '#1d1d1f',
-                padding: 0,
-              }}
-            >
-              <span>버전 기록</span>
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                style={{ transform: showRevisions ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }}
-              >
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </button>
-            {showRevisions && (
-              <div style={{ marginTop: 12 }}>
-                {loadingRevisions ? (
-                  <div style={{ fontSize: '0.8125rem', color: '#8c8c8c', padding: '8px 0' }}>
-                    불러오는 중...
-                  </div>
-                ) : revisions.length === 0 ? (
-                  <div style={{ fontSize: '0.8125rem', color: '#8c8c8c', padding: '8px 0' }}>
-                    저장된 버전이 없습니다.
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {revisions.map((rev: any) => (
-                      <div
-                        key={rev.id}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '8px 10px',
-                          backgroundColor: '#f5f5f7',
-                          borderRadius: 6,
-                          fontSize: '0.75rem',
-                        }}
-                      >
-                        <div>
-                          <div style={{ color: '#1d1d1f', fontWeight: 500, marginBottom: 2 }}>
-                            {rev.title?.substring(0, 30)}{rev.title?.length > 30 ? '...' : ''}
-                          </div>
-                          <div style={{ color: '#8c8c8c' }}>
-                            {rev.created_at
-                              ? new Date(rev.created_at).toLocaleString('ko-KR', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                })
-                              : '-'}
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => restoreRevision(rev.id)}
-                          style={{
-                            background: 'none',
-                            border: '1px solid #e8e8ed',
-                            borderRadius: 4,
-                            padding: '3px 8px',
-                            fontSize: '0.6875rem',
-                            color: '#D4AA45',
-                            cursor: 'pointer',
-                            fontFamily: 'inherit',
-                            fontWeight: 500,
-                          }}
-                        >
-                          복원
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+          {/* Panel 5: Tags */}
+          <div style={s.card}>
+            <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>태그</h3>
+            <input
+              style={s.input}
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              onKeyDown={handleTagInputKeyDown}
+              onBlur={addTagsFromInput}
+              placeholder="태그 입력 후 Enter"
+              list="tag-suggestions"
+            />
+            <datalist id="tag-suggestions">
+              {tags
+                .filter((t: any) => !selectedTagIds.includes(t.id))
+                .map((t: any) => (
+                  <option key={t.id} value={t.name} />
+                ))}
+            </datalist>
+            {selectedTagIds.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+                {selectedTagIds.map((id) => {
+                  const tag = tags.find((t: any) => t.id === id);
+                  return tag ? (
+                    <span
+                      key={id}
+                      style={{ ...s.badge, background: '#f0f0f0', cursor: 'pointer', fontSize: 11 }}
+                      onClick={() => removeTag(id)}
+                    >
+                      #{tag.name} ✕
+                    </span>
+                  ) : null;
+                })}
               </div>
             )}
           </div>
-        )}
+
+          {/* Panel 6: Featured Image */}
+          <div style={s.card}>
+            <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>대표 이미지</h3>
+            <div
+              onClick={() => setShowImagePicker(true)}
+              style={{ border: `2px dashed ${colors.border}`, borderRadius: 8, padding: image ? 0 : 24, textAlign: 'center', cursor: 'pointer', background: '#fafafa', transition: 'border-color 0.15s', overflow: 'hidden', position: 'relative' }}
+              onMouseEnter={(e) => (e.currentTarget.style.borderColor = colors.primary)}
+              onMouseLeave={(e) => (e.currentTarget.style.borderColor = colors.border)}
+            >
+              {image ? (
+                <div style={{ position: 'relative' }}>
+                  <img src={image} alt="대표 이미지" style={{ width: '100%', maxHeight: 150, objectFit: 'cover', display: 'block', borderRadius: 4 }} />
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setImage('');
+                    }}
+                    style={{ position: 'absolute', top: 6, right: 6, width: 24, height: 24, borderRadius: '50%', border: 'none', backgroundColor: 'rgba(0,0,0,0.6)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}
+                    title="이미지 제거"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="1.5" style={{ margin: '0 auto 8px' }}><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  <div style={{ fontSize: 12, color: colors.textLight }}>이미지 선택</div>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Panel 7: SEO Settings */}
+          <div style={s.card}>
+            <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 12 }}>SEO 설정</h3>
+            <div style={{ marginBottom: 10 }}>
+              <label style={{ fontSize: 12, fontWeight: 600, color: colors.textLight, marginBottom: 4, display: 'block' }}>포커스 키워드</label>
+              <input style={s.input} value={focusKeyword} onChange={(e) => setFocusKeyword(e.target.value)} placeholder="예: 웨딩 촬영" />
+            </div>
+            <div style={{ marginBottom: 10 }}>
+              <label style={{ fontSize: 12, fontWeight: 600, color: colors.textLight, marginBottom: 4, display: 'block' }}>SEO 제목</label>
+              <input style={s.input} value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} placeholder={title || 'SEO 제목'} />
+              <span style={{ fontSize: 11, color: (seoTitle || title).length > 60 ? colors.red : colors.textLight }}>{(seoTitle || title).length}/60</span>
+            </div>
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 600, color: colors.textLight, marginBottom: 4, display: 'block' }}>SEO 설명</label>
+              <textarea style={{ ...s.textarea, minHeight: 60 }} value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} placeholder="검색 결과에 표시될 설명" />
+              <span style={{ fontSize: 11, color: seoDescription.length > 160 ? colors.red : colors.textLight }}>{seoDescription.length}/160</span>
+            </div>
+          </div>
+
+          {/* Panel 8: Share Preview */}
+          <div style={s.card}>
+            <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 12 }}>공유 미리보기</h3>
+            <div style={{ fontSize: 11, color: colors.textLight, marginBottom: 6 }}>카카오톡 / Facebook</div>
+            <div style={{ border: `1px solid ${colors.border}`, borderRadius: 6, padding: 12, marginBottom: 12, background: '#fafafa' }}>
+              <div style={{ fontSize: 11, color: colors.textLight }}>simplecube.co.kr</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: colors.text, margin: '4px 0 2px' }}>{seoTitle || title || 'SEO 제목'}</div>
+              <div style={{ fontSize: 11, color: colors.textLight }}>{seoDescription || '메타 설명이 여기에 표시됩니다.'}</div>
+            </div>
+            <div style={{ fontSize: 11, color: colors.textLight, marginBottom: 6 }}>Google 검색결과</div>
+            <div style={{ marginBottom: 4 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#1a0dab' }}>{seoTitle || title || 'SEO 제목'} - 심플큐브</div>
+              <div style={{ fontSize: 11, color: '#006621' }}>simplecube.co.kr/blog/{slug || 'post-slug'}</div>
+              <div style={{ fontSize: 11, color: colors.textLight }}>{seoDescription || '메타 설명이 여기에 표시됩니다.'}</div>
+            </div>
+          </div>
+
+          {/* Panel 9: Revisions (only if editing) */}
+          {isEditing && (
+            <div style={s.card}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                <h3 style={{ fontSize: 13, fontWeight: 700, margin: 0 }}>리비전</h3>
+                <button
+                  onClick={() => {
+                    if (!showRevisions) loadRevisions();
+                    setShowRevisions(!showRevisions);
+                  }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: colors.textLight }}
+                >
+                  {showRevisions ? '접기' : '펼치기'}
+                </button>
+              </div>
+              {showRevisions && (
+                <div>
+                  {loadingRevisions ? (
+                    <div style={{ fontSize: 12, color: colors.textLight, textAlign: 'center', padding: 12 }}>불러오는 중...</div>
+                  ) : revisions.length === 0 ? (
+                    <div style={{ fontSize: 12, color: colors.textLight, textAlign: 'center', padding: 12 }}>저장된 리비전이 없습니다</div>
+                  ) : (
+                    <div style={{ maxHeight: 200, overflowY: 'auto' }}>
+                      {revisions.map((rev: any) => (
+                        <div key={rev.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: `1px solid ${colors.border}`, fontSize: 12 }}>
+                          <span style={{ color: colors.textLight }}>
+                            {new Date(rev.created_at).toLocaleString('ko-KR')}
+                          </span>
+                          <button
+                            onClick={() => restoreRevision(rev.id)}
+                            style={{ ...s.btn, fontSize: 11, padding: '4px 10px', background: 'none', border: `1px solid ${colors.border}`, color: colors.text, cursor: 'pointer', borderRadius: 4 }}
+                          >
+                            복원
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+        </div>
       </div>
 
-      {/* Image Picker Modal */}
-      <ImagePicker
-        isOpen={showImagePicker}
-        onClose={() => setShowImagePicker(false)}
-        onSelect={(url) => {
-          if (imagePickerTarget === 'featured') {
+      {/* ImagePicker modal */}
+      {showImagePicker && (
+        <ImagePicker
+          isOpen={showImagePicker}
+          onClose={() => setShowImagePicker(false)}
+          onSelect={(url: string) => {
             setImage(url);
-          } else {
-            // Insert into TipTap editor - dispatch custom event
-            window.dispatchEvent(new CustomEvent('tiptap-insert-image', { detail: { url } }));
-          }
-        }}
-      />
+            setShowImagePicker(false);
+          }}
+        />
+      )}
     </div>
   );
 }
