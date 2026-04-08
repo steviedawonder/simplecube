@@ -8,7 +8,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const { pathname } = context.url;
 
   // 정적 페이지는 DB 초기화 불필요 — admin/api/blog 경로만 DB 사용
-  const needsDB = pathname.startsWith('/admin') || pathname.startsWith('/api/') || pathname.startsWith('/blog') || pathname.startsWith('/inquiry') || pathname === '/popup' || pathname === '/wedding' || pathname === '/';
+  const needsDB = pathname.startsWith('/admin') || pathname.startsWith('/api/') || pathname.startsWith('/blog') || pathname.startsWith('/inquiry') || pathname === '/popup' || pathname === '/wedding' || pathname === '/rental' || pathname === '/corporate' || pathname === '/';
 
   if (needsDB && !dbInitialized) {
     try {
@@ -64,5 +64,17 @@ export const onRequest = defineMiddleware(async (context, next) => {
     }
   }
 
-  return next();
+  const response = await next();
+
+  // CDN cache for public SSR pages — first request hits DB, subsequent served from Vercel edge
+  if (!pathname.startsWith('/admin') && !pathname.startsWith('/api/') && !pathname.startsWith('/inquiry')) {
+    if (/^\/(wedding|popup|rental|corporate|faq|qna|brand|contact)$/.test(pathname)) {
+      response.headers.set('Cache-Control', 's-maxage=300, stale-while-revalidate=30');
+    } else if (pathname.startsWith('/blog')) {
+      // Blog content may be updated more frequently
+      response.headers.set('Cache-Control', 's-maxage=60, stale-while-revalidate=30');
+    }
+  }
+
+  return response;
 });
