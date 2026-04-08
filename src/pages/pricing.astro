@@ -1,0 +1,366 @@
+---
+// SEO landing page targeting: 포토부스 가격, 포토부스 대여 가격, 포토부스 비용
+export const prerender = false;
+import BaseLayout from '@layouts/BaseLayout.astro';
+import BreadcrumbSchema from '@components/seo/BreadcrumbSchema.astro';
+import FAQSchema from '@components/seo/FAQSchema.astro';
+import ServiceSchema from '@components/seo/ServiceSchema.astro';
+import MachineShowcase from '@components/popup/MachineShowcase.astro';
+import ClientShowcase from '@components/popup/ClientShowcase.astro';
+import AccordionList from '@components/faq/AccordionList.astro';
+import db from '@lib/db';
+
+// Fetch pricing-specific FAQs with fallback to rental FAQs
+const [pricingFaqResult, rentalFaqResult] = await Promise.all([
+  db.execute({ sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC', args: ['pricing'] }),
+  db.execute({ sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC', args: ['rental'] }),
+]);
+const faqItems = (pricingFaqResult.rows.length > 0 ? pricingFaqResult.rows : rentalFaqResult.rows) as { question: string; answer: string }[];
+---
+
+<BaseLayout
+  title="포토부스 대여 가격 안내 | 심플큐브 포토부스"
+  description="심플큐브 포토부스 대여 가격 50만원~. 웨딩, 기업행사, 팝업스토어 등 행사 유형별 맞춤 견적. 무제한 인화·커스텀 프레임·전문 스태프 포함. 14,000건+ 행사 경험."
+  transparentNav={false}
+>
+  <BreadcrumbSchema items={[{ name: '포토부스 대여 가격', url: '/pricing' }]} />
+  <ServiceSchema services={[
+    {
+      name: '포토부스 대여 가격 안내',
+      description: '심플큐브 포토부스 대여 가격 안내. 웨딩, 기업행사, 팝업스토어, 페스티벌 등 행사 유형별 맞춤 견적을 제공합니다. 전국 출장 설치 및 전문 운영 스태프 포함.',
+      url: '/pricing',
+    },
+  ]} />
+  {faqItems.length > 0 && <FAQSchema faqs={faqItems} />}
+
+  <!-- Hero -->
+  <section class="pt-20 lg:pt-22">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8 py-6 border-b border-border-light">
+      <div class="flex items-start gap-4">
+        <div class="w-[3px] h-12 bg-olive rounded-full shrink-0 mt-0.5"></div>
+        <div>
+          <div class="flex items-baseline gap-3">
+            <h1 class="text-2xl font-bold text-primary">포토부스 대여 가격 안내</h1>
+            <span class="text-[11px] font-medium tracking-[0.12em] text-secondary/40">PRICING</span>
+          </div>
+          <p class="text-[12px] text-secondary/50 mt-1">행사 유형과 규모에 맞는 합리적인 가격을 제안합니다</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats bar -->
+  <section class="bg-white py-8 lg:py-10">
+    <div class="mx-auto max-w-6xl px-6 lg:px-8">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6 rounded-xl bg-white shadow-md p-8">
+        <div class="text-center">
+          <p class="text-3xl md:text-4xl font-bold text-primary">14,000<span class="text-olive">+</span></p>
+          <p class="mt-1 text-sm text-secondary">누적 행사</p>
+        </div>
+        <div class="text-center">
+          <p class="text-3xl md:text-4xl font-bold text-primary">전국 4<span class="text-olive">개</span></p>
+          <p class="mt-1 text-sm text-secondary">거점</p>
+        </div>
+        <div class="text-center">
+          <p class="text-3xl md:text-4xl font-bold text-primary">99<span class="text-olive">%</span></p>
+          <p class="mt-1 text-sm text-secondary">고객 만족도</p>
+        </div>
+        <div class="text-center">
+          <p class="text-3xl md:text-4xl font-bold text-primary">500<span class="text-olive">+</span></p>
+          <p class="mt-1 text-sm text-secondary">브랜드 파트너</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing cards (01) -->
+  <section class="bg-bg-light py-12 lg:py-16">
+    <div class="mx-auto max-w-4xl px-6 lg:px-8">
+      <!-- Section header — centered -->
+      <div class="mb-10 lg:mb-14 text-center">
+        <div class="inline-flex items-center justify-center w-9 h-9 rounded-full border-[1.5px] border-olive text-olive text-[13px] font-bold mb-4">01</div>
+        <span class="block text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">PRICING</span>
+        <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">포토부스 대여 가격</h2>
+        <div class="mt-4 h-[2px] w-8 bg-olive mx-auto"></div>
+      </div>
+
+      <!-- GEO-optimized opening paragraph -->
+      <p class="text-sm leading-relaxed text-secondary mb-10 text-center max-w-2xl mx-auto">
+        포토부스 대여 가격은 행사 유형, 운영 시간, 커스텀 범위에 따라 달라지며,
+        심플큐브는 합리적인 가격에 프리미엄 포토부스 서비스를 제공합니다.
+      </p>
+
+      <!-- Pricing cards -->
+      <div class="grid gap-6 lg:gap-8 grid-cols-1 md:grid-cols-2">
+        <!-- Wedding photo booth — recommended -->
+        <div class="relative bg-white rounded-2xl shadow-sm border border-border-light border-t-4 border-t-olive p-8 lg:p-10 flex flex-col">
+          <span class="absolute top-4 right-4 bg-olive text-white text-[11px] font-semibold px-2.5 py-1 rounded-full tracking-wide">인기</span>
+          <h3 class="text-base font-semibold text-primary">웨딩 포토부스</h3>
+          <p class="mt-1 text-sm text-secondary">결혼식 · 웨딩홀 맞춤 세팅</p>
+          <div class="mt-6 flex items-baseline gap-1">
+            <span class="text-3xl lg:text-4xl font-bold text-primary">50만원</span>
+            <span class="text-xl text-secondary/60 font-medium">~</span>
+          </div>
+          <span class="mt-2 inline-flex items-center gap-1 bg-olive/15 text-olive text-[13px] font-semibold px-3 py-1 rounded-full w-fit">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+            최대 할인가 42만원
+          </span>
+          <ul class="mt-6 space-y-3 text-sm text-secondary flex-1">
+            <li class="flex items-start gap-2"><span class="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-olive"></span>커스텀 프레임 디자인</li>
+            <li class="flex items-start gap-2"><span class="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-olive"></span>무제한 즉석 인화</li>
+            <li class="flex items-start gap-2"><span class="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-olive"></span>전문 스태프 운영</li>
+            <li class="flex items-start gap-2"><span class="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-olive"></span>디지털 원본 제공</li>
+          </ul>
+          <div class="mt-8 flex flex-col gap-3">
+            <a href="/wedding" class="inline-flex items-center justify-center w-full rounded-lg bg-olive text-white text-sm font-semibold py-3 hover:bg-olive/90 transition-colors">자세히 알아보기 &rarr;</a>
+            <a href="/contact" class="inline-flex items-center justify-center w-full rounded-lg border border-olive text-olive text-sm font-semibold py-3 hover:bg-olive hover:text-white transition-colors">예약 문의 &rarr;</a>
+          </div>
+        </div>
+
+        <!-- Event photo booth -->
+        <div class="relative bg-white rounded-2xl shadow-sm border border-border-light p-8 lg:p-10 flex flex-col">
+          <h3 class="text-base font-semibold text-primary">행사 포토부스</h3>
+          <p class="mt-1 text-sm text-secondary">브랜드 행사 · 기업 이벤트</p>
+          <div class="mt-6 flex items-baseline gap-1">
+            <span class="text-3xl lg:text-4xl font-bold text-primary">50만원</span>
+            <span class="text-xl text-secondary/60 font-medium">~</span>
+          </div>
+          <!-- spacer to align with wedding card's discount badge -->
+          <div class="mt-2 h-5"></div>
+          <ul class="mt-6 space-y-3 text-sm text-secondary flex-1">
+            <li class="flex items-start gap-2"><span class="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-olive"></span>CI/BI 맞춤 디자인</li>
+            <li class="flex items-start gap-2"><span class="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-olive"></span>무제한 즉석 인화</li>
+            <li class="flex items-start gap-2"><span class="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-olive"></span>전문 스태프 운영</li>
+            <li class="flex items-start gap-2"><span class="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-olive"></span>QR 디지털 다운로드</li>
+          </ul>
+          <div class="mt-8 flex flex-col gap-3">
+            <a href="/corporate" class="inline-flex items-center justify-center w-full rounded-lg bg-olive text-white text-sm font-semibold py-3 hover:bg-olive/90 transition-colors">자세히 알아보기 &rarr;</a>
+            <a href="/inquiry/popup" class="inline-flex items-center justify-center w-full rounded-lg border border-olive text-olive text-sm font-semibold py-3 hover:bg-olive hover:text-white transition-colors">예약 문의 &rarr;</a>
+          </div>
+        </div>
+      </div>
+
+      <p class="mt-8 text-center text-sm text-secondary/70">※ 정확한 가격은 행사 규모와 옵션에 따라 달라집니다. 맞춤 견적을 요청하세요.</p>
+    </div>
+  </section>
+
+  <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
+
+  <!-- Included services (02) -->
+  <section class="bg-white py-12 lg:py-16">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      <div class="mb-8 lg:mb-10">
+        <div class="inline-flex items-center justify-center w-9 h-9 rounded-full border-[1.5px] border-olive text-olive text-[13px] font-bold mb-4">02</div>
+        <span class="block text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">INCLUDED</span>
+        <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">포함 사항</h2>
+        <div class="mt-4 h-[2px] w-8 bg-olive"></div>
+      </div>
+      <div class="rounded-lg border border-border-light bg-bg-light p-6 lg:p-8 max-w-3xl">
+        <h3 class="text-sm font-semibold text-primary mb-4">모든 패키지 공통 포함</h3>
+        <ul class="grid gap-3 sm:grid-cols-2 text-sm text-secondary">
+          <li class="flex items-start gap-2"><span class="text-olive mt-0.5">✓</span> 전국 출장 설치 및 철거</li>
+          <li class="flex items-start gap-2"><span class="text-olive mt-0.5">✓</span> 전문 운영 스태프</li>
+          <li class="flex items-start gap-2"><span class="text-olive mt-0.5">✓</span> 커스텀 프레임 디자인 1종</li>
+          <li class="flex items-start gap-2"><span class="text-olive mt-0.5">✓</span> 무제한 인화</li>
+          <li class="flex items-start gap-2"><span class="text-olive mt-0.5">✓</span> QR 다운로드</li>
+          <li class="flex items-start gap-2"><span class="text-olive mt-0.5">✓</span> USB 원본 데이터 제공</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
+
+  <!-- Price factors (03) -->
+  <section class="bg-bg-light py-12 lg:py-16">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      <div class="mb-8 lg:mb-10">
+        <div class="inline-flex items-center justify-center w-9 h-9 rounded-full border-[1.5px] border-olive text-olive text-[13px] font-bold mb-4">03</div>
+        <span class="block text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">PRICE FACTORS</span>
+        <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">가격에 영향을 주는 요소</h2>
+        <div class="mt-4 h-[2px] w-8 bg-olive"></div>
+      </div>
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="rounded-lg border border-border-light bg-white p-6">
+          <div class="w-10 h-10 rounded-full bg-olive/10 flex items-center justify-center mb-4">
+            <svg class="w-5 h-5 text-olive" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          </div>
+          <h3 class="text-base font-semibold text-primary">운영 시간</h3>
+          <p class="mt-2 text-sm text-secondary leading-relaxed">기본 2~3시간부터 종일 운영까지. 운영 시간에 따라 가격이 달라집니다. 장시간 운영 시 할인 혜택이 적용됩니다.</p>
+        </div>
+        <div class="rounded-lg border border-border-light bg-white p-6">
+          <div class="w-10 h-10 rounded-full bg-olive/10 flex items-center justify-center mb-4">
+            <svg class="w-5 h-5 text-olive" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" /></svg>
+          </div>
+          <h3 class="text-base font-semibold text-primary">커스텀 범위</h3>
+          <p class="mt-2 text-sm text-secondary leading-relaxed">기본 프레임 디자인은 포함이며, 포토월, 소품, 특수 배경, 외관 래핑 등 추가 커스텀 옵션에 따라 가격이 조정됩니다.</p>
+        </div>
+        <div class="rounded-lg border border-border-light bg-white p-6">
+          <div class="w-10 h-10 rounded-full bg-olive/10 flex items-center justify-center mb-4">
+            <svg class="w-5 h-5 text-olive" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+          </div>
+          <h3 class="text-base font-semibold text-primary">행사 지역</h3>
+          <p class="mt-2 text-sm text-secondary leading-relaxed">서울·수도권은 기본 출장비 포함. 부산, 대전, 전주 등 전국 거점에서 출장 설치가 가능하며 지역에 따라 출장비가 달라질 수 있습니다.</p>
+        </div>
+        <div class="rounded-lg border border-border-light bg-white p-6">
+          <div class="w-10 h-10 rounded-full bg-olive/10 flex items-center justify-center mb-4">
+            <svg class="w-5 h-5 text-olive" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" /></svg>
+          </div>
+          <h3 class="text-base font-semibold text-primary">부스 유형</h3>
+          <p class="mt-2 text-sm text-secondary leading-relaxed">오픈형, 밀폐형(인생네컷), 프리미엄 원목 부스 등 부스 타입에 따라 가격이 다릅니다. 행사 성격에 맞는 부스를 추천해드립니다.</p>
+        </div>
+        <div class="rounded-lg border border-border-light bg-white p-6">
+          <div class="w-10 h-10 rounded-full bg-olive/10 flex items-center justify-center mb-4">
+            <svg class="w-5 h-5 text-olive" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+          </div>
+          <h3 class="text-base font-semibold text-primary">촬영 콘텐츠</h3>
+          <p class="mt-2 text-sm text-secondary leading-relaxed">기본 즉석 인화 외에 부메랑 영상, GIF, AI 퍼스널 컬러 분석 등 특수 콘텐츠 옵션을 추가할 수 있습니다.</p>
+        </div>
+        <div class="rounded-lg border border-border-light bg-white p-6">
+          <div class="w-10 h-10 rounded-full bg-olive/10 flex items-center justify-center mb-4">
+            <svg class="w-5 h-5 text-olive" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+          </div>
+          <h3 class="text-base font-semibold text-primary">운영 기간</h3>
+          <p class="mt-2 text-sm text-secondary leading-relaxed">1일 단기 렌탈부터 팝업스토어 장기 렌탈(1주~1개월)까지. 장기 렌탈 시 일별 단가가 할인됩니다.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
+
+  <!-- Machine Showcase (reuse popup component) -->
+  <MachineShowcase />
+
+  <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
+
+  <!-- Comparison with competitors (04) -->
+  <section class="bg-bg-light py-12 lg:py-16">
+    <div class="mx-auto max-w-4xl px-6 lg:px-8">
+      <div class="mb-8 lg:mb-10 text-center">
+        <div class="inline-flex items-center justify-center w-9 h-9 rounded-full border-[1.5px] border-olive text-olive text-[13px] font-bold mb-4">04</div>
+        <span class="block text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">COMPARISON</span>
+        <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">심플큐브 vs 일반 포토부스 업체</h2>
+        <div class="mt-4 h-[2px] w-8 bg-olive mx-auto"></div>
+      </div>
+      <!-- Comparison table with fixed column widths -->
+      <div class="overflow-x-auto rounded-xl border border-border-light">
+        <table class="w-full text-sm border-collapse table-fixed">
+          <colgroup>
+            <col class="w-[24%]" />
+            <col class="w-[38%]" />
+            <col class="w-[38%]" />
+          </colgroup>
+          <thead>
+            <tr>
+              <th class="py-3 px-4 bg-[#2c2c2c] text-white text-xs font-medium tracking-wider text-left"></th>
+              <th class="py-3 px-4 bg-olive text-white text-xs font-bold tracking-wider text-center">심플큐브</th>
+              <th class="py-3 px-4 bg-[#888] text-white text-xs font-medium tracking-wider text-center">일반 업체</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white">
+            <tr class="border-b border-border-light">
+              <td class="py-3 px-4 text-sm text-primary font-medium">프레임 디자인</td>
+              <td class="py-3 px-4 text-center text-olive font-semibold text-sm">✓ 포함</td>
+              <td class="py-3 px-4 text-center text-secondary/50 text-sm">추가비</td>
+            </tr>
+            <tr class="border-b border-border-light bg-bg-light/30">
+              <td class="py-3 px-4 text-sm text-primary font-medium">즉석 인화</td>
+              <td class="py-3 px-4 text-center text-olive font-semibold text-sm">✓ 무제한</td>
+              <td class="py-3 px-4 text-center text-secondary/50 text-sm">매수 제한</td>
+            </tr>
+            <tr class="border-b border-border-light">
+              <td class="py-3 px-4 text-sm text-primary font-medium">QR 다운로드</td>
+              <td class="py-3 px-4 text-center text-olive font-semibold text-sm">✓ 가능</td>
+              <td class="py-3 px-4 text-center text-secondary/50 text-sm">✗ 미지원</td>
+            </tr>
+            <tr class="border-b border-border-light bg-bg-light/30">
+              <td class="py-3 px-4 text-sm text-primary font-medium">부스 제품</td>
+              <td class="py-3 px-4 text-center text-olive font-semibold text-sm">다양한 제품 보유</td>
+              <td class="py-3 px-4 text-center text-secondary/50 text-sm">단일 모델</td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4 text-sm text-primary font-medium">경험</td>
+              <td class="py-3 px-4 text-center text-olive font-semibold text-sm">8년<span class="font-normal text-xs text-secondary ml-1">(15,000건 이상의 행사 노하우)</span></td>
+              <td class="py-3 px-4 text-center text-secondary/50 text-sm">비공개</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
+
+  <!-- Estimate process (05) -->
+  <section class="bg-white py-12 lg:py-16">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      <div class="mb-8 lg:mb-10">
+        <div class="inline-flex items-center justify-center w-9 h-9 rounded-full border-[1.5px] border-olive text-olive text-[13px] font-bold mb-4">05</div>
+        <span class="block text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">PROCESS</span>
+        <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">견적 프로세스</h2>
+        <div class="mt-4 h-[2px] w-8 bg-olive"></div>
+      </div>
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          { step: '01', title: '문의', desc: '홈페이지 또는 전화로 행사 일정, 장소, 규모를 알려주세요.' },
+          { step: '02', title: '상담', desc: '전문 담당자가 행사 유형에 맞는 최적의 구성을 제안합니다.' },
+          { step: '03', title: '견적 확인', desc: '맞춤 견적서를 확인하고, 세부 사항을 조율합니다.' },
+          { step: '04', title: '계약', desc: '최종 견적 확정 후 계약을 진행하고, 행사를 준비합니다.' },
+        ].map(item => (
+          <div class="relative rounded-lg border border-border-light p-6">
+            <span class="text-3xl font-bold text-olive/20">{item.step}</span>
+            <h3 class="mt-2 text-base font-semibold text-primary">{item.title}</h3>
+            <p class="mt-2 text-sm text-secondary leading-relaxed">{item.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
+
+  <!-- Client showcase -->
+  <ClientShowcase />
+
+  <!-- FAQ -->
+  {faqItems.length > 0 && (
+    <Fragment>
+    <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
+    <section id="qna" class="bg-white py-12 lg:py-16">
+      <div class="mx-auto max-w-3xl px-6 lg:px-8">
+        <div class="mb-10">
+          <div class="inline-flex items-center justify-center w-9 h-9 rounded-full border-[1.5px] border-olive text-olive text-[13px] font-bold mb-4">06</div>
+          <span class="block text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">FAQ</span>
+          <h2 class="mt-3 text-2xl font-bold text-primary md:text-3xl">포토부스 가격 자주 묻는 질문</h2>
+          <div class="mt-4 h-[2px] w-8 bg-olive"></div>
+        </div>
+        <AccordionList items={faqItems} />
+      </div>
+    </section>
+    </Fragment>
+  )}
+
+  <!-- CTA -->
+  <section class="bg-[#6B5B4D] py-12 lg:py-16">
+    <div class="mx-auto max-w-3xl px-6 lg:px-8 text-center">
+      <h2 class="text-2xl font-bold text-[#FFFAF4] md:text-3xl">맞춤 견적을 받아보세요</h2>
+      <p class="mt-4 text-sm text-[#FFFAF4]/60 leading-relaxed">
+        행사 일정과 규모를 알려주시면, 합리적인 맞춤 견적을 빠르게 안내해드립니다.
+      </p>
+      <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="/contact" class="inline-flex items-center gap-2 rounded-lg bg-olive px-8 py-3 text-sm font-semibold text-white hover:bg-olive/90 transition-colors">
+          견적 문의하기
+        </a>
+        <a href="https://pf.kakao.com/_simplecube" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-lg bg-[#FEE500] px-8 py-3 text-sm font-semibold text-[#191919] hover:bg-[#FEE500]/90 transition-colors">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C6.477 3 2 6.463 2 10.691c0 2.72 1.8 5.108 4.514 6.467-.162.58-.586 2.108-.672 2.438-.108.413.151.407.318.296.131-.087 2.09-1.42 2.934-1.994.917.13 1.863.198 2.826.198 5.523 0 10-3.463 10-7.405C22 6.463 17.523 3 12 3z"/></svg>
+          카카오톡 상담
+        </a>
+        <a href="tel:02-338-9180" class="inline-flex items-center gap-2 text-sm text-[#FFFAF4]/80 hover:text-[#FFFAF4] transition-colors">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+          02-338-9180
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

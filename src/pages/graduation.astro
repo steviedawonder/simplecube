@@ -1,0 +1,205 @@
+---
+export const prerender = false;
+import BaseLayout from '@layouts/BaseLayout.astro';
+import BreadcrumbSchema from '@components/seo/BreadcrumbSchema.astro';
+import FAQSchema from '@components/seo/FAQSchema.astro';
+import ServiceSchema from '@components/seo/ServiceSchema.astro';
+import MachineShowcase from '@components/popup/MachineShowcase.astro';
+import ClientShowcase from '@components/popup/ClientShowcase.astro';
+import AccordionList from '@components/faq/AccordionList.astro';
+import db from '@lib/db';
+
+// Fetch graduation-specific FAQs, falling back to popup FAQs
+const [graduationFaqResult, popupFaqResult] = await Promise.all([
+  db.execute({ sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC', args: ['graduation'] }),
+  db.execute({ sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC', args: ['popup'] }),
+]);
+const faqItems = (graduationFaqResult.rows.length > 0 ? graduationFaqResult.rows : popupFaqResult.rows) as { question: string; answer: string }[];
+---
+
+<BaseLayout
+  title="졸업식 포토부스 대여 | 학교행사 맞춤 포토부스 — 심플큐브"
+  description="졸업식, 입학식, 대학 축제, 체육대회 등 학교행사에 최적화된 포토부스 대여. 졸업 커스텀 프레임과 무제한 인화를 합리적인 가격으로 제공합니다."
+  transparentNav={false}
+>
+  <BreadcrumbSchema items={[{ name: '졸업식 포토부스', url: '/graduation' }]} />
+  <ServiceSchema services={[
+    {
+      name: '졸업식 포토부스 대여 — 학교행사 맞춤 포토부스',
+      description: '졸업식, 입학식, 대학 축제, 체육대회 등 학교행사를 위한 맞춤형 포토부스 렌탈 서비스. 학교 로고 커스텀, 졸업 축하 프레임 디자인, 무제한 즉석 인화 제공.',
+      url: '/graduation',
+    },
+  ]} />
+  {faqItems.length > 0 && <FAQSchema faqs={faqItems} />}
+
+  <!-- Hero -->
+  <section class="pt-20 lg:pt-22">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8 py-6 border-b border-border-light">
+      <div class="flex items-start gap-4">
+        <div class="w-[3px] h-12 bg-olive rounded-full shrink-0 mt-0.5"></div>
+        <div>
+          <div class="flex items-baseline gap-3">
+            <h1 class="text-2xl font-bold text-primary">졸업식 포토부스 대여</h1>
+            <span class="text-[11px] font-medium tracking-[0.12em] text-secondary/40">GRADUATION</span>
+          </div>
+          <p class="text-[12px] text-secondary/50 mt-1">소중한 졸업의 순간을 특별한 사진으로 남기세요</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 01: Introduction — Why graduation photobooth is popular -->
+  <section class="bg-bg-light py-12 lg:py-16">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      <div class="mb-8 lg:mb-10">
+        <div class="inline-flex items-center justify-center w-9 h-9 rounded-full border-[1.5px] border-olive text-olive text-[13px] font-bold mb-4">01</div>
+        <span class="block text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">ABOUT</span>
+        <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">졸업식 포토부스가 인기인 이유</h2>
+        <div class="mt-4 h-[2px] w-8 bg-olive"></div>
+      </div>
+      <div class="grid gap-8 lg:grid-cols-2">
+        <div class="space-y-4 text-sm leading-relaxed text-secondary">
+          <p>
+            <strong>졸업식 포토부스</strong>는 졸업식, 학위수여식, 대학 축제 등 학교행사에서 가장 인기 있는
+            포토 서비스입니다. 졸업생과 가족, 친구들이 함께 특별한 순간을 즉석 사진으로 남길 수 있어
+            졸업식의 감동을 더욱 오래 간직할 수 있습니다.
+          </p>
+          <p>
+            심플큐브는 <strong>서울, 부산, 대전, 전주</strong> 등 전국 대학교와 고등학교 졸업식에
+            <strong>포토부스 대여 서비스</strong>를 제공하고 있으며, 학교 행사의 특성에 맞춘
+            맞춤형 운영이 가능합니다.
+          </p>
+        </div>
+        <div class="space-y-3">
+          <div class="rounded-lg border border-border-light bg-white p-4">
+            <h3 class="text-sm font-semibold text-primary mb-3">졸업식 포토부스 인기 이유 3가지</h3>
+            <ul class="space-y-2.5 text-sm text-secondary">
+              <li class="flex items-start gap-2">
+                <span class="text-olive mt-0.5 font-bold">1.</span>
+                <div><strong>즉석 졸업 기념 사진</strong> — 학사모를 쓴 채 친구, 가족과 함께 찍은 포토스트립은 디지털 사진과는 다른 특별한 감동을 줍니다.</div>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-olive mt-0.5 font-bold">2.</span>
+                <div><strong>커스텀 졸업 프레임</strong> — 학교명, 졸업 연도, 축하 메시지를 넣은 맞춤 포토스트립 디자인으로 세상에 하나뿐인 졸업 사진을 만듭니다.</div>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-olive mt-0.5 font-bold">3.</span>
+                <div><strong>대규모 행사에 최적화</strong> — 수백 명이 참여하는 졸업식에서도 대기 시간 없이 빠른 촬영과 무제한 인화가 가능합니다.</div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
+
+  <!-- 02: Event type recommendations -->
+  <section class="bg-white py-12 lg:py-16">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      <div class="mb-8 lg:mb-10">
+        <div class="inline-flex items-center justify-center w-9 h-9 rounded-full border-[1.5px] border-olive text-olive text-[13px] font-bold mb-4">02</div>
+        <span class="block text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">EVENT TYPES</span>
+        <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">행사 유형별 추천</h2>
+        <div class="mt-4 h-[2px] w-8 bg-olive"></div>
+      </div>
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
+          <h3 class="text-lg font-bold text-primary">졸업식 · 학위수여식</h3>
+          <p class="mt-2 text-sm text-secondary leading-relaxed">학사모와 학위복을 입은 졸업생들의 특별한 순간. 졸업 축하 프레임으로 평생 간직할 기념 사진을 남깁니다.</p>
+          <span class="mt-3 inline-block text-xs text-olive font-medium">2월 · 8월 시즌</span>
+        </div>
+        <div class="rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
+          <h3 class="text-lg font-bold text-primary">대학 축제 · 대동제</h3>
+          <p class="mt-2 text-sm text-secondary leading-relaxed">축제 분위기에 어울리는 포토부스로 학생들의 참여도를 높이고, 학교 브랜딩 효과까지 얻을 수 있습니다.</p>
+          <span class="mt-3 inline-block text-xs text-olive font-medium">5월 · 9월 시즌</span>
+        </div>
+        <div class="rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
+          <h3 class="text-lg font-bold text-primary">체육대회 · 운동회</h3>
+          <p class="mt-2 text-sm text-secondary leading-relaxed">팀별 단체 사진, 응원 인증샷 등 체육대회의 활기찬 분위기를 포토스트립에 담아갑니다.</p>
+          <span class="mt-3 inline-block text-xs text-olive font-medium">봄 · 가을 시즌</span>
+        </div>
+        <div class="rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
+          <h3 class="text-lg font-bold text-primary">입학식 · 오리엔테이션</h3>
+          <p class="mt-2 text-sm text-secondary leading-relaxed">새로운 시작을 기념하는 입학식에서 신입생들의 첫 추억을 포토부스로 만들어줍니다.</p>
+          <span class="mt-3 inline-block text-xs text-olive font-medium">3월 시즌</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
+
+  <!-- 03: Special benefits for school events -->
+  <section class="bg-bg-light py-12 lg:py-16">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      <div class="mb-8 lg:mb-10">
+        <div class="inline-flex items-center justify-center w-9 h-9 rounded-full border-[1.5px] border-olive text-olive text-[13px] font-bold mb-4">03</div>
+        <span class="block text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">BENEFITS</span>
+        <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">학교행사 특별 혜택</h2>
+        <div class="mt-4 h-[2px] w-8 bg-olive"></div>
+      </div>
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {[
+          { icon: '🎓', title: '학교 로고 커스텀 무료', desc: '학교 로고, 교명, 졸업 연도를 포토스트립에 무료로 삽입해드립니다. 학교만의 특별한 졸업 기념 포토를 만들어보세요.' },
+          { icon: '📱', title: 'QR 다운로드 제공', desc: '촬영한 사진을 QR 코드로 바로 다운로드. 별도 앱 설치 없이 스마트폰으로 즉시 저장하고 SNS에 공유할 수 있습니다.' },
+          { icon: '🖨️', title: '무제한 인화', desc: '졸업식 등 대규모 행사에서도 인화 매수 제한 없이 무제한으로 인화해드립니다. 모든 참석자가 부담 없이 사진을 가져갈 수 있습니다.' },
+        ].map(item => (
+          <div class="rounded-lg border border-border-light bg-white p-6">
+            <span class="text-2xl">{item.icon}</span>
+            <h3 class="mt-3 text-base font-semibold text-primary">{item.title}</h3>
+            <p class="mt-2 text-sm text-secondary leading-relaxed">{item.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
+
+  <!-- Machine Showcase -->
+  <MachineShowcase />
+
+  <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
+
+  <!-- Client Showcase -->
+  <ClientShowcase />
+
+  <!-- FAQ -->
+  {faqItems.length > 0 && (
+    <Fragment>
+    <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
+    <section id="qna" class="bg-white py-12 lg:py-16">
+      <div class="mx-auto max-w-3xl px-6 lg:px-8">
+        <div class="mb-10">
+          <div class="inline-flex items-center justify-center w-9 h-9 rounded-full border-[1.5px] border-olive text-olive text-[13px] font-bold mb-4">05</div>
+          <span class="block text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">FAQ</span>
+          <h2 class="mt-3 text-2xl font-bold text-primary md:text-3xl">졸업식 포토부스 자주 묻는 질문</h2>
+          <div class="mt-4 h-[2px] w-8 bg-olive"></div>
+        </div>
+        <AccordionList items={faqItems} />
+      </div>
+    </section>
+    </Fragment>
+  )}
+
+  <!-- CTA -->
+  <section class="bg-[#6B5B4D] py-12 lg:py-16">
+    <div class="mx-auto max-w-3xl px-6 lg:px-8 text-center">
+      <h2 class="text-2xl font-bold text-[#FFFAF4] md:text-3xl">졸업식 포토부스 견적 문의</h2>
+      <p class="mt-4 text-sm text-[#FFFAF4]/60 leading-relaxed">
+        졸업식 일정과 장소, 예상 인원을 알려주시면 맞춤 견적을 빠르게 안내해드립니다.
+      </p>
+      <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="/contact" class="inline-flex items-center gap-2 rounded-lg bg-olive px-8 py-3 text-sm font-semibold text-white hover:bg-olive/90 transition-colors">
+          문의하기
+        </a>
+        <a href="tel:02-338-9180" class="inline-flex items-center gap-2 text-sm text-[#FFFAF4]/80 hover:text-[#FFFAF4] transition-colors">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+          02-338-9180
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
