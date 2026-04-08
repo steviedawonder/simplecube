@@ -77,15 +77,14 @@ try {
       <div id="wg-tag-filter" class="flex flex-wrap gap-2 mb-6 hidden"></div>
       <!-- Gallery carousel wrapper -->
       <div class="relative">
-        <!-- Sliding track -->
         <div class="overflow-hidden" id="wg-carousel-wrap">
-          <div id="wg-track" class="flex" style="transition: transform 0.6s ease-in-out;"></div>
+          <div id="wg-grid" class="grid grid-cols-2 gap-2 md:grid-cols-3"></div>
         </div>
         <!-- Prev/Next buttons -->
-        <button id="wg-prev" class="hidden absolute -left-4 lg:-left-6 top-1/2 -translate-y-1/2 w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-primary text-white shadow-lg items-center justify-center hover:bg-olive transition-colors z-10 disabled:opacity-20 disabled:cursor-not-allowed" aria-label="이전">
+        <button id="wg-prev" class="hidden absolute -left-4 lg:-left-6 top-1/2 -translate-y-1/2 w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-primary text-white shadow-lg items-center justify-center hover:bg-olive transition-colors z-10" aria-label="이전">
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
         </button>
-        <button id="wg-next" class="hidden absolute -right-4 lg:-right-6 top-1/2 -translate-y-1/2 w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-primary text-white shadow-lg items-center justify-center hover:bg-olive transition-colors z-10 disabled:opacity-20 disabled:cursor-not-allowed" aria-label="다음">
+        <button id="wg-next" class="hidden absolute -right-4 lg:-right-6 top-1/2 -translate-y-1/2 w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-primary text-white shadow-lg items-center justify-center hover:bg-olive transition-colors z-10" aria-label="다음">
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
         </button>
       </div>
@@ -302,262 +301,203 @@ try {
   )}
 </BaseLayout>
 
+<style is:global>
+  @keyframes wgSlideOutLeft  { from { transform: translateX(0);     opacity: 1; } to { transform: translateX(-100%); opacity: 0; } }
+  @keyframes wgSlideOutRight { from { transform: translateX(0);     opacity: 1; } to { transform: translateX(100%);  opacity: 0; } }
+  @keyframes wgSlideInRight  { from { transform: translateX(100%);  opacity: 0; } to { transform: translateX(0);    opacity: 1; } }
+  @keyframes wgSlideInLeft   { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0);    opacity: 1; } }
+  .wg-slide-out-left  { animation: wgSlideOutLeft  0.4s ease forwards; }
+  .wg-slide-out-right { animation: wgSlideOutRight 0.4s ease forwards; }
+  .wg-slide-in-right  { animation: wgSlideInRight  0.5s ease forwards; }
+  .wg-slide-in-left   { animation: wgSlideInLeft   0.5s ease forwards; }
+</style>
+
 <script>
 {
-  // === Wedding Gallery with Pagination, Auto-slide, Tag Filter & Lightbox ===
+  // === Wedding Gallery: paginated grid with CSS slide animation ===
   async function loadWeddingGallery() {
-    const grid = document.getElementById('wedding-gallery-grid')!;
-    const empty = document.getElementById('wedding-gallery-empty')!;
-    const loading = document.getElementById('wedding-gallery-loading')!;
+    const wgGrid    = document.getElementById('wg-grid')!;
+    const empty     = document.getElementById('wedding-gallery-empty')!;
+    const loading   = document.getElementById('wedding-gallery-loading')!;
     const tagFilter = document.getElementById('wg-tag-filter')!;
-    const prevBtn = document.getElementById('wg-prev') as HTMLButtonElement;
-    const nextBtn = document.getElementById('wg-next') as HTMLButtonElement;
-    const pageIndicator = document.getElementById('wg-page-indicator')!;
+    const prevBtn   = document.getElementById('wg-prev') as HTMLButtonElement;
+    const nextBtn   = document.getElementById('wg-next') as HTMLButtonElement;
+    const indicator = document.getElementById('wg-page-indicator')!;
 
     try {
       const res = await fetch('/api/portfolio?page_tag=wedding&tags=현장사진');
       const allItems: any[] = await res.json();
-
       loading.classList.add('hidden');
 
-      if (allItems.length === 0) {
-        empty.classList.remove('hidden');
-        return;
+      if (allItems.length === 0) { empty.classList.remove('hidden'); return; }
+
+      // ── state ──────────────────────────────────────────────────────────────
+      let activeTag    = 'all';
+      let currentPage  = 0;
+      let visibleItems: any[] = [];
+      let autoTimer: ReturnType<typeof setInterval> | null = null;
+      let animating    = false;
+      let wgItems: { src: string; alt: string }[] = [];
+      let wgIdx        = 0;
+
+      // ── helpers ────────────────────────────────────────────────────────────
+      function perPage() { return window.innerWidth < 768 ? 6 : 9; } // 2col×3 or 3col×3
+      function totalPages() { return Math.max(1, Math.ceil(visibleItems.length / perPage())); }
+
+      function filterItems() {
+        visibleItems = activeTag === 'all'
+          ? allItems
+          : allItems.filter((item: any) =>
+              item.tags && item.tags.split(',').map((t: string) => t.trim()).includes(activeTag));
       }
 
-      // Extract unique tags (excluding 현장사진 itself)
+      function makeItemHtml(item: any) {
+        const src = item.image_url || '';
+        const alt = item.title || '웨딩 현장사진';
+        return `<div class="wg-item group cursor-pointer overflow-hidden rounded-lg" data-src="${src}" data-alt="${alt}">
+          <div class="relative"><img src="${src}" alt="${alt}" class="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+              <svg class="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6"/></svg>
+            </div>
+          </div>
+        </div>`;
+      }
+
+      function renderGridItems(page: number) {
+        const pp = perPage();
+        const start = page * pp;
+        wgGrid.innerHTML = visibleItems.slice(start, start + pp).map(makeItemHtml).join('');
+        wgItems = visibleItems.slice(start, start + pp).map((item: any) => ({ src: item.image_url || '', alt: item.title || '웨딩 현장사진' }));
+      }
+
+      // ── slide animation using CSS keyframes ────────────────────────────────
+      function slideToPage(targetPage: number, dir: 'next' | 'prev' = 'next') {
+        if (animating) return;
+        const tp = totalPages();
+        if (tp <= 1) return;
+        animating = true;
+        currentPage = ((targetPage % tp) + tp) % tp;
+
+        const exitAnim  = dir === 'next' ? 'wg-slide-out-left'  : 'wg-slide-out-right';
+        const enterAnim = dir === 'next' ? 'wg-slide-in-right'  : 'wg-slide-in-left';
+
+        wgGrid.classList.add(exitAnim);
+        setTimeout(() => {
+          renderGridItems(currentPage);
+          wgGrid.classList.remove(exitAnim);
+          void wgGrid.offsetWidth; // force reflow
+          wgGrid.classList.add(enterAnim);
+          updateNav();
+          updateIndicator();
+          setTimeout(() => { wgGrid.classList.remove(enterAnim); animating = false; }, 500);
+        }, 400);
+      }
+
+      // ── nav & indicator ────────────────────────────────────────────────────
+      function updateNav() {
+        const tp = totalPages();
+        if (tp > 1) {
+          prevBtn.classList.remove('hidden'); prevBtn.classList.add('flex');
+          nextBtn.classList.remove('hidden'); nextBtn.classList.add('flex');
+        } else {
+          prevBtn.classList.add('hidden'); prevBtn.classList.remove('flex');
+          nextBtn.classList.add('hidden'); nextBtn.classList.remove('flex');
+        }
+      }
+
+      function updateIndicator() {
+        const tp = totalPages();
+        indicator.innerHTML = '';
+        if (tp <= 1) return;
+        for (let i = 0; i < tp; i++) {
+          const dot = document.createElement('button');
+          dot.className = i === currentPage
+            ? 'w-8 h-2 rounded-full bg-primary transition-all'
+            : 'w-2 h-2 rounded-full bg-gray-300 hover:bg-gray-400 transition-all';
+          dot.addEventListener('click', () => {
+            const dir = i > currentPage ? 'next' : 'prev';
+            slideToPage(i, dir);
+            resetAutoSlide();
+          });
+          indicator.appendChild(dot);
+        }
+      }
+
+      // ── auto-slide ─────────────────────────────────────────────────────────
+      function startAutoSlide() {
+        if (autoTimer) clearInterval(autoTimer);
+        autoTimer = setInterval(() => {
+          if (totalPages() > 1) slideToPage(currentPage + 1, 'next');
+        }, 4000);
+      }
+      function resetAutoSlide() { startAutoSlide(); }
+
+      prevBtn.addEventListener('click', () => { slideToPage(currentPage - 1, 'prev'); resetAutoSlide(); });
+      nextBtn.addEventListener('click', () => { slideToPage(currentPage + 1, 'next'); resetAutoSlide(); });
+
+      wgGrid.addEventListener('mouseenter', () => { if (autoTimer) clearInterval(autoTimer); });
+      wgGrid.addEventListener('mouseleave', () => startAutoSlide());
+
+      // ── tag filter ─────────────────────────────────────────────────────────
       const tagSet = new Set<string>();
       allItems.forEach((item: any) => {
-        if (item.tags) {
-          item.tags.split(',').map((t: string) => t.trim()).filter((t: string) => t && t !== '현장사진').forEach((t: string) => tagSet.add(t));
-        }
+        if (item.tags) item.tags.split(',').map((t: string) => t.trim()).filter((t: string) => t && t !== '현장사진').forEach((t: string) => tagSet.add(t));
       });
       const uniqueTags = Array.from(tagSet);
 
-      let activeTag = 'all';
-      let wgPage = 0;
-      let autoTimer: ReturnType<typeof setInterval> | null = null;
-      let visibleItems: any[] = [];
-
-      const isMobile = () => window.innerWidth < 768;
-      const COLS = () => isMobile() ? 2 : 3;
-      const ROWS = 3;
-      const PER_PAGE = () => COLS() * ROWS;
-
-      // Build tag filter UI
       if (uniqueTags.length > 0) {
         tagFilter.classList.remove('hidden');
         function renderTagButtons() {
           tagFilter.innerHTML = '';
-          const allBtn = document.createElement('button');
-          allBtn.className = activeTag === 'all'
-            ? 'px-4 py-1.5 text-xs rounded-full font-medium bg-primary text-white transition-colors'
-            : 'px-4 py-1.5 text-xs rounded-full font-medium bg-white border border-gray-200 text-secondary hover:border-olive hover:text-olive transition-colors';
-          allBtn.textContent = '전체';
-          allBtn.addEventListener('click', () => { activeTag = 'all'; wgPage = 0; renderTagButtons(); renderPage(); });
-          tagFilter.appendChild(allBtn);
-
-          uniqueTags.forEach(tag => {
+          ['전체', ...uniqueTags].forEach((label, idx) => {
+            const tagVal = idx === 0 ? 'all' : label;
             const btn = document.createElement('button');
-            btn.className = activeTag === tag
+            btn.className = activeTag === tagVal
               ? 'px-4 py-1.5 text-xs rounded-full font-medium bg-primary text-white transition-colors'
               : 'px-4 py-1.5 text-xs rounded-full font-medium bg-white border border-gray-200 text-secondary hover:border-olive hover:text-olive transition-colors';
-            btn.textContent = tag;
-            btn.addEventListener('click', () => { activeTag = tag; wgPage = 0; renderTagButtons(); renderPage(); });
+            btn.textContent = label;
+            btn.addEventListener('click', () => {
+              activeTag = tagVal; currentPage = 0;
+              filterItems(); renderGridItems(0); updateNav(); updateIndicator();
+              renderTagButtons(); resetAutoSlide();
+            });
             tagFilter.appendChild(btn);
           });
         }
         renderTagButtons();
       }
 
-      function makeItemHtml(item: any): string {
-        const src = item.image_url || '';
-        const alt = item.title || '웨딩 현장사진';
-        return `<div class="wg-item group cursor-pointer overflow-hidden rounded-lg" data-src="${src}" data-alt="${alt}" data-tags="${item.tags || ''}">
-          <div class="relative">
-            <img src="${src}" alt="${alt}" class="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
-            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
-              <svg class="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
-              </svg>
-            </div>
-          </div>
-        </div>`;
-      }
-
-      const track = document.getElementById('wg-track')!;
-      const carouselWrap = document.getElementById('wg-carousel-wrap')!;
-
-      function buildTrack() {
-        // Filter by tag
-        visibleItems = activeTag === 'all'
-          ? allItems
-          : allItems.filter((item: any) => {
-              if (!item.tags) return false;
-              return item.tags.split(',').map((t: string) => t.trim()).includes(activeTag);
-            });
-
-        const perPage = PER_PAGE();
-        const totalPages = Math.max(1, Math.ceil(visibleItems.length / perPage));
-        if (wgPage >= totalPages) wgPage = 0;
-
-        // Each page is exactly the wrapper width (pixels) so sliding works correctly
-        const pageWidth = carouselWrap.offsetWidth;
-        const cols = COLS();
-
-        // Build all pages inside the track (side-by-side)
-        track.innerHTML = '';
-        for (let p = 0; p < totalPages; p++) {
-          const pageDiv = document.createElement('div');
-          pageDiv.style.cssText = `flex: 0 0 ${pageWidth}px; width: ${pageWidth}px; display: grid; grid-template-columns: repeat(${cols}, 1fr); gap: 0.5rem;`;
-          const start = p * perPage;
-          const end = Math.min(start + perPage, visibleItems.length);
-          for (let i = start; i < end; i++) {
-            pageDiv.insertAdjacentHTML('beforeend', makeItemHtml(visibleItems[i]));
-          }
-          track.appendChild(pageDiv);
-        }
-
-        slideTo(wgPage, false);
-        updateNav(totalPages);
-        updateIndicator(totalPages);
-
-        // Update lightbox items for current visible page
-        updateLbItems();
-      }
-
-      function slideTo(page: number, animate = true) {
-        const pageWidth = carouselWrap.offsetWidth;
-        track.style.transition = animate ? 'transform 0.6s ease-in-out' : 'none';
-        track.style.transform = `translateX(-${page * pageWidth}px)`;
-        wgPage = page;
-        updateLbItems();
-      }
-
-      function updateLbItems() {
-        const perPage = PER_PAGE();
-        const start = wgPage * perPage;
-        const end = Math.min(start + perPage, visibleItems.length);
-        wgItems = visibleItems.slice(start, end).map((item: any) => ({
-          src: item.image_url || '',
-          alt: item.title || '웨딩 현장사진',
-        }));
-      }
-
-      function updateNav(totalPages: number) {
-        if (totalPages > 1) {
-          prevBtn.classList.remove('hidden');
-          prevBtn.classList.add('flex');
-          nextBtn.classList.remove('hidden');
-          nextBtn.classList.add('flex');
-        } else {
-          prevBtn.classList.add('hidden');
-          prevBtn.classList.remove('flex');
-          nextBtn.classList.add('hidden');
-          nextBtn.classList.remove('flex');
-        }
-        prevBtn.disabled = wgPage === 0;
-        nextBtn.disabled = wgPage >= totalPages - 1;
-      }
-
-      function updateIndicator(totalPages: number) {
-        pageIndicator.innerHTML = '';
-        if (totalPages <= 1) return;
-        for (let i = 0; i < totalPages; i++) {
-          const dot = document.createElement('button');
-          dot.className = i === wgPage
-            ? 'w-8 h-2 rounded-full bg-primary transition-all'
-            : 'w-2 h-2 rounded-full bg-gray-300 hover:bg-gray-400 transition-all';
-          dot.addEventListener('click', () => {
-            slideTo(i);
-            updateNav(totalPages);
-            updateIndicator(totalPages);
-            resetAutoSlide();
-          });
-          pageIndicator.appendChild(dot);
-        }
-      }
-
-      function getTotalPages() {
-        return Math.max(1, Math.ceil(visibleItems.length / PER_PAGE()));
-      }
-
-      function goNext() {
-        const total = getTotalPages();
-        const next = (wgPage + 1) % total;
-        slideTo(next);
-        updateNav(total);
-        updateIndicator(total);
-      }
-
-      function goPrev() {
-        const total = getTotalPages();
-        const prev = (wgPage - 1 + total) % total;
-        slideTo(prev);
-        updateNav(total);
-        updateIndicator(total);
-      }
-
-      function startAutoSlide() {
-        if (autoTimer) clearInterval(autoTimer);
-        autoTimer = setInterval(() => {
-          if (getTotalPages() > 1) goNext();
-        }, 4000);
-      }
-
-      function resetAutoSlide() {
-        startAutoSlide();
-      }
-
-      prevBtn.addEventListener('click', () => { goPrev(); resetAutoSlide(); });
-      nextBtn.addEventListener('click', () => { goNext(); resetAutoSlide(); });
-
-      // Pause on hover
-      carouselWrap.addEventListener('mouseenter', () => { if (autoTimer) clearInterval(autoTimer); });
-      carouselWrap.addEventListener('mouseleave', () => startAutoSlide());
-
-      buildTrack();
+      // ── initial render ─────────────────────────────────────────────────────
+      filterItems();
+      renderGridItems(0);
+      updateNav();
+      updateIndicator();
       startAutoSlide();
 
-      // Rebuild on resize (mobile/desktop breakpoint change)
-      window.addEventListener('resize', () => {
-        buildTrack();
-      });
-
-      // Lightbox
-      const lightbox = document.getElementById('wg-lightbox')!;
-      const lbImg = document.getElementById('wg-lb-img') as HTMLImageElement;
+      // ── lightbox ───────────────────────────────────────────────────────────
+      const lightbox  = document.getElementById('wg-lightbox')!;
+      const lbImg     = document.getElementById('wg-lb-img') as HTMLImageElement;
       const lbCaption = document.getElementById('wg-lb-caption')!;
-      let wgItems: { src: string; alt: string }[] = [];
-      let wgIdx = 0;
 
       function showWg() {
-        const item = wgItems[wgIdx];
-        if (!item) return;
-        lbImg.src = item.src;
-        lbImg.alt = item.alt;
-        lbCaption.textContent = item.alt;
+        const item = wgItems[wgIdx]; if (!item) return;
+        lbImg.src = item.src; lbImg.alt = item.alt; lbCaption.textContent = item.alt;
       }
       function openWg(idx: number) {
-        wgIdx = idx;
-        showWg();
-        lightbox.classList.remove('hidden');
-        lightbox.classList.add('flex');
+        wgIdx = idx; showWg();
+        lightbox.classList.remove('hidden'); lightbox.classList.add('flex');
         document.body.style.overflow = 'hidden';
         if (autoTimer) clearInterval(autoTimer);
       }
       function closeWg() {
-        lightbox.classList.add('hidden');
-        lightbox.classList.remove('flex');
-        document.body.style.overflow = '';
-        startAutoSlide();
+        lightbox.classList.add('hidden'); lightbox.classList.remove('flex');
+        document.body.style.overflow = ''; startAutoSlide();
       }
 
-      track.addEventListener('click', (e) => {
+      wgGrid.addEventListener('click', (e) => {
         const item = (e.target as HTMLElement).closest('.wg-item');
         if (!item) return;
-        const pageItems = Array.from(track.children[wgPage]?.querySelectorAll('.wg-item') || []);
-        const idx = pageItems.indexOf(item as Element);
+        const idx = Array.from(wgGrid.querySelectorAll('.wg-item')).indexOf(item as Element);
         if (idx >= 0) openWg(idx);
       });
 
@@ -571,9 +511,6 @@ try {
         if (e.key === 'ArrowLeft') { wgIdx = (wgIdx - 1 + wgItems.length) % wgItems.length; showWg(); }
         if (e.key === 'ArrowRight') { wgIdx = (wgIdx + 1) % wgItems.length; showWg(); }
       });
-
-      // Also need to remove unused grid reference — tag filter uses buildTrack
-      function renderPage() { buildTrack(); }
 
     } catch {
       loading.classList.add('hidden');
