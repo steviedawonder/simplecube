@@ -8,35 +8,18 @@ import PartnerHalls from '@components/wedding/PartnerHalls.astro';
 import AccordionList from '@components/faq/AccordionList.astro';
 import db from '@lib/db';
 
-const faqResult = await db.execute({
-  sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC',
-  args: ['wedding'],
-});
-const faqItems = faqResult.rows as { question: string; answer: string }[];
+// Run all queries in parallel to reduce Turso round-trips
+const [faqResult, catResult, psResult, bdResult] = await Promise.allSettled([
+  db.execute({ sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC', args: ['wedding'] }),
+  db.execute('SELECT * FROM photostrip_categories ORDER BY sort_order ASC, id ASC'),
+  db.execute({ sql: "SELECT * FROM portfolio WHERE page_tag = ? AND tags LIKE ? ORDER BY sort_order ASC, id DESC", args: ['wedding', '%포토스트립%'] }),
+  db.execute('SELECT * FROM backdrops WHERE visible = 1 ORDER BY sort_order ASC, id DESC'),
+]);
 
-// Photostrip categories
-let photostripCategories: { id: number; name: string; sort_order: number }[] = [];
-try {
-  const catResult = await db.execute('SELECT * FROM photostrip_categories ORDER BY sort_order ASC, id ASC');
-  photostripCategories = catResult.rows as any[];
-} catch { /* table may not exist yet */ }
-
-// Photostrip portfolio items (server-side)
-let photostripItems: any[] = [];
-try {
-  const psResult = await db.execute({
-    sql: "SELECT * FROM portfolio WHERE page_tag = ? AND tags LIKE ? ORDER BY sort_order ASC, id DESC",
-    args: ['wedding', '%포토스트립%'],
-  });
-  photostripItems = psResult.rows as any[];
-} catch { /* table may not exist yet */ }
-
-// Backdrops
-let backdrops: any[] = [];
-try {
-  const bdResult = await db.execute('SELECT * FROM backdrops WHERE visible = 1 ORDER BY sort_order ASC, id DESC');
-  backdrops = bdResult.rows as any[];
-} catch { /* table may not exist yet */ }
+const faqItems = faqResult.status === 'fulfilled' ? faqResult.value.rows as { question: string; answer: string }[] : [];
+const photostripCategories: { id: number; name: string; sort_order: number }[] = catResult.status === 'fulfilled' ? catResult.value.rows as any[] : [];
+const photostripItems: any[] = psResult.status === 'fulfilled' ? psResult.value.rows as any[] : [];
+const backdrops: any[] = bdResult.status === 'fulfilled' ? bdResult.value.rows as any[] : [];
 ---
 
 <BaseLayout

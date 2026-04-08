@@ -9,18 +9,14 @@ import CustomOptions from '@components/popup/CustomOptions.astro';
 import AccordionList from '@components/faq/AccordionList.astro';
 import db from '@lib/db';
 
-const faqResult = await db.execute({
-  sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC',
-  args: ['popup'],
-});
-const faqItems = faqResult.rows as { question: string; answer: string }[];
+// Run both queries in parallel
+const [faqResult, bgResult] = await Promise.allSettled([
+  db.execute({ sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC', args: ['popup'] }),
+  db.execute('SELECT * FROM backgrounds WHERE visible = 1 ORDER BY sort_order ASC, id DESC'),
+]);
 
-// Backgrounds data
-let backgrounds: any[] = [];
-try {
-  const bgResult = await db.execute('SELECT * FROM backgrounds WHERE visible = 1 ORDER BY sort_order ASC, id DESC');
-  backgrounds = bgResult.rows as any[];
-} catch { /* table may not exist yet */ }
+const faqItems = faqResult.status === 'fulfilled' ? faqResult.value.rows as { question: string; answer: string }[] : [];
+const backgrounds: any[] = bgResult.status === 'fulfilled' ? bgResult.value.rows as any[] : [];
 ---
 
 <BaseLayout

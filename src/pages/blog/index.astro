@@ -4,23 +4,23 @@ export const prerender = false;
 import BaseLayout from '@layouts/BaseLayout.astro';
 import db from '@lib/db';
 
+// Single query with GROUP_CONCAT to avoid N+1 tag queries
 const result = await db.execute(`
-  SELECT p.*, c.name as category_name
+  SELECT p.*, c.name as category_name,
+    GROUP_CONCAT(t.name, ',') as tags_list
   FROM posts p
   LEFT JOIN categories c ON p.category_id = c.id
+  LEFT JOIN post_tags pt ON p.id = pt.post_id
+  LEFT JOIN tags t ON pt.tag_id = t.id
   WHERE p.draft = 0 AND p.deleted_at IS NULL
   AND (p.scheduled_at IS NULL OR p.scheduled_at <= datetime('now'))
+  GROUP BY p.id
   ORDER BY p.created_at DESC
 `);
-const posts = result.rows as any[];
-
-for (const post of posts) {
-  const tagsResult = await db.execute({
-    sql: 'SELECT t.name FROM tags t JOIN post_tags pt ON t.id = pt.tag_id WHERE pt.post_id = ?',
-    args: [post.id],
-  });
-  post.tags = tagsResult.rows.map((t: any) => t.name);
-}
+const posts = (result.rows as any[]).map((post) => ({
+  ...post,
+  tags: post.tags_list ? post.tags_list.split(',') : [],
+}));
 
 const categories = [...new Set(posts.map((p) => p.category_name).filter(Boolean))];
 ---
