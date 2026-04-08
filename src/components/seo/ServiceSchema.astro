@@ -1,0 +1,27 @@
+---
+interface ServiceItem {
+  name: string;
+  description: string;
+  url: string;
+}
+interface Props {
+  services: ServiceItem[];
+}
+const { services } = Astro.props;
+const siteUrl = 'https://simplecube.co.kr';
+const schemas = services.map((svc) => ({
+  '@context': 'https://schema.org',
+  '@type': 'Service',
+  name: svc.name,
+  description: svc.description,
+  url: `${siteUrl}${svc.url}`,
+  provider: {
+    '@type': 'Organization',
+    name: '심플큐브 SIMPLE CUBE',
+    url: siteUrl,
+  },
+}));
+---
+{schemas.map((schema) => (
+  <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+))}
