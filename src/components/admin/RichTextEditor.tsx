@@ -340,16 +340,17 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
     const fileArray = Array.from(files);
     setUploadingCount(fileArray.length);
 
-    try {
-      // Upload all files in parallel
-      const results = await Promise.all(
-        fileArray.map(async (file) => {
-          const asset = await uploadImage(file);
-          return { url: asset.url, alt: file.name.replace(/\.[^/.]+$/, '') };
-        })
-      );
+    const results: { url: string; alt: string }[] = [];
+    for (const file of fileArray) {
+      try {
+        const asset = await uploadImage(file);
+        results.push({ url: asset.url, alt: file.name.replace(/\.[^/.]+$/, '') });
+      } catch (err: any) {
+        alert('이미지 업로드 실패: ' + err.message);
+      }
+    }
 
-      // Insert all images in a flex row for side-by-side display (#2)
+    if (results.length > 0) {
       editorRef.current?.focus();
       if (results.length === 1) {
         document.execCommand('insertHTML', false, `<img src="${results[0].url}" alt="${results[0].alt}" style="max-width:100%;height:auto;margin:8px 0;" />`);
@@ -358,8 +359,6 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
         document.execCommand('insertHTML', false, `<div class="img-row" style="display:flex;gap:8px;margin:8px 0;align-items:flex-start;">${imgsHtml}</div>`);
       }
       syncContent();
-    } catch (err: any) {
-      alert('이미지 업로드 실패: ' + err.message);
     }
     setUploadingCount(0);
     if (fileInputRef.current) fileInputRef.current.value = '';

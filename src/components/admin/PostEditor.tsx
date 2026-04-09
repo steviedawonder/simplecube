@@ -172,7 +172,7 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
     }
   }
 
-  function addTagsFromInput() {
+  async function addTagsFromInput() {
     const names = tagInput
       .split(',')
       .map((s) => s.trim())
@@ -185,6 +185,23 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
       );
       if (found && !newIds.includes(found.id)) {
         newIds.push(found.id);
+      } else if (!found) {
+        // Create new tag via API
+        try {
+          const slug = name.toLowerCase().replace(/[^가-힣a-z0-9\s-]/g, '').replace(/\s+/g, '-');
+          const res = await fetch('/api/tags', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, slug }),
+          });
+          if (res.ok) {
+            const newTag = await res.json();
+            tags.push(newTag);
+            newIds.push(newTag.id);
+          }
+        } catch {
+          // silently skip
+        }
       }
     }
     setSelectedTagIds(newIds);
