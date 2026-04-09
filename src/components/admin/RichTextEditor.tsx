@@ -705,12 +705,10 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
         const rect = hoverImg.getBoundingClientRect();
         const midX = rect.left + rect.width / 2;
         const side = e.clientX < midX ? 'left' : 'right';
-        const lineX = side === 'left'
-          ? rect.left - edRect.left + editor.scrollLeft - 2
-          : rect.right - edRect.left + editor.scrollLeft + 2;
+        const lineX = side === 'left' ? rect.left - 2 : rect.right + 2;
 
-        indicator.style.cssText = `position:absolute;width:3px;background:#3b82f6;border-radius:2px;pointer-events:none;z-index:5;top:${rect.top - edRect.top + editor.scrollTop}px;height:${rect.height}px;left:${lineX}px;`;
-        if (indicator.parentElement !== container) container.appendChild(indicator);
+        indicator.style.cssText = `position:fixed;width:4px;background:#3b82f6;border-radius:2px;pointer-events:none;z-index:9999;top:${rect.top}px;height:${rect.height}px;left:${lineX}px;`;
+        if (!indicator.parentElement) document.body.appendChild(indicator);
         dropInfo = { target: hoverBlock, side };
       } else {
         // Vertical: find direct child of editor to insert before/after
@@ -723,12 +721,10 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
           const rect = refNode.getBoundingClientRect();
           const midY = rect.top + rect.height / 2;
           const side = e.clientY < midY ? 'before' : 'after';
-          const lineY = side === 'before'
-            ? rect.top - edRect.top + editor.scrollTop
-            : rect.bottom - edRect.top + editor.scrollTop;
+          const lineY = side === 'before' ? rect.top : rect.bottom;
 
-          indicator.style.cssText = `position:absolute;height:3px;background:#D4AA45;border-radius:2px;pointer-events:none;z-index:5;left:16px;right:16px;top:${lineY}px;`;
-          if (indicator.parentElement !== container) container.appendChild(indicator);
+          indicator.style.cssText = `position:fixed;height:4px;background:#D4AA45;border-radius:2px;pointer-events:none;z-index:9999;left:${edRect.left + 16}px;width:${edRect.width - 32}px;top:${lineY}px;`;
+          if (!indicator.parentElement) document.body.appendChild(indicator);
           dropInfo = { target: refNode as HTMLElement, side };
         } else {
           if (indicator.parentElement) indicator.remove();
