@@ -21,6 +21,7 @@ export const navItems: NavItem[] = [
       { label: '모델 소개', href: '/popup#machines' },
       { label: '포트폴리오', href: '/popup#portfolio' },
       { label: '커스텀', href: '/popup#custom' },
+      { label: '기업행사', href: '/corporate' },
       { label: 'FAQ', href: '/popup#qna' },
     ],
   },
@@ -35,6 +36,10 @@ export const navItems: NavItem[] = [
       { label: '제휴 웨딩홀', href: '/wedding#partner-halls' },
       { label: 'FAQ', href: '/wedding#qna' },
     ],
+  },
+  {
+    label: '가격안내',
+    href: '/pricing',
   },
   { label: 'BLOG', href: '/blog' },
 ];

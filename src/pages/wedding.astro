@@ -246,7 +246,7 @@ const backdrops: any[] = bdResult.status === 'fulfilled' ? bdResult.value.rows a
   <section class="bg-bg-light py-10 lg:py-14">
     <div class="mx-auto max-w-7xl px-6 lg:px-8">
       <h2 class="text-lg font-bold text-primary mb-6">다른 서비스 보기</h2>
-      <div class="grid gap-4 sm:grid-cols-3">
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <a href="/popup" class="group rounded-lg border border-border-light bg-white p-5 hover:border-olive/40 transition-colors">
           <h3 class="text-base font-semibold text-primary group-hover:text-olive transition-colors">행사 포토부스</h3>
           <p class="mt-2 text-sm text-secondary leading-relaxed">팝업스토어·기업행사·페스티벌 맞춤 포토부스</p>
@@ -260,6 +260,11 @@ const backdrops: any[] = bdResult.status === 'fulfilled' ? bdResult.value.rows a
         <a href="/corporate" class="group rounded-lg border border-border-light bg-white p-5 hover:border-olive/40 transition-colors">
           <h3 class="text-base font-semibold text-primary group-hover:text-olive transition-colors">기업행사 포토부스</h3>
           <p class="mt-2 text-sm text-secondary leading-relaxed">기업 이벤트·컨퍼런스·전시회 포토부스</p>
+          <span class="mt-2 inline-block text-xs text-olive font-medium">자세히 보기 →</span>
+        </a>
+        <a href="/pricing" class="group rounded-lg border border-border-light bg-white p-5 hover:border-olive/40 transition-colors">
+          <h3 class="text-base font-semibold text-primary group-hover:text-olive transition-colors">가격 안내</h3>
+          <p class="mt-2 text-sm text-secondary leading-relaxed">포토부스 대여 가격 및 견적 안내</p>
           <span class="mt-2 inline-block text-xs text-olive font-medium">자세히 보기 →</span>
         </a>
       </div>
