@@ -558,19 +558,23 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
     }
   };
 
-  // Image drag-and-drop reorder (#2)
+  // Image drag-and-drop reorder (#2) - constrained to editor only
   useEffect(() => {
     const editor = editorRef.current;
     if (!editor) return;
 
     let draggedEl: HTMLElement | null = null;
     let placeholder: HTMLElement | null = null;
+    let originalNextSibling: Node | null = null;
+    let originalParent: HTMLElement | null = null;
 
     const handleDragStart = (e: DragEvent) => {
       const target = e.target as HTMLElement;
-      if (target.tagName === 'IMG') {
-        // Drag the image or its wrapper
+      if (target.tagName === 'IMG' && editor.contains(target)) {
         draggedEl = target.closest('.img-overlay-wrapper') as HTMLElement || target.closest('.img-figure-wrapper') as HTMLElement || target;
+        // Remember original position for rollback
+        originalParent = draggedEl.parentElement as HTMLElement;
+        originalNextSibling = draggedEl.nextSibling;
         draggedEl.style.opacity = '0.4';
         e.dataTransfer!.effectAllowed = 'move';
         e.dataTransfer!.setData('text/plain', '');
@@ -579,16 +583,17 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
 
     const handleDragOver = (e: DragEvent) => {
       if (!draggedEl) return;
+      // Only allow drop inside editor
+      if (!editor.contains(e.target as Node)) return;
       e.preventDefault();
       e.dataTransfer!.dropEffect = 'move';
 
-      // Find closest block-level element to show drop position
       const target = e.target as HTMLElement;
       const closest = target.tagName === 'IMG' ? (target.closest('.img-overlay-wrapper') || target.closest('.img-figure-wrapper') || target) : target.closest('p, div, img, h1, h2, h3, h4, blockquote') as HTMLElement;
       if (closest && closest !== draggedEl && editor.contains(closest)) {
         if (!placeholder) {
           placeholder = document.createElement('div');
-          placeholder.style.cssText = 'height:3px;background:#3b82f6;border-radius:2px;margin:4px 0;';
+          placeholder.style.cssText = 'height:3px;background:#3b82f6;border-radius:2px;margin:4px 0;pointer-events:none;';
         }
         const rect = closest.getBoundingClientRect();
         const midY = rect.top + rect.height / 2;
@@ -602,32 +607,59 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
 
     const handleDrop = (e: DragEvent) => {
       e.preventDefault();
-      if (!draggedEl || !placeholder) return;
-      placeholder.parentElement?.insertBefore(draggedEl, placeholder);
-      placeholder.remove();
+      e.stopPropagation();
+      if (!draggedEl) return;
+      if (placeholder && editor.contains(placeholder)) {
+        placeholder.parentElement?.insertBefore(draggedEl, placeholder);
+        placeholder.remove();
+      }
       placeholder = null;
       draggedEl.style.opacity = '1';
       draggedEl = null;
+      originalParent = null;
+      originalNextSibling = null;
       syncContent();
     };
 
     const handleDragEnd = () => {
-      if (draggedEl) draggedEl.style.opacity = '1';
+      // If dropped outside editor, restore to original position
+      if (draggedEl && originalParent) {
+        draggedEl.style.opacity = '1';
+        if (originalNextSibling) {
+          originalParent.insertBefore(draggedEl, originalNextSibling);
+        } else {
+          originalParent.appendChild(draggedEl);
+        }
+      }
       if (placeholder) placeholder.remove();
       draggedEl = null;
       placeholder = null;
+      originalParent = null;
+      originalNextSibling = null;
+    };
+
+    // Prevent default drop behavior outside editor (blocks browser from moving element out)
+    const preventOutsideDrop = (e: DragEvent) => {
+      if (draggedEl && !editor.contains(e.target as Node)) {
+        e.preventDefault();
+        e.dataTransfer!.dropEffect = 'none';
+      }
     };
 
     editor.addEventListener('dragstart', handleDragStart);
     editor.addEventListener('dragover', handleDragOver);
     editor.addEventListener('drop', handleDrop);
     editor.addEventListener('dragend', handleDragEnd);
+    document.addEventListener('dragover', preventOutsideDrop);
+    document.addEventListener('drop', preventOutsideDrop);
 
     return () => {
       editor.removeEventListener('dragstart', handleDragStart);
       editor.removeEventListener('dragover', handleDragOver);
       editor.removeEventListener('drop', handleDrop);
       editor.removeEventListener('dragend', handleDragEnd);
+      document.removeEventListener('dragover', preventOutsideDrop);
+      document.removeEventListener('drop', preventOutsideDrop);
     };
   }, []);
 
