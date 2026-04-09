@@ -1348,6 +1348,9 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700&family=Nanum+Myeongjo:wght@400;700&family=Gothic+A1:wght@400;700&family=Noto+Sans+KR:wght@400;700&family=Noto+Serif+KR:wght@400;700&display=swap" />
       {/* Editor media hover styles */}
       <style>{`
+        [contenteditable] { caret-color: #1a1a1a !important; cursor: text; }
+        [contenteditable]:focus { caret-color: #1a1a1a !important; }
+        [contenteditable]:empty::before { content: attr(data-placeholder); color: #999; pointer-events: none; }
         [contenteditable] img { cursor: pointer; transition: outline 0.15s; border-radius: 4px; }
         [contenteditable] img:hover { outline: 2px solid #3b82f6; outline-offset: 2px; }
         [contenteditable] div[contenteditable="false"] { cursor: pointer; transition: outline 0.15s; border-radius: 4px; }
@@ -1398,7 +1401,7 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
             flex: 1, minHeight: 0, padding: '16px 18px', fontSize: 15, lineHeight: 1.8,
             border: `1px solid ${colors.border}`, borderRadius: '0 0 8px 8px',
             outline: 'none', background: '#fff', fontFamily: 'inherit',
-            overflowY: 'auto',
+            overflowY: 'auto', caretColor: '#1a1a1a',
           }}
           data-placeholder="본문을 작성하세요..."
         />
