@@ -579,112 +579,114 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
     }
   };
 
-  // Image move helpers (toolbar buttons instead of drag-and-drop)
-  const getImgBlock = (img: HTMLElement): HTMLElement => {
-    return img.closest('.img-overlay-wrapper') as HTMLElement
-      || img.closest('.img-figure-wrapper') as HTMLElement
-      || img.closest('.img-row') as HTMLElement
-      || img;
-  };
-
-  const moveImageUp = () => {
-    if (!selectedImg) return;
-    const block = getImgBlock(selectedImg);
-    const prev = block.previousElementSibling as HTMLElement;
-    if (prev) {
-      block.parentElement?.insertBefore(block, prev);
-      syncContent();
-      updateImgRect(block);
-    }
-  };
-
-  const moveImageDown = () => {
-    if (!selectedImg) return;
-    const block = getImgBlock(selectedImg);
-    const next = block.nextElementSibling as HTMLElement;
-    if (next) {
-      block.parentElement?.insertBefore(next, block);
-      syncContent();
-      updateImgRect(block);
-    }
-  };
-
-  const mergeImageRow = () => {
-    if (!selectedImg) return;
+  // Drag-and-drop: image goes to cursor position
+  useEffect(() => {
     const editor = editorRef.current;
     if (!editor) return;
-    const block = getImgBlock(selectedImg);
-    const next = block.nextElementSibling as HTMLElement;
-    if (!next) return;
 
-    // If block is already in an img-row, add the next image to it
-    if (block.classList?.contains('img-row')) {
-      const nextImg = next.tagName === 'IMG' ? next : next.querySelector('img');
-      if (nextImg) {
-        const imgEl = next.tagName === 'IMG' ? next : getImgBlock(next);
-        block.appendChild(imgEl);
-        // Update flex sizing
-        const count = block.querySelectorAll('img').length;
-        block.querySelectorAll('img').forEach((img: any) => {
-          img.style.maxWidth = `${Math.floor(100 / count)}%`;
-          img.style.flex = '1';
-          img.style.minWidth = '0';
-        });
-        syncContent();
-        updateImgRect(block);
+    let draggedImg: HTMLElement | null = null;
+    let caret: HTMLElement | null = null;
+
+    const getBlock = (el: HTMLElement): HTMLElement => {
+      return el.closest('.img-overlay-wrapper') as HTMLElement
+        || el.closest('.img-figure-wrapper') as HTMLElement
+        || el;
+    };
+
+    const handleDragStart = (e: DragEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'IMG' && editor.contains(target)) {
+        draggedImg = getBlock(target);
+        draggedImg.style.opacity = '0.3';
+        e.dataTransfer!.effectAllowed = 'move';
+        e.dataTransfer!.setData('text/plain', 'img-move');
       }
-      return;
-    }
+    };
 
-    // Check if next element is an image
-    const nextIsImg = next.tagName === 'IMG' || next.querySelector?.('img');
-    if (!nextIsImg) return;
+    const handleDragOver = (e: DragEvent) => {
+      if (!draggedImg) return;
+      if (!editor.contains(e.target as Node)) {
+        if (caret) { caret.remove(); caret = null; }
+        return;
+      }
+      e.preventDefault();
+      e.dataTransfer!.dropEffect = 'move';
 
-    // Create a flex row
-    const row = document.createElement('div');
-    row.className = 'img-row';
-    row.style.cssText = 'display:flex;gap:8px;margin:8px 0;align-items:flex-start;';
-    block.parentElement?.insertBefore(row, block);
+      // Show thin caret line at drop position
+      if (!caret) {
+        caret = document.createElement('div');
+        caret.style.cssText = 'height:2px;background:#D4AA45;border-radius:1px;pointer-events:none;margin:2px 0;transition:none;';
+      }
 
-    // Move both images into the row
-    const img1 = block.tagName === 'IMG' ? block : block;
-    const img2 = next.tagName === 'IMG' ? next : next;
-    row.appendChild(img1);
-    row.appendChild(img2);
+      // Find insertion point using caretRangeFromPoint
+      const range = document.caretRangeFromPoint(e.clientX, e.clientY);
+      if (range) {
+        let refNode = range.startContainer as HTMLElement;
+        if (refNode.nodeType === Node.TEXT_NODE) refNode = refNode.parentElement!;
+        // Find a direct child of editor or close to it
+        while (refNode && refNode.parentElement !== editor && editor.contains(refNode.parentElement!)) {
+          refNode = refNode.parentElement!;
+        }
+        if (refNode && editor.contains(refNode) && refNode !== draggedImg) {
+          const rect = refNode.getBoundingClientRect();
+          const midY = rect.top + rect.height / 2;
+          if (e.clientY < midY) {
+            editor.insertBefore(caret, refNode);
+          } else {
+            editor.insertBefore(caret, refNode.nextSibling);
+          }
+        }
+      }
+    };
 
-    // Set flex sizing - preserve aspect ratio (no crop, no stretch)
-    row.querySelectorAll('img').forEach((img: any) => {
-      img.style.maxWidth = '50%';
-      img.style.height = 'auto';
-      img.style.flex = '0 1 auto';
-      img.style.minWidth = '0';
-    });
+    const handleDrop = (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!draggedImg || !editor.contains(e.target as Node)) return;
 
-    syncContent();
-    updateImgRect(row);
-  };
+      if (caret && caret.parentElement) {
+        caret.parentElement.insertBefore(draggedImg, caret);
+        caret.remove();
+      }
+      caret = null;
+      draggedImg.style.opacity = '1';
+      draggedImg = null;
+      syncContent();
+      setSelectedImg(null);
+      setImgRect(null);
+    };
 
-  const separateFromRow = () => {
-    if (!selectedImg) return;
-    const row = selectedImg.closest('.img-row') as HTMLElement;
-    if (!row) return;
-    const editor = editorRef.current;
-    if (!editor) return;
+    const handleDragEnd = () => {
+      if (draggedImg) draggedImg.style.opacity = '1';
+      if (caret) caret.remove();
+      draggedImg = null;
+      caret = null;
+    };
 
-    // Extract all images from the row and place them individually
-    const imgs = Array.from(row.querySelectorAll('img')) as HTMLImageElement[];
-    const parent = row.parentElement!;
-    imgs.forEach(img => {
-      img.style.maxWidth = '100%';
-      img.style.height = 'auto';
-      img.style.flex = '';
-      img.style.minWidth = '';
-      img.style.margin = '8px 0';
-      parent.insertBefore(img, row);
-    });
-    row.remove();
-    syncContent();
-  };
+    // Block drops outside editor
+    const blockOutside = (e: DragEvent) => {
+      if (draggedImg && !editor.contains(e.target as Node)) {
+        e.preventDefault();
+        e.dataTransfer!.dropEffect = 'none';
+      }
+    };
+
+    editor.addEventListener('dragstart', handleDragStart);
+    editor.addEventListener('dragover', handleDragOver);
+    editor.addEventListener('drop', handleDrop);
+    editor.addEventListener('dragend', handleDragEnd);
+    document.addEventListener('dragover', blockOutside);
+    document.addEventListener('drop', blockOutside);
+
+    return () => {
+      editor.removeEventListener('dragstart', handleDragStart);
+      editor.removeEventListener('dragover', handleDragOver);
+      editor.removeEventListener('drop', handleDrop);
+      editor.removeEventListener('dragend', handleDragEnd);
+      document.removeEventListener('dragover', blockOutside);
+      document.removeEventListener('drop', blockOutside);
+    };
+  }, []);
 
   const updateImgRect = (target: HTMLElement) => {
     const editor = editorRef.current;
@@ -1290,41 +1292,6 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
                   : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="6" y1="18" x2="21" y2="18"/></svg>}
                 </button>
               ))}
-              <div style={{ width: 1, height: 16, background: '#555', margin: '0 2px' }} />
-              {/* Move up */}
-              <button onMouseDown={e => { e.preventDefault(); e.stopPropagation(); moveImageUp(); }}
-                style={{ width: 28, height: 24, border: 'none', background: 'none', cursor: 'pointer', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12 }}
-                onMouseEnter={e => (e.currentTarget.style.background = '#444')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'none')}
-                title="위로 이동">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="18 15 12 9 6 15"/></svg>
-              </button>
-              {/* Move down */}
-              <button onMouseDown={e => { e.preventDefault(); e.stopPropagation(); moveImageDown(); }}
-                style={{ width: 28, height: 24, border: 'none', background: 'none', cursor: 'pointer', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12 }}
-                onMouseEnter={e => (e.currentTarget.style.background = '#444')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'none')}
-                title="아래로 이동">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-              </button>
-              {/* Merge side by side */}
-              <button onMouseDown={e => { e.preventDefault(); e.stopPropagation(); mergeImageRow(); }}
-                style={{ width: 28, height: 24, border: 'none', background: 'none', cursor: 'pointer', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4ade80', fontSize: 12 }}
-                onMouseEnter={e => (e.currentTarget.style.background = '#444')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'none')}
-                title="다음 이미지와 나란히 배치">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="18" rx="1"/></svg>
-              </button>
-              {/* Separate from row */}
-              {selectedImg?.closest?.('.img-row') && (
-                <button onMouseDown={e => { e.preventDefault(); e.stopPropagation(); separateFromRow(); }}
-                  style={{ width: 28, height: 24, border: 'none', background: 'none', cursor: 'pointer', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f59e0b', fontSize: 12 }}
-                  onMouseEnter={e => (e.currentTarget.style.background = '#444')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'none')}
-                  title="나란히 배치 해제">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="18" height="18" rx="1"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
-                </button>
-              )}
               <div style={{ width: 1, height: 16, background: '#555', margin: '0 2px' }} />
               {/* Rotate left */}
               <button onMouseDown={e => { e.preventDefault(); e.stopPropagation(); rotateImage(270); }}
