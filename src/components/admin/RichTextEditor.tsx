@@ -40,6 +40,20 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
     onImageSelect?.(selectedImg);
   }, [selectedImg]);
 
+  // Update overlay position on editor scroll
+  useEffect(() => {
+    const editor = editorRef.current;
+    if (!editor || !selectedImg) return;
+    const onScroll = () => {
+      const calcRect = (editor as any).__calcRect;
+      if (calcRect && selectedImg) {
+        setImgRect(calcRect(selectedImg));
+      }
+    };
+    editor.addEventListener('scroll', onScroll);
+    return () => editor.removeEventListener('scroll', onScroll);
+  }, [selectedImg]);
+
   // Click outside to deselect image
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -57,10 +71,8 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
     const editor = editorRef.current;
     if (!editor) return;
 
-    const selectMedia = (media: HTMLElement) => {
+    const calcRect = (media: HTMLElement) => {
       const tag = media.tagName.toLowerCase();
-      setSelectedImg(media as any);
-      const editorRect = editor.getBoundingClientRect();
       let target: HTMLElement;
       if (tag === 'iframe' || tag === 'video') {
         target = media.parentElement!;
@@ -69,9 +81,18 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
       } else {
         target = media;
       }
+      const editorRect = editor.getBoundingClientRect();
       const r = target.getBoundingClientRect();
-      setImgRect({ top: r.top - editorRect.top, left: r.left - editorRect.left, width: r.width, height: r.height });
+      return { top: r.top - editorRect.top + editor.scrollTop, left: r.left - editorRect.left + editor.scrollLeft, width: r.width, height: r.height };
     };
+
+    const selectMedia = (media: HTMLElement) => {
+      setSelectedImg(media as any);
+      setImgRect(calcRect(media));
+    };
+
+    // Expose calcRect for external use
+    (editor as any).__calcRect = calcRect;
 
     // Add transparent click overlays to all iframes/videos in editor
     const addOverlays = () => {
@@ -166,7 +187,7 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
       if (editor) {
         const editorRect = editor.getBoundingClientRect();
         const r = target.getBoundingClientRect();
-        setImgRect({ top: r.top - editorRect.top, left: r.left - editorRect.left, width: r.width, height: r.height });
+        setImgRect({ top: r.top - editorRect.top + editor.scrollTop, left: r.left - editorRect.left + editor.scrollLeft, width: r.width, height: r.height });
       }
     };
     const onMouseUp = () => {
@@ -194,7 +215,7 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
       setTimeout(() => {
         const editorRect = editor.getBoundingClientRect();
         const r = target.getBoundingClientRect();
-        setImgRect({ top: r.top - editorRect.top, left: r.left - editorRect.left, width: r.width, height: r.height });
+        setImgRect({ top: r.top - editorRect.top + editor.scrollTop, left: r.left - editorRect.left + editor.scrollLeft, width: r.width, height: r.height });
       }, 50);
     }
   };
@@ -355,7 +376,7 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
       if (results.length === 1) {
         document.execCommand('insertHTML', false, `<img src="${results[0].url}" alt="${results[0].alt}" style="max-width:100%;height:auto;margin:8px 0;" />`);
       } else {
-        const imgsHtml = results.map(r => `<img src="${r.url}" alt="${r.alt}" style="max-width:${Math.floor(100 / results.length)}%;height:auto;object-fit:cover;flex:1;min-width:0;" />`).join('');
+        const imgsHtml = results.map(r => `<img src="${r.url}" alt="${r.alt}" style="max-width:${Math.floor(100 / results.length)}%;height:auto;flex:0 1 auto;min-width:0;" />`).join('');
         document.execCommand('insertHTML', false, `<div class="img-row" style="display:flex;gap:8px;margin:8px 0;align-items:flex-start;">${imgsHtml}</div>`);
       }
       syncContent();
@@ -553,7 +574,7 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
       setTimeout(() => {
         const editorRect = editor.getBoundingClientRect();
         const r = wrapper.getBoundingClientRect();
-        setImgRect({ top: r.top - editorRect.top, left: r.left - editorRect.left, width: r.width, height: r.height });
+        setImgRect({ top: r.top - editorRect.top + editor.scrollTop, left: r.left - editorRect.left + editor.scrollLeft, width: r.width, height: r.height });
       }, 100);
     }
   };
@@ -631,12 +652,12 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
     row.appendChild(img1);
     row.appendChild(img2);
 
-    // Set flex sizing
+    // Set flex sizing - preserve aspect ratio (no crop, no stretch)
     row.querySelectorAll('img').forEach((img: any) => {
       img.style.maxWidth = '50%';
-      img.style.flex = '1';
+      img.style.height = 'auto';
+      img.style.flex = '0 1 auto';
       img.style.minWidth = '0';
-      img.style.objectFit = 'cover';
     });
 
     syncContent();
@@ -655,9 +676,9 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
     const parent = row.parentElement!;
     imgs.forEach(img => {
       img.style.maxWidth = '100%';
+      img.style.height = 'auto';
       img.style.flex = '';
       img.style.minWidth = '';
-      img.style.objectFit = '';
       img.style.margin = '8px 0';
       parent.insertBefore(img, row);
     });
@@ -671,7 +692,7 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
     setTimeout(() => {
       const editorRect = editor.getBoundingClientRect();
       const r = target.getBoundingClientRect();
-      setImgRect({ top: r.top - editorRect.top, left: r.left - editorRect.left, width: r.width, height: r.height });
+      setImgRect({ top: r.top - editorRect.top + editor.scrollTop, left: r.left - editorRect.left + editor.scrollLeft, width: r.width, height: r.height });
     }, 50);
   };
 
