@@ -1,5 +1,7 @@
 ---
 // Catch-all 404 페이지 — 미들웨어에서 워드프레스 리다이렉트 처리 후
 // 매칭되지 않는 경로는 여기서 404 반환
+export const prerender = false;
+
 return new Response('Not Found', { status: 404 });
 ---
