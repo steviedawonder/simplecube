@@ -906,6 +906,22 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
         borderRadius: '8px 8px 0 0', background: '#fafafa', alignItems: 'center',
         flexShrink: 0,
       }}>
+        {/* 0. Undo / Redo */}
+        <button type="button" title="실행 취소 (Ctrl+Z)"
+          onMouseDown={e => { e.preventDefault(); exec('undo'); }}
+          style={{ ...toolbarBtnStyle, padding: '4px 8px' }}
+          onMouseEnter={e => (e.currentTarget.style.background = '#e8e8e8')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'none')}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+        </button>
+        <button type="button" title="다시 실행 (Ctrl+Y)"
+          onMouseDown={e => { e.preventDefault(); exec('redo'); }}
+          style={{ ...toolbarBtnStyle, padding: '4px 8px' }}
+          onMouseEnter={e => (e.currentTarget.style.background = '#e8e8e8')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'none')}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10"/></svg>
+        </button>
+        <div style={{ width: 1, height: 18, background: '#ddd', margin: '0 4px' }} />
         {/* 1. B I U S */}
         {[
           { label: 'B', action: () => exec('bold'), title: '굵게', fw: 800, fs: 'normal' as const, td: 'none' },
