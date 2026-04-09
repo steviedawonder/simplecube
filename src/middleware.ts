@@ -4,8 +4,39 @@ import { initDB, seedSEORules, seedOwnerAccount, seedFaqs, seedPackageItems, see
 
 let dbInitialized = false;
 
+// 이전 워드프레스 URL → 현재 페이지 301 리다이렉트
+const wpRedirects: Record<string, string> = {
+  '/wedding-components': '/wedding',
+  '/wedding-venues': '/wedding',
+};
+const wpPrefixRedirects: [string, string][] = [
+  ['/portfolio-category/', '/popup'],
+  ['/portfolio/', '/popup'],
+  ['/category/', '/'],
+  ['/tag/', '/'],
+  ['/wp-content/', '/'],
+  ['/wp-admin/', '/'],
+  ['/wp-includes/', '/'],
+  ['/feed/', '/'],
+  ['/author/', '/'],
+];
+
 export const onRequest = defineMiddleware(async (context, next) => {
   const { pathname } = context.url;
+
+  // 워드프레스 이전 URL 리다이렉트 (301)
+  const cleanPath = pathname.replace(/\/+$/, '') || '/';
+  if (wpRedirects[cleanPath]) {
+    return context.redirect(wpRedirects[cleanPath], 301);
+  }
+  for (const [prefix, dest] of wpPrefixRedirects) {
+    if (pathname.startsWith(prefix)) {
+      return context.redirect(dest, 301);
+    }
+  }
+  if (pathname === '/wp-login.php') {
+    return context.redirect('/', 301);
+  }
 
   // 정적 페이지는 DB 초기화 불필요 — admin/api/blog 경로만 DB 사용
   const needsDB = pathname.startsWith('/admin') || pathname.startsWith('/api/') || pathname.startsWith('/blog') || pathname.startsWith('/inquiry') || pathname === '/popup' || pathname === '/wedding' || pathname === '/rental' || pathname === '/corporate' || pathname === '/pricing' || pathname === '/';
