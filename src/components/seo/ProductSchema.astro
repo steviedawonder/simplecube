@@ -1,0 +1,49 @@
+---
+interface ProductProps {
+  name: string;
+  description: string;
+  image: string;
+  price?: string;
+  brand?: string;
+}
+
+interface Props {
+  product: ProductProps;
+}
+
+const { product } = Astro.props;
+
+const siteUrl = 'https://simplecube.net';
+
+const imageUrl = product.image.startsWith('http')
+  ? product.image
+  : `${siteUrl}${product.image}`;
+
+const jsonLd: Record<string, any> = {
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: product.name,
+  description: product.description,
+  image: imageUrl,
+  brand: {
+    '@type': 'Brand',
+    name: product.brand || '심플큐브',
+  },
+};
+
+if (product.price) {
+  jsonLd.offers = {
+    '@type': 'Offer',
+    price: product.price,
+    priceCurrency: 'KRW',
+    availability: 'https://schema.org/InStock',
+    seller: {
+      '@type': 'Organization',
+      name: '심플큐브',
+      url: siteUrl,
+    },
+  };
+}
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />

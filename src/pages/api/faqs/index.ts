@@ -9,7 +9,7 @@ export const GET: APIRoute = async ({ url }) => {
   let sql = 'SELECT * FROM faqs WHERE active = 1';
   const args: any[] = [];
 
-  if (page && ['wedding', 'popup'].includes(page)) {
+  if (page && ['wedding', 'popup', 'rental', 'corporate', 'general', 'pricing'].includes(page)) {
     sql += ' AND page = ?';
     args.push(page);
   }
@@ -36,7 +36,7 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    if (!['wedding', 'popup'].includes(page)) {
+    if (!['wedding', 'popup', 'rental', 'corporate', 'general', 'pricing'].includes(page)) {
       return new Response(JSON.stringify({ error: '유효하지 않은 페이지입니다.' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },

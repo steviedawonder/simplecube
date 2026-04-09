@@ -15,6 +15,10 @@ import AdminLayout from '@layouts/AdminLayout.astro';
   <div class="flex gap-1 mb-6 bg-gray-100 rounded-lg p-1 w-fit">
     <button class="tab-btn active px-4 py-2 text-sm font-medium rounded-md transition-colors" data-tab="popup">행사</button>
     <button class="tab-btn px-4 py-2 text-sm font-medium rounded-md transition-colors" data-tab="wedding">웨딩</button>
+    <button class="tab-btn px-4 py-2 text-sm font-medium rounded-md transition-colors" data-tab="rental">렌탈</button>
+    <button class="tab-btn px-4 py-2 text-sm font-medium rounded-md transition-colors" data-tab="corporate">기업행사</button>
+    <button class="tab-btn px-4 py-2 text-sm font-medium rounded-md transition-colors" data-tab="pricing">가격</button>
+    <button class="tab-btn px-4 py-2 text-sm font-medium rounded-md transition-colors" data-tab="general">공통</button>
   </div>
 
   <!-- FAQ Table -->
@@ -45,6 +49,10 @@ import AdminLayout from '@layouts/AdminLayout.astro';
           <select id="faq-page" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#D4AA45] focus:outline-none">
             <option value="popup">행사</option>
             <option value="wedding">웨딩</option>
+            <option value="rental">렌탈</option>
+            <option value="corporate">기업행사</option>
+            <option value="pricing">가격</option>
+            <option value="general">공통</option>
           </select>
         </div>
         <div class="mb-4">

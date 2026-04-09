@@ -3,14 +3,17 @@ interface FAQItem {
   question: string;
   answer: string;
 }
+
 interface Props {
   faqs: FAQItem[];
 }
+
 const { faqs } = Astro.props;
-const schema = {
+
+const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
-  mainEntity: faqs.map((faq) => ({
+  mainEntity: faqs.map(faq => ({
     '@type': 'Question',
     name: faq.question,
     acceptedAnswer: {
@@ -20,4 +23,5 @@ const schema = {
   })),
 };
 ---
-<script type="application/ld+json" set:html={JSON.stringify(schema)} />
+
+<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />

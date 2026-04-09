@@ -1,22 +1,54 @@
 ---
-interface Props {
-  items: { name: string; url: string }[];
+interface BreadcrumbItem {
+  name: string;
+  url: string;
 }
+
+interface Props {
+  items: BreadcrumbItem[];
+}
+
 const { items } = Astro.props;
-const siteUrl = 'https://simplecube.co.kr';
-const breadcrumbList = [
-  { name: '홈', url: '/' },
-  ...items,
+
+const siteUrl = 'https://simplecube.net';
+
+const breadcrumbItems = [
+  { name: '홈', url: siteUrl },
+  ...items.map(item => ({
+    name: item.name,
+    url: item.url.startsWith('http') ? item.url : `${siteUrl}${item.url}`,
+  })),
 ];
-const schema = {
+
+const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
-  itemListElement: breadcrumbList.map((item, i) => ({
+  itemListElement: breadcrumbItems.map((item, index) => ({
     '@type': 'ListItem',
-    position: i + 1,
+    position: index + 1,
     name: item.name,
-    item: `${siteUrl}${item.url}`,
+    item: item.url,
   })),
 };
 ---
-<script type="application/ld+json" set:html={JSON.stringify(schema)} />
+
+<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+<nav aria-label="Breadcrumb" class="mx-auto max-w-7xl px-6 lg:px-8 pt-24 pb-2">
+  <ol class="flex items-center gap-1.5 text-xs text-secondary/60">
+    {breadcrumbItems.map((item, index) => (
+      <li class="flex items-center gap-1.5">
+        {index > 0 && (
+          <svg class="w-3 h-3 text-secondary/30 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        )}
+        {index === breadcrumbItems.length - 1 ? (
+          <span class="text-primary font-medium">{item.name}</span>
+        ) : (
+          <a href={item.url} class="hover:text-olive transition-colors">{item.name}</a>
+        )}
+      </li>
+    ))}
+  </ol>
+</nav>

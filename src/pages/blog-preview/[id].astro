@@ -1,0 +1,88 @@
+---
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map((post) => ({
+    params: { id: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+---
+
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>{post.data.title} — 미리보기</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Pretendard', -apple-system, sans-serif; background: #f5f5f0; color: #333; }
+    .top-bar { background: #2c2c2c; padding: 0.75rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .top-bar a { color: #b8a88a; text-decoration: none; font-size: 0.85rem; }
+    .top-bar span { color: #888; font-size: 0.75rem; }
+    .hero { position: relative; }
+    .hero img { width: 100%; height: 300px; object-fit: cover; }
+    .hero-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); padding: 2rem; color: white; }
+    .meta { max-width: 800px; margin: 0 auto; padding: 1.5rem 1rem 0; display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+    .category { background: #b8a88a; color: white; font-size: 0.75rem; padding: 0.25rem 0.75rem; border-radius: 4px; }
+    .tag { font-size: 0.7rem; background: #e8e4dc; color: #777; padding: 0.2rem 0.5rem; border-radius: 3px; }
+    .seo-box { max-width: 800px; margin: 1rem auto; padding: 1rem; background: #fff3cd; border-radius: 8px; font-size: 0.8rem; }
+    .seo-box strong { color: #856404; }
+    .seo-box p { margin: 0.3rem 0; color: #856404; }
+    article { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+    article h1 { font-size: 1.75rem; line-height: 1.4; margin-bottom: 1rem; color: #2c2c2c; }
+    article h2 { font-size: 1.4rem; font-weight: 700; margin-top: 2.5rem; margin-bottom: 1rem; color: #2c2c2c; border-bottom: 2px solid #b8a88a; padding-bottom: 0.5rem; }
+    article h3 { font-size: 1.15rem; font-weight: 600; margin-top: 1.75rem; margin-bottom: 0.75rem; color: #444; }
+    article p { margin-bottom: 1.25rem; line-height: 1.9; color: #555; font-size: 1rem; }
+    article ul, article ol { margin-bottom: 1.25rem; padding-left: 1.5rem; color: #555; }
+    article li { margin-bottom: 0.5rem; line-height: 1.8; }
+    article strong { color: #2c2c2c; }
+    article a { color: #b8a88a; text-decoration: underline; }
+    article blockquote { border-left: 3px solid #b8a88a; padding-left: 1rem; margin: 1.5rem 0; color: #777; font-style: italic; }
+    article table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.9rem; }
+    article th { background: #2c2c2c; color: white; padding: 0.75rem; text-align: left; }
+    article td { padding: 0.75rem; border-bottom: 1px solid #e8e4dc; }
+    article tr:hover td { background: #faf8f5; }
+    article hr { margin: 2rem 0; border: none; border-top: 1px solid #e8e4dc; }
+    .back { display: inline-block; margin: 2rem auto; padding: 0.75rem 2rem; background: #2c2c2c; color: white; border-radius: 8px; text-decoration: none; }
+    .footer { text-align: center; padding: 2rem; }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <a href="/blog-preview">← 목록으로 돌아가기</a>
+    <span>SEO 미리보기 모드 · 실제 사이트에는 표시되지 않습니다</span>
+  </div>
+
+  {post.data.image && (
+    <div class="hero">
+      <img src={post.data.image} alt={post.data.title} />
+    </div>
+  )}
+
+  <div class="meta">
+    <span class="category">{post.data.category}</span>
+    <span style="color: #999; font-size: 0.8rem;">{post.data.date.toLocaleDateString('ko-KR')}</span>
+    {post.data.tags?.map(tag => <span class="tag">#{tag}</span>)}
+  </div>
+
+  <div class="seo-box">
+    <strong>📊 SEO 메타 정보</strong>
+    <p><strong>Title:</strong> {post.data.title}</p>
+    <p><strong>Description:</strong> {post.data.description}</p>
+    <p><strong>Category:</strong> {post.data.category}</p>
+  </div>
+
+  <article>
+    <h1>{post.data.title}</h1>
+    <Content />
+  </article>
+
+  <div class="footer">
+    <a href="/blog-preview" class="back">← 전체 목록 보기</a>
+  </div>
+</body>
+</html>

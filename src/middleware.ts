@@ -1,6 +1,6 @@
 import { defineMiddleware } from 'astro:middleware';
 import { verifyToken, getTokenFromCookies } from './lib/auth';
-import { initDB, seedSEORules, seedOwnerAccount, seedFaqs, seedPackageItems, seedPageContents, seedCustomContents, migratePortfolioColumns, seedPhotostripCategories, migrateUsersEmailToUsername } from './lib/db';
+import { initDB, seedSEORules, seedOwnerAccount, seedFaqs, seedPackageItems, seedPageContents, seedCustomContents, migratePortfolioColumns, seedPhotostripCategories, migrateUsersEmailToUsername, migrateFaqsPageConstraint } from './lib/db';
 
 let dbInitialized = false;
 
@@ -8,7 +8,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const { pathname } = context.url;
 
   // 정적 페이지는 DB 초기화 불필요 — admin/api/blog 경로만 DB 사용
-  const needsDB = pathname.startsWith('/admin') || pathname.startsWith('/api/') || pathname.startsWith('/blog') || pathname.startsWith('/inquiry') || pathname === '/popup' || pathname === '/wedding' || pathname === '/rental' || pathname === '/corporate' || pathname === '/';
+  const needsDB = pathname.startsWith('/admin') || pathname.startsWith('/api/') || pathname.startsWith('/blog') || pathname.startsWith('/inquiry') || pathname === '/popup' || pathname === '/wedding' || pathname === '/rental' || pathname === '/corporate' || pathname === '/pricing' || pathname === '/';
 
   if (needsDB && !dbInitialized) {
     try {
@@ -20,6 +20,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
       await seedPackageItems();
       await seedPageContents();
       await seedCustomContents();
+      await migrateFaqsPageConstraint();
       await migratePortfolioColumns();
       await seedPhotostripCategories();
       dbInitialized = true;
@@ -68,7 +69,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   // CDN cache for public SSR pages — first request hits DB, subsequent served from Vercel edge
   if (!pathname.startsWith('/admin') && !pathname.startsWith('/api/') && !pathname.startsWith('/inquiry')) {
-    if (/^\/(wedding|popup|rental|corporate|faq|qna|brand|contact)$/.test(pathname)) {
+    if (/^\/(wedding|popup|rental|corporate|pricing|faq|qna|brand|contact)$/.test(pathname)) {
       response.headers.set('Cache-Control', 's-maxage=300, stale-while-revalidate=30');
     } else if (pathname.startsWith('/blog')) {
       // Blog content may be updated more frequently

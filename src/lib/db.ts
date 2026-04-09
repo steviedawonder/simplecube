@@ -133,7 +133,7 @@ export async function initDB() {
 
     CREATE TABLE IF NOT EXISTS faqs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      page TEXT NOT NULL CHECK(page IN ('wedding', 'popup')),
+      page TEXT NOT NULL CHECK(page IN ('wedding', 'popup', 'rental', 'corporate', 'general', 'pricing')),
       question TEXT NOT NULL,
       answer TEXT NOT NULL,
       sort_order INTEGER DEFAULT 0,
@@ -354,6 +354,35 @@ export async function seedFaqs() {
       sql: 'INSERT INTO faqs (page, question, answer, sort_order) VALUES (?, ?, ?, ?)',
       args: [faq.page, faq.question, faq.answer, faq.sort_order],
     });
+  }
+}
+
+export async function migrateFaqsPageConstraint() {
+  const client = getClient();
+  try {
+    // Test if new page values are accepted — if CHECK constraint blocks, migrate the table
+    await client.execute({ sql: "INSERT INTO faqs (page, question, answer, sort_order, active) VALUES (?, ?, ?, ?, ?)", args: ['rental', '__migration_test__', '__test__', -1, 0] });
+    // Clean up test row
+    await client.execute("DELETE FROM faqs WHERE question = '__migration_test__'");
+  } catch {
+    // CHECK constraint blocks new values — recreate table with expanded constraint
+    console.log('Migrating faqs table to support new page values...');
+    await client.execute(`
+      CREATE TABLE IF NOT EXISTS faqs_new (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        page TEXT NOT NULL CHECK(page IN ('wedding', 'popup', 'rental', 'corporate', 'general', 'pricing')),
+        question TEXT NOT NULL,
+        answer TEXT NOT NULL,
+        sort_order INTEGER DEFAULT 0,
+        active INTEGER DEFAULT 1,
+        created_at TEXT DEFAULT (datetime('now')),
+        updated_at TEXT DEFAULT (datetime('now'))
+      )
+    `);
+    await client.execute('INSERT INTO faqs_new (id, page, question, answer, sort_order, active, created_at, updated_at) SELECT id, page, question, answer, sort_order, active, created_at, updated_at FROM faqs');
+    await client.execute('DROP TABLE faqs');
+    await client.execute('ALTER TABLE faqs_new RENAME TO faqs');
+    console.log('faqs table migrated successfully');
   }
 }
 

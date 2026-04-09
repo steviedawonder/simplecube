@@ -3,25 +3,64 @@ interface ServiceItem {
   name: string;
   description: string;
   url: string;
+  price?: string;
+  image?: string;
 }
+
 interface Props {
   services: ServiceItem[];
 }
+
 const { services } = Astro.props;
-const siteUrl = 'https://simplecube.co.kr';
-const schemas = services.map((svc) => ({
+
+const siteUrl = 'https://simplecube.net';
+
+const jsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'Service',
-  name: svc.name,
-  description: svc.description,
-  url: `${siteUrl}${svc.url}`,
-  provider: {
-    '@type': 'Organization',
-    name: '심플큐브 SIMPLE CUBE',
-    url: siteUrl,
-  },
-}));
+  '@graph': services.map(service => {
+    const serviceSchema: Record<string, any> = {
+      '@type': 'Service',
+      name: service.name,
+      description: service.description,
+      url: service.url.startsWith('http') ? service.url : `${siteUrl}${service.url}`,
+      provider: {
+        '@type': 'LocalBusiness',
+        name: '심플큐브',
+        alternateName: 'SIMPLE CUBE',
+        url: siteUrl,
+        telephone: '02-338-9180',
+        address: {
+          '@type': 'PostalAddress',
+          addressLocality: '서울',
+          addressCountry: 'KR',
+        },
+      },
+      areaServed: [
+        { '@type': 'City', name: '서울' },
+        { '@type': 'City', name: '부산' },
+        { '@type': 'City', name: '대전' },
+        { '@type': 'City', name: '전주' },
+      ],
+    };
+
+    if (service.image) {
+      serviceSchema.image = service.image.startsWith('http')
+        ? service.image
+        : `${siteUrl}${service.image}`;
+    }
+
+    if (service.price) {
+      serviceSchema.offers = {
+        '@type': 'Offer',
+        price: service.price,
+        priceCurrency: 'KRW',
+        availability: 'https://schema.org/InStock',
+      };
+    }
+
+    return serviceSchema;
+  }),
+};
 ---
-{schemas.map((schema) => (
-  <script type="application/ld+json" set:html={JSON.stringify(schema)} />
-))}
+
+<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
