@@ -296,13 +296,33 @@ export function analyzeSEO(input: SEOInput, rules: SEORule[]): SEOResult {
         break;
       }
       case 'internal_links': {
+        const minLinks = config.minLinks || 3;
         const intLinks = input.content.match(/href="\//gi) || [];
-        if (intLinks.length > 0) {
+        if (intLinks.length >= minLinks) {
           status = 'pass';
           message = `${intLinks.length}개의 내부 링크가 포함되어 있습니다.`;
-        } else {
+        } else if (intLinks.length > 0) {
           status = 'warning';
+          message = `내부 링크가 ${intLinks.length}개입니다. ${minLinks}개 이상을 권장합니다.`;
+        } else {
           message = '사이트 내 다른 페이지로의 링크를 추가하세요.';
+        }
+        break;
+      }
+      case 'image_alt_coverage': {
+        const allImgs = input.content.match(/<img[^>]*>/gi) || [];
+        const emptyAlts = allImgs.filter(img => {
+          const altMatch = img.match(/alt="([^"]*)"/i);
+          return !altMatch || altMatch[1].trim() === '';
+        });
+        if (allImgs.length === 0) {
+          status = 'warning';
+          message = '본문에 이미지가 없습니다.';
+        } else if (emptyAlts.length === 0) {
+          status = 'pass';
+          message = `모든 이미지(${allImgs.length}개)에 alt 텍스트가 있습니다.`;
+        } else {
+          message = `${allImgs.length}개 이미지 중 ${emptyAlts.length}개에 alt 텍스트가 없습니다.`;
         }
         break;
       }
