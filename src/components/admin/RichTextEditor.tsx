@@ -579,18 +579,26 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
     }
   };
 
-  // Drag-and-drop: image goes to cursor position
+  // Drag-and-drop: vertical between blocks, horizontal side-by-side on images
   useEffect(() => {
     const editor = editorRef.current;
     if (!editor) return;
 
     let draggedImg: HTMLElement | null = null;
-    let caret: HTMLElement | null = null;
+    let indicator: HTMLElement | null = null;
+    // 'before' | 'after' = vertical, 'left' | 'right' = side-by-side on image
+    let dropMode: { target: HTMLElement; side: 'before' | 'after' | 'left' | 'right' } | null = null;
 
     const getBlock = (el: HTMLElement): HTMLElement => {
       return el.closest('.img-overlay-wrapper') as HTMLElement
         || el.closest('.img-figure-wrapper') as HTMLElement
+        || el.closest('.img-row') as HTMLElement
         || el;
+    };
+
+    const removeIndicator = () => {
+      if (indicator) { indicator.remove(); indicator = null; }
+      dropMode = null;
     };
 
     const handleDragStart = (e: DragEvent) => {
@@ -606,49 +614,140 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
     const handleDragOver = (e: DragEvent) => {
       if (!draggedImg) return;
       if (!editor.contains(e.target as Node)) {
-        if (caret) { caret.remove(); caret = null; }
+        removeIndicator();
         return;
       }
       e.preventDefault();
       e.dataTransfer!.dropEffect = 'move';
 
-      // Show thin caret line at drop position
-      if (!caret) {
-        caret = document.createElement('div');
-        caret.style.cssText = 'height:2px;background:#D4AA45;border-radius:1px;pointer-events:none;margin:2px 0;transition:none;';
+      // Find the hovered element
+      const hoveredEl = e.target as HTMLElement;
+      const hoveredImg = hoveredEl.tagName === 'IMG' ? hoveredEl : null;
+      const hoveredBlock = hoveredImg ? getBlock(hoveredImg) : null;
+
+      // Hovering over another image → left/right side-by-side
+      if (hoveredImg && hoveredBlock && hoveredBlock !== draggedImg) {
+        const rect = hoveredImg.getBoundingClientRect();
+        const midX = rect.left + rect.width / 2;
+        const side = e.clientX < midX ? 'left' : 'right';
+
+        // Show vertical blue line on left or right of the hovered image
+        if (!indicator) {
+          indicator = document.createElement('div');
+        }
+        indicator.style.cssText = `position:absolute;width:3px;background:#3b82f6;border-radius:2px;pointer-events:none;z-index:5;top:${rect.top - editor.getBoundingClientRect().top + editor.scrollTop}px;height:${rect.height}px;left:${side === 'left' ? rect.left - editor.getBoundingClientRect().left + editor.scrollLeft - 4 : rect.right - editor.getBoundingClientRect().left + editor.scrollLeft + 1}px;`;
+        // Append to editor's parent (the relative container)
+        const editorContainer = editor.parentElement!;
+        if (indicator.parentElement !== editorContainer) editorContainer.appendChild(indicator);
+        dropMode = { target: hoveredBlock, side };
+        return;
       }
 
-      // Find insertion point using caretRangeFromPoint
-      const range = document.caretRangeFromPoint(e.clientX, e.clientY);
-      if (range) {
-        let refNode = range.startContainer as HTMLElement;
-        if (refNode.nodeType === Node.TEXT_NODE) refNode = refNode.parentElement!;
-        // Find a direct child of editor or close to it
-        while (refNode && refNode.parentElement !== editor && editor.contains(refNode.parentElement!)) {
-          refNode = refNode.parentElement!;
+      // Hovering over text/other → horizontal line (before/after)
+      let refNode = hoveredEl;
+      if (refNode.nodeType === Node.TEXT_NODE) refNode = refNode.parentElement!;
+      while (refNode && refNode.parentElement !== editor && editor.contains(refNode.parentElement!)) {
+        refNode = refNode.parentElement!;
+      }
+
+      if (refNode && editor.contains(refNode) && refNode !== draggedImg) {
+        const rect = refNode.getBoundingClientRect();
+        const edRect = editor.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+        const side = e.clientY < midY ? 'before' : 'after';
+        const lineY = side === 'before' ? rect.top - edRect.top + editor.scrollTop : rect.bottom - edRect.top + editor.scrollTop;
+
+        if (!indicator) {
+          indicator = document.createElement('div');
         }
-        if (refNode && editor.contains(refNode) && refNode !== draggedImg) {
-          const rect = refNode.getBoundingClientRect();
-          const midY = rect.top + rect.height / 2;
-          if (e.clientY < midY) {
-            editor.insertBefore(caret, refNode);
-          } else {
-            editor.insertBefore(caret, refNode.nextSibling);
-          }
-        }
+        indicator.style.cssText = `position:absolute;height:2px;background:#D4AA45;border-radius:1px;pointer-events:none;z-index:5;left:0;right:0;top:${lineY}px;`;
+        const editorContainer = editor.parentElement!;
+        if (indicator.parentElement !== editorContainer) editorContainer.appendChild(indicator);
+        dropMode = { target: refNode as HTMLElement, side };
       }
     };
 
     const handleDrop = (e: DragEvent) => {
       e.preventDefault();
       e.stopPropagation();
-      if (!draggedImg || !editor.contains(e.target as Node)) return;
+      if (!draggedImg || !dropMode) { removeIndicator(); return; }
 
-      if (caret && caret.parentElement) {
-        caret.parentElement.insertBefore(draggedImg, caret);
-        caret.remove();
+      const { target, side } = dropMode;
+      removeIndicator();
+
+      if (side === 'left' || side === 'right') {
+        // Side-by-side: create or join an img-row
+        const targetBlock = target;
+        const existingRow = targetBlock.closest('.img-row') as HTMLElement;
+
+        if (existingRow) {
+          // Already in a row, insert draggedImg at left or right of target
+          if (side === 'left') {
+            existingRow.insertBefore(draggedImg, targetBlock);
+          } else {
+            existingRow.insertBefore(draggedImg, targetBlock.nextSibling);
+          }
+          // Update sizing
+          const count = existingRow.querySelectorAll('img').length;
+          existingRow.querySelectorAll('img').forEach((img: any) => {
+            img.style.maxWidth = `${Math.floor(100 / count)}%`;
+            img.style.height = 'auto';
+            img.style.flex = '0 1 auto';
+            img.style.minWidth = '0';
+          });
+        } else {
+          // Create new row
+          const row = document.createElement('div');
+          row.className = 'img-row';
+          row.style.cssText = 'display:flex;gap:8px;margin:8px 0;align-items:flex-start;';
+          targetBlock.parentElement?.insertBefore(row, targetBlock);
+          if (side === 'left') {
+            row.appendChild(draggedImg);
+            row.appendChild(targetBlock);
+          } else {
+            row.appendChild(targetBlock);
+            row.appendChild(draggedImg);
+          }
+          row.querySelectorAll('img').forEach((img: any) => {
+            img.style.maxWidth = '50%';
+            img.style.height = 'auto';
+            img.style.flex = '0 1 auto';
+            img.style.minWidth = '0';
+          });
+        }
+      } else {
+        // Vertical: before or after
+        if (side === 'before') {
+          target.parentElement?.insertBefore(draggedImg, target);
+        } else {
+          target.parentElement?.insertBefore(draggedImg, target.nextSibling);
+        }
+        // Restore full-width if removed from a row
+        const dragImgEl = draggedImg.tagName === 'IMG' ? draggedImg : draggedImg.querySelector('img');
+        if (dragImgEl) {
+          (dragImgEl as HTMLElement).style.maxWidth = '100%';
+          (dragImgEl as HTMLElement).style.flex = '';
+          (dragImgEl as HTMLElement).style.minWidth = '';
+        }
       }
-      caret = null;
+
+      // Clean up empty rows
+      editor.querySelectorAll('.img-row').forEach(row => {
+        const imgs = row.querySelectorAll('img');
+        if (imgs.length <= 1) {
+          // Unwrap single image from row
+          const img = imgs[0];
+          if (img) {
+            (img as HTMLElement).style.maxWidth = '100%';
+            (img as HTMLElement).style.flex = '';
+            (img as HTMLElement).style.minWidth = '';
+            (img as HTMLElement).style.margin = '8px 0';
+            row.parentElement?.insertBefore(img, row);
+          }
+          row.remove();
+        }
+      });
+
       draggedImg.style.opacity = '1';
       draggedImg = null;
       syncContent();
@@ -658,9 +757,8 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
 
     const handleDragEnd = () => {
       if (draggedImg) draggedImg.style.opacity = '1';
-      if (caret) caret.remove();
+      removeIndicator();
       draggedImg = null;
-      caret = null;
     };
 
     // Block drops outside editor
