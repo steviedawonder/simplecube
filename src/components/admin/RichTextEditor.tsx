@@ -713,12 +713,13 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
         if (indicator.parentElement !== container) container.appendChild(indicator);
         dropInfo = { target: hoverBlock, side };
       } else {
-        // Vertical: find block to insert before/after
+        // Vertical: find direct child of editor to insert before/after
         let refNode = elUnder;
-        while (refNode && refNode.parentElement !== editor && editor.contains(refNode.parentElement!)) {
+        while (refNode && refNode !== editor && refNode.parentElement !== editor) {
+          if (!editor.contains(refNode)) break;
           refNode = refNode.parentElement!;
         }
-        if (refNode && editor.contains(refNode) && refNode !== dragEl) {
+        if (refNode && refNode !== editor && refNode.parentElement === editor && refNode !== dragEl) {
           const rect = refNode.getBoundingClientRect();
           const midY = rect.top + rect.height / 2;
           const side = e.clientY < midY ? 'before' : 'after';
@@ -744,10 +745,13 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
 
       const { target, side } = dropInfo;
 
+      // Safety: ensure target is inside editor
+      if (!editor.contains(target)) { cleanup(); return; }
+
       if (side === 'left' || side === 'right') {
         // Side-by-side
         const existingRow = target.closest('.img-row') as HTMLElement;
-        if (existingRow) {
+        if (existingRow && editor.contains(existingRow)) {
           if (side === 'left') existingRow.insertBefore(dragEl, target);
           else existingRow.insertBefore(dragEl, target.nextSibling);
           const count = existingRow.querySelectorAll('img').length;
@@ -757,11 +761,11 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
             img.style.flex = '0 1 auto';
             img.style.minWidth = '0';
           });
-        } else {
+        } else if (target.parentElement && editor.contains(target.parentElement)) {
           const row = document.createElement('div');
           row.className = 'img-row';
           row.style.cssText = 'display:flex;gap:8px;margin:8px 0;align-items:flex-start;';
-          target.parentElement?.insertBefore(row, target);
+          target.parentElement.insertBefore(row, target);
           if (side === 'left') { row.appendChild(dragEl); row.appendChild(target); }
           else { row.appendChild(target); row.appendChild(dragEl); }
           row.querySelectorAll('img').forEach((img: any) => {
@@ -772,15 +776,17 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
           });
         }
       } else {
-        // Vertical
-        if (side === 'before') target.parentElement?.insertBefore(dragEl, target);
-        else target.parentElement?.insertBefore(dragEl, target.nextSibling);
-        // Restore full width
-        const imgEl = dragEl.tagName === 'IMG' ? dragEl : dragEl.querySelector('img');
-        if (imgEl) {
-          (imgEl as HTMLElement).style.maxWidth = '100%';
-          (imgEl as HTMLElement).style.flex = '';
-          (imgEl as HTMLElement).style.minWidth = '';
+        // Vertical: only insert if target's parent is editor
+        if (target.parentElement === editor) {
+          if (side === 'before') editor.insertBefore(dragEl, target);
+          else editor.insertBefore(dragEl, target.nextSibling);
+          // Restore full width
+          const imgEl = dragEl.tagName === 'IMG' ? dragEl : dragEl.querySelector('img');
+          if (imgEl) {
+            (imgEl as HTMLElement).style.maxWidth = '100%';
+            (imgEl as HTMLElement).style.flex = '';
+            (imgEl as HTMLElement).style.minWidth = '';
+          }
         }
       }
 
