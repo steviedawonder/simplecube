@@ -79,8 +79,28 @@ export default function PostList({ initialPosts, viewMode = 'active' }: PostList
   const [actionInProgress, setActionInProgress] = useState<number | null>(null);
   const [showNewMenu, setShowNewMenu] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
-  const [reviewForm, setReviewForm] = useState({ title: '', url: '', description: '' });
+  const [reviewForm, setReviewForm] = useState({ title: '', url: '', description: '', image: '' });
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [ogFetching, setOgFetching] = useState(false);
+
+  async function fetchOgImage(url: string) {
+    if (!url.trim()) return;
+    setOgFetching(true);
+    try {
+      const res = await fetch(`/api/og-image?url=${encodeURIComponent(url.trim())}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.image) {
+          setReviewForm(f => ({ ...f, image: data.image }));
+        } else {
+          alert('이미지를 찾을 수 없습니다.');
+        }
+      }
+    } catch {
+      alert('이미지 가져오기 실패');
+    }
+    setOgFetching(false);
+  }
 
   const filteredPosts = posts.filter((post) => {
     if (filter === 'published' && post.draft) return false;
@@ -213,6 +233,7 @@ export default function PostList({ initialPosts, viewMode = 'active' }: PostList
           slug,
           description: reviewForm.description.trim() || `${reviewForm.title} - 외부 후기`,
           content: '',
+          image: reviewForm.image || '',
           external_url: reviewForm.url.trim(),
           draft: 0,
         }),
@@ -220,7 +241,7 @@ export default function PostList({ initialPosts, viewMode = 'active' }: PostList
       if (res.ok) {
         const data = await res.json();
         setShowReviewModal(false);
-        setReviewForm({ title: '', url: '', description: '' });
+        setReviewForm({ title: '', url: '', description: '', image: '' });
         window.location.reload();
       } else {
         const data = await res.json();
@@ -732,10 +753,38 @@ export default function PostList({ initialPosts, viewMode = 'active' }: PostList
               </button>
             </div>
 
-            <p style={{ fontSize: '0.8125rem', color: '#6e6e73', marginBottom: 20, lineHeight: 1.5 }}>
+            <p style={{ fontSize: '0.8125rem', color: '#6e6e73', marginBottom: 12, lineHeight: 1.5 }}>
               외부 블로그 후기 링크를 입력하면 블로그 목록에 표시됩니다.<br/>
               클릭 시 해당 링크로 이동합니다.
             </p>
+            <button
+              type="button"
+              onClick={async () => {
+                if (!window.confirm('기존 후기 글 중 썸네일이 없는 글에 OG 이미지를 자동 적용합니다.')) return;
+                try {
+                  const res = await fetch('/api/posts/fix-review-thumbnails', { method: 'POST' });
+                  const data = await res.json();
+                  alert(`총 ${data.total}건 중 ${data.updated}건 썸네일 적용 완료${data.errors?.length ? `\n실패: ${data.errors.length}건` : ''}`);
+                  if (data.updated > 0) window.location.reload();
+                } catch {
+                  alert('처리 중 오류가 발생했습니다.');
+                }
+              }}
+              style={{
+                marginBottom: 16,
+                padding: '6px 12px',
+                borderRadius: 6,
+                border: '1px solid #e8e8ed',
+                backgroundColor: '#fef9e7',
+                color: '#92400e',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+              }}
+            >
+              기존 후기 썸네일 일괄 적용
+            </button>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div>
@@ -767,6 +816,42 @@ export default function PostList({ initialPosts, viewMode = 'active' }: PostList
                   placeholder="블로그 목록에 표시될 짧은 설명"
                   style={modalInputStyle}
                 />
+              </div>
+              <div>
+                <label style={modalLabelStyle}>썸네일 이미지</label>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    value={reviewForm.image}
+                    onChange={(e) => setReviewForm((f) => ({ ...f, image: e.target.value }))}
+                    placeholder="이미지 URL (자동 가져오기 가능)"
+                    style={{ ...modalInputStyle, flex: 1 }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fetchOgImage(reviewForm.url)}
+                    disabled={ogFetching || !reviewForm.url.trim()}
+                    style={{
+                      padding: '8px 12px',
+                      borderRadius: 6,
+                      border: '1px solid #e8e8ed',
+                      backgroundColor: '#ffffff',
+                      color: ogFetching ? '#8c8c8c' : '#1d1d1f',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      cursor: ogFetching ? 'not-allowed' : 'pointer',
+                      fontFamily: 'inherit',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {ogFetching ? '...' : '자동'}
+                  </button>
+                </div>
+                {reviewForm.image && (
+                  <div style={{ marginTop: 8, borderRadius: 6, overflow: 'hidden', border: '1px solid #e8e8ed' }}>
+                    <img src={reviewForm.image} alt="썸네일 미리보기" style={{ width: '100%', maxHeight: 120, objectFit: 'cover', display: 'block' }} />
+                  </div>
+                )}
               </div>
             </div>
 

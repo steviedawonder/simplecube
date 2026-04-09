@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { colors, s } from './shared/styles';
 import { calculateScores } from './shared/seoScoring';
 import { ScoreCategoryPanel, ScoreCircle } from './shared/SeoComponents';
@@ -52,6 +52,9 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
   const [imgCaption, setImgCaption] = useState('');
   const [imgLink, setImgLink] = useState('');
 
+  // Dirty state for unsaved changes warning (#5)
+  const [isDirty, setIsDirty] = useState(false);
+
   // Revision state
   const [showRevisions, setShowRevisions] = useState(false);
   const [revisions, setRevisions] = useState<any[]>([]);
@@ -63,6 +66,21 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
       setSlug(generateSlug(title));
     }
   }, [title, slugManuallyEdited]);
+
+  // ── Unsaved changes warning (#5) ──
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isDirty]);
+
+  // Mark dirty when content changes
+  const markDirty = useCallback(() => { if (!isDirty) setIsDirty(true); }, [isDirty]);
 
   // ── Toast helper ──
   function showToast(msg: string) {
@@ -135,6 +153,7 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
         return;
       }
 
+      setIsDirty(false);
       showToast(publish ? '발행되었습니다!' : '임시저장 완료!');
       setTimeout(() => {
         window.location.href = '/admin/posts';
@@ -158,6 +177,7 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
       .split(',')
       .map((s) => s.trim())
       .filter(Boolean);
+    if (names.length === 0) return;
     const newIds = [...selectedTagIds];
     for (const name of names) {
       const found = tags.find(
@@ -169,6 +189,7 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
     }
     setSelectedTagIds(newIds);
     setTagInput('');
+    markDirty();
   }
 
   function removeTag(tagId: number) {
@@ -220,34 +241,124 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
         </div>
       )}
 
-      {/* Back link */}
+      {/* Back link with unsaved changes warning (#5) */}
       <a
         href="/admin/posts"
+        onClick={(e) => {
+          if (isDirty) {
+            e.preventDefault();
+            if (window.confirm('작성 중인 글이 있습니다. 나가시겠습니까?')) {
+              setIsDirty(false);
+              window.location.href = '/admin/posts';
+            }
+          }
+        }}
         style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: colors.textLight, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 4, textDecoration: 'none' }}
       >
         <span>{'<'}</span> 글 목록으로
       </a>
 
-      {/* Grid: Left (editor) + Right (sidebar) */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20 }}>
-        {/* ── Left Column ── */}
-        <div>
+      {/* Publish bar - fixed at top of left section (#7) */}
+      <div style={{ ...s.card, marginBottom: 12, padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            onClick={() => handleSave(false)}
+            disabled={saving}
+            style={{ ...s.btn, ...s.btnOutline, fontSize: 12, padding: '8px 16px' }}
+          >
+            {saving ? '...' : '임시저장'}
+          </button>
+          <button
+            onClick={() => handleSave(true)}
+            disabled={saving}
+            style={{ ...s.btn, padding: '8px 16px', fontSize: 12, fontWeight: 600, borderRadius: 8, border: '2px solid #22c55e', background: '#fff', color: '#22c55e', cursor: 'pointer' }}
+          >
+            {saving ? '...' : '발행'}
+          </button>
+          <button
+            onClick={() => handleSave()}
+            disabled={saving}
+            style={{ ...s.btn, background: colors.text, color: '#fff', fontSize: 12, padding: '8px 20px', fontWeight: 700, borderRadius: 8, border: 'none', cursor: 'pointer' }}
+          >
+            {saving ? '저장 중...' : '저장'}
+          </button>
+        </div>
+
+        {/* Draft toggle */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
+          <input
+            type="checkbox"
+            id="draft-toggle"
+            checked={draft}
+            onChange={(e) => { setDraft(e.target.checked); markDirty(); }}
+            style={{ cursor: 'pointer' }}
+          />
+          <label htmlFor="draft-toggle" style={{ cursor: 'pointer', color: colors.textLight }}>
+            임시글
+          </label>
+        </div>
+
+        {/* Scheduled publishing */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
+          <label style={{ fontWeight: 600, color: colors.orange, whiteSpace: 'nowrap' }}>예약</label>
+          <input
+            type="datetime-local"
+            style={{ border: `1px solid ${colors.border}`, borderRadius: 6, padding: '4px 8px', fontSize: 12, outline: 'none' }}
+            value={scheduledAt}
+            onChange={(e) => { setScheduledAt(e.target.value); markDirty(); }}
+          />
+          {scheduledAt && (
+            <button
+              type="button"
+              onClick={() => setScheduledAt('')}
+              style={{ background: 'none', border: 'none', color: colors.red, fontSize: 11, cursor: 'pointer', padding: '2px 4px' }}
+            >
+              취소
+            </button>
+          )}
+        </div>
+
+        {/* Preview link */}
+        {isEditing && !post?.draft && (
+          <a
+            href={`/blog/${post.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ fontSize: 12, color: colors.textLight, textDecoration: 'underline', marginLeft: 'auto' }}
+          >
+            미리보기
+          </a>
+        )}
+
+        {/* Error */}
+        {error && (
+          <div style={{ padding: '6px 12px', backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: 6, fontSize: 12, width: '100%' }}>
+            {error}
+          </div>
+        )}
+      </div>
+
+      {/* Grid: Left (editor) + Right (sidebar) - both with independent scroll (#4) */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20, height: 'calc(100vh - 180px)' }}>
+        {/* ── Left Column - fixed height, editor scrolls internally ── */}
+        <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           {/* Title */}
           <input
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => { setTitle(e.target.value); markDirty(); }}
             placeholder="제목을 입력하세요"
-            style={{ width: '100%', fontSize: 24, fontWeight: 800, border: `1px solid ${colors.border}`, borderRadius: 8, outline: 'none', padding: '14px 16px', marginBottom: 10, color: colors.text, fontFamily: 'inherit', background: '#fff', boxSizing: 'border-box' }}
+            style={{ width: '100%', fontSize: 24, fontWeight: 800, border: `1px solid ${colors.border}`, borderRadius: 8, outline: 'none', padding: '14px 16px', marginBottom: 10, color: colors.text, fontFamily: 'inherit', background: '#fff', boxSizing: 'border-box', flexShrink: 0 }}
           />
 
           {/* Slug */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 16, fontSize: 13, color: colors.textLight }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 16, fontSize: 13, color: colors.textLight, flexShrink: 0 }}>
             <span style={{ fontWeight: 600 }}>/blog/</span>
             <input
               value={slug}
               onChange={(e) => {
                 setSlugManuallyEdited(true);
                 setSlug(e.target.value);
+                markDirty();
               }}
               onClick={() => setSlugManuallyEdited(true)}
               placeholder="post-slug"
@@ -255,32 +366,34 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
             />
           </div>
 
-          {/* Rich Text Editor */}
-          <RichTextEditor
-            value={content}
-            onChange={setContent}
-            onImageSelect={(img) => {
-              setSelectedEditorImg(img);
-              if (img && img.tagName === 'IMG') {
-                setImgAlt(img.getAttribute('alt') || '');
-                const wrapper = img.closest('.img-overlay-wrapper');
-                const container = wrapper || img;
-                const figureWrapper = container.closest('.img-figure-wrapper');
-                const captionEl = figureWrapper?.querySelector('.img-caption');
-                setImgCaption(captionEl?.textContent || '');
-                const link = img.closest('a');
-                setImgLink(link?.getAttribute('href') || '');
-              } else {
-                setImgAlt('');
-                setImgCaption('');
-                setImgLink('');
-              }
-            }}
-          />
+          {/* Rich Text Editor - fills remaining space */}
+          <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+            <RichTextEditor
+              value={content}
+              onChange={(html) => { setContent(html); markDirty(); }}
+              onImageSelect={(img) => {
+                setSelectedEditorImg(img);
+                if (img && img.tagName === 'IMG') {
+                  setImgAlt(img.getAttribute('alt') || '');
+                  const wrapper = img.closest('.img-overlay-wrapper');
+                  const container = wrapper || img;
+                  const figureWrapper = container.closest('.img-figure-wrapper');
+                  const captionEl = figureWrapper?.querySelector('.img-caption');
+                  setImgCaption(captionEl?.textContent || '');
+                  const link = img.closest('a');
+                  setImgLink(link?.getAttribute('href') || '');
+                } else {
+                  setImgAlt('');
+                  setImgCaption('');
+                  setImgLink('');
+                }
+              }}
+            />
+          </div>
         </div>
 
-        {/* ── Right Column (Sidebar) ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {/* ── Right Column (Sidebar) - independent scroll (#4) ── */}
+        <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
 
           {/* Panel 1: Conditional Image Settings / SEO Score */}
           {selectedEditorImg && selectedEditorImg.tagName === 'IMG' ? (
@@ -435,90 +548,7 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
             </div>
           )}
 
-          {/* Panel 2: Error message */}
-          {error && (
-            <div style={{ padding: '10px 14px', backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: 8, fontSize: 13 }}>
-              {error}
-            </div>
-          )}
-
-          {/* Panel 3: Publish */}
-          <div style={s.card}>
-            <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 12 }}>발행</h3>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-              <button
-                onClick={() => handleSave(false)}
-                disabled={saving}
-                style={{ ...s.btn, ...s.btnOutline, flex: 1, fontSize: 12 }}
-              >
-                {saving ? '...' : '임시저장'}
-              </button>
-              <button
-                onClick={() => handleSave(true)}
-                disabled={saving}
-                style={{ ...s.btn, padding: '10px 20px', fontSize: 12, fontWeight: 600, borderRadius: 8, border: '2px solid #22c55e', background: '#fff', color: '#22c55e', cursor: 'pointer', flex: 1 }}
-              >
-                {saving ? '...' : '발행'}
-              </button>
-            </div>
-
-            {/* Scheduled publishing */}
-            <div style={{ marginBottom: 8 }}>
-              <label style={{ fontSize: 12, fontWeight: 600, color: colors.orange }}>예약 발행</label>
-              <input
-                type="datetime-local"
-                style={{ ...s.input, fontSize: 12, marginTop: 4 }}
-                value={scheduledAt}
-                onChange={(e) => setScheduledAt(e.target.value)}
-              />
-              {scheduledAt && (
-                <button
-                  type="button"
-                  onClick={() => setScheduledAt('')}
-                  style={{ marginTop: 4, padding: '2px 6px', background: 'none', border: 'none', color: colors.red, fontSize: 11, cursor: 'pointer' }}
-                >
-                  예약 취소
-                </button>
-              )}
-            </div>
-
-            {/* Draft toggle */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, fontSize: 12 }}>
-              <input
-                type="checkbox"
-                id="draft-toggle"
-                checked={draft}
-                onChange={(e) => setDraft(e.target.checked)}
-                style={{ cursor: 'pointer' }}
-              />
-              <label htmlFor="draft-toggle" style={{ cursor: 'pointer', color: colors.textLight }}>
-                임시글 (비공개)
-              </label>
-            </div>
-
-            {/* Save button */}
-            <button
-              onClick={() => handleSave()}
-              disabled={saving}
-              style={{ ...s.btn, width: '100%', background: colors.text, color: '#fff', fontSize: 13, padding: '12px 0', fontWeight: 700, borderRadius: 8, border: 'none', cursor: 'pointer' }}
-            >
-              {saving ? '저장 중...' : '저장'}
-            </button>
-
-            {/* Preview link */}
-            {isEditing && !post?.draft && (
-              <a
-                href={`/blog/${post.slug}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ display: 'block', textAlign: 'center', marginTop: 8, fontSize: 12, color: colors.textLight, textDecoration: 'underline' }}
-              >
-                미리보기
-              </a>
-            )}
-          </div>
-
-          {/* Panel 4: Category */}
+          {/* Panel 2: Category */}
           <div style={s.card}>
             <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>카테고리</h3>
             <select
@@ -533,7 +563,7 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
             </select>
           </div>
 
-          {/* Panel 5: Tags */}
+          {/* Panel 3: Tags - no dropdown, Enter to add (#6) */}
           <div style={s.card}>
             <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>태그</h3>
             <input
@@ -541,17 +571,8 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
               value={tagInput}
               onChange={(e) => setTagInput(e.target.value)}
               onKeyDown={handleTagInputKeyDown}
-              onBlur={addTagsFromInput}
               placeholder="태그 입력 후 Enter"
-              list="tag-suggestions"
             />
-            <datalist id="tag-suggestions">
-              {tags
-                .filter((t: any) => !selectedTagIds.includes(t.id))
-                .map((t: any) => (
-                  <option key={t.id} value={t.name} />
-                ))}
-            </datalist>
             {selectedTagIds.length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
                 {selectedTagIds.map((id) => {
@@ -560,7 +581,7 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
                     <span
                       key={id}
                       style={{ ...s.badge, background: '#f0f0f0', cursor: 'pointer', fontSize: 11 }}
-                      onClick={() => removeTag(id)}
+                      onClick={() => { removeTag(id); markDirty(); }}
                     >
                       #{tag.name} ✕
                     </span>

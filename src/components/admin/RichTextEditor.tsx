@@ -331,19 +331,37 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
     return () => document.removeEventListener('mousedown', handleClick);
   }, [showInsertMenu]);
 
+  // Image upload state (#3)
+  const [uploadingCount, setUploadingCount] = useState(0);
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    const fileArray = Array.from(files);
+    setUploadingCount(fileArray.length);
+
     try {
-      const asset = await uploadImage(file);
-      const imgUrl = asset.url;
-      const altText = file.name.replace(/\.[^/.]+$/, '');
+      // Upload all files in parallel
+      const results = await Promise.all(
+        fileArray.map(async (file) => {
+          const asset = await uploadImage(file);
+          return { url: asset.url, alt: file.name.replace(/\.[^/.]+$/, '') };
+        })
+      );
+
+      // Insert all images in a flex row for side-by-side display (#2)
       editorRef.current?.focus();
-      document.execCommand('insertHTML', false, `<img src="${imgUrl}" alt="${altText}" style="max-width:100%;height:auto;margin:8px 0;" />`);
+      if (results.length === 1) {
+        document.execCommand('insertHTML', false, `<img src="${results[0].url}" alt="${results[0].alt}" style="max-width:100%;height:auto;margin:8px 0;" />`);
+      } else {
+        const imgsHtml = results.map(r => `<img src="${r.url}" alt="${r.alt}" style="max-width:${Math.floor(100 / results.length)}%;height:auto;object-fit:cover;flex:1;min-width:0;" />`).join('');
+        document.execCommand('insertHTML', false, `<div class="img-row" style="display:flex;gap:8px;margin:8px 0;align-items:flex-start;">${imgsHtml}</div>`);
+      }
       syncContent();
     } catch (err: any) {
       alert('이미지 업로드 실패: ' + err.message);
     }
+    setUploadingCount(0);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -540,6 +558,79 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
       }, 100);
     }
   };
+
+  // Image drag-and-drop reorder (#2)
+  useEffect(() => {
+    const editor = editorRef.current;
+    if (!editor) return;
+
+    let draggedEl: HTMLElement | null = null;
+    let placeholder: HTMLElement | null = null;
+
+    const handleDragStart = (e: DragEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'IMG') {
+        // Drag the image or its wrapper
+        draggedEl = target.closest('.img-overlay-wrapper') as HTMLElement || target.closest('.img-figure-wrapper') as HTMLElement || target;
+        draggedEl.style.opacity = '0.4';
+        e.dataTransfer!.effectAllowed = 'move';
+        e.dataTransfer!.setData('text/plain', '');
+      }
+    };
+
+    const handleDragOver = (e: DragEvent) => {
+      if (!draggedEl) return;
+      e.preventDefault();
+      e.dataTransfer!.dropEffect = 'move';
+
+      // Find closest block-level element to show drop position
+      const target = e.target as HTMLElement;
+      const closest = target.tagName === 'IMG' ? (target.closest('.img-overlay-wrapper') || target.closest('.img-figure-wrapper') || target) : target.closest('p, div, img, h1, h2, h3, h4, blockquote') as HTMLElement;
+      if (closest && closest !== draggedEl && editor.contains(closest)) {
+        if (!placeholder) {
+          placeholder = document.createElement('div');
+          placeholder.style.cssText = 'height:3px;background:#3b82f6;border-radius:2px;margin:4px 0;';
+        }
+        const rect = closest.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+        if (e.clientY < midY) {
+          closest.parentElement?.insertBefore(placeholder, closest);
+        } else {
+          closest.parentElement?.insertBefore(placeholder, closest.nextSibling);
+        }
+      }
+    };
+
+    const handleDrop = (e: DragEvent) => {
+      e.preventDefault();
+      if (!draggedEl || !placeholder) return;
+      placeholder.parentElement?.insertBefore(draggedEl, placeholder);
+      placeholder.remove();
+      placeholder = null;
+      draggedEl.style.opacity = '1';
+      draggedEl = null;
+      syncContent();
+    };
+
+    const handleDragEnd = () => {
+      if (draggedEl) draggedEl.style.opacity = '1';
+      if (placeholder) placeholder.remove();
+      draggedEl = null;
+      placeholder = null;
+    };
+
+    editor.addEventListener('dragstart', handleDragStart);
+    editor.addEventListener('dragover', handleDragOver);
+    editor.addEventListener('drop', handleDrop);
+    editor.addEventListener('dragend', handleDragEnd);
+
+    return () => {
+      editor.removeEventListener('dragstart', handleDragStart);
+      editor.removeEventListener('dragover', handleDragOver);
+      editor.removeEventListener('drop', handleDrop);
+      editor.removeEventListener('dragend', handleDragEnd);
+    };
+  }, []);
 
   // YouTube modal state
   const [showYoutubeModal, setShowYoutubeModal] = useState(false);
@@ -776,12 +867,13 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
   ];
 
   return (
-    <div>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Toolbar */}
       <div style={{
         display: 'flex', flexWrap: 'wrap', gap: 2, padding: '6px 8px',
         border: `1px solid ${colors.border}`, borderBottom: 'none',
         borderRadius: '8px 8px 0 0', background: '#fafafa', alignItems: 'center',
+        flexShrink: 0,
       }}>
         {/* 1. B I U S */}
         {[
@@ -1052,8 +1144,18 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
         [contenteditable] div[contenteditable="false"] { cursor: pointer; transition: outline 0.15s; border-radius: 4px; }
         [contenteditable] div[contenteditable="false"]:hover { outline: 2px solid #3b82f6; outline-offset: 2px; }
       `}</style>
-      {/* Editor Area */}
-      <div style={{ position: 'relative' }}>
+      {/* Editor Area - fills container height (#4) */}
+      <div style={{ position: 'relative', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        {/* Upload loading overlay (#3) */}
+        {uploadingCount > 0 && (
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.8)', zIndex: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '0 0 8px 8px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+              <div style={{ width: 32, height: 32, border: '3px solid #e8e8e8', borderTopColor: colors.primary, borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+              <div style={{ fontSize: 13, fontWeight: 600, color: colors.text }}>이미지 업로드 중... ({uploadingCount}장)</div>
+            </div>
+          </div>
+        )}
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         <div
           ref={editorRef}
           contentEditable
@@ -1068,6 +1170,7 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
                 e.preventDefault();
                 const file = items[i].getAsFile();
                 if (!file) return;
+                setUploadingCount(1);
                 try {
                   const asset = await uploadImage(file);
                   const imgUrl = asset.url;
@@ -1077,12 +1180,13 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
                 } catch (err: any) {
                   alert('이미지 업로드 실패: ' + err.message);
                 }
+                setUploadingCount(0);
                 return;
               }
             }
           }}
           style={{
-            minHeight: 400, padding: '16px 18px', fontSize: 15, lineHeight: 1.8,
+            flex: 1, minHeight: 0, padding: '16px 18px', fontSize: 15, lineHeight: 1.8,
             border: `1px solid ${colors.border}`, borderRadius: '0 0 8px 8px',
             outline: 'none', background: '#fff', fontFamily: 'inherit',
             overflowY: 'auto',
@@ -1171,7 +1275,7 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
       </div>
 
       {/* Hidden file inputs */}
-      <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleImageUpload} />
+      <input ref={fileInputRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handleImageUpload} />
       <input ref={videoInputRef} type="file" accept="video/*" style={{ display: 'none' }} onChange={handleVideoUpload} />
       <input ref={fileUploadRef} type="file" style={{ display: 'none' }} onChange={handleFileUpload} />
 
