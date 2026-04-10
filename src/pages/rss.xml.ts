@@ -25,15 +25,8 @@ export async function GET(context: APIContext) {
     // DB unavailable at build time — skip gracefully
   }
 
-  const staticItems = staticPosts
-    .sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime())
-    .map((post) => ({
-      title: post.data.title,
-      pubDate: post.data.date,
-      description: post.data.description,
-      link: `/blog-preview/${post.id}/`,
-      categories: [post.data.category],
-    }));
+  // DB 글의 slug 목록 (중복 제거용)
+  const dbSlugs = new Set(dbPosts.map((p) => String(p.slug)));
 
   const dbItems = dbPosts.map((post) => ({
     title: String(post.title),
@@ -42,8 +35,20 @@ export async function GET(context: APIContext) {
     link: `/blog/${encodeURIComponent(String(post.slug))}/`,
   }));
 
+  // Static posts 중 DB에 없는 것만 포함 (중복 방지)
+  const staticItems = staticPosts
+    .filter((post) => !dbSlugs.has(post.id))
+    .sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime())
+    .map((post) => ({
+      title: post.data.title,
+      pubDate: post.data.date,
+      description: post.data.description,
+      link: `/blog/${post.id}/`,
+      categories: [post.data.category],
+    }));
+
   // Merge and sort newest-first
-  const allItems = [...staticItems, ...dbItems].sort(
+  const allItems = [...dbItems, ...staticItems].sort(
     (a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime()
   );
 
