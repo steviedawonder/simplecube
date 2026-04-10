@@ -342,8 +342,12 @@ const backdrops: any[] = bdResult.status === 'fulfilled' ? bdResult.value.rows a
       function makeItemHtml(item: any) {
         const src = item.image_url || '';
         const alt = item.title || '웨딩 현장사진';
+        // Cloudinary URL에 리사이즈 transform 적용 (갤러리 썸네일용)
+        const thumbSrc = src.includes('res.cloudinary.com')
+          ? src.replace('/upload/', '/upload/w_500,f_auto,q_auto/')
+          : src;
         return `<div class="wg-item group cursor-pointer overflow-hidden rounded-lg" data-src="${src}" data-alt="${alt}">
-          <div class="relative"><img src="${src}" alt="${alt}" class="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+          <div class="relative"><img src="${thumbSrc}" alt="${alt}" class="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
             <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
               <svg class="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6"/></svg>
             </div>
@@ -525,10 +529,15 @@ const backdrops: any[] = bdResult.status === 'fulfilled' ? bdResult.value.rows a
       cutType: el.dataset.cutType || '',
     }));
 
+    // orientation 감지: 작은 썸네일(1px)로 빠르게 판별
     let classified = 0;
     allData.forEach((d) => {
       const img = new Image();
-      img.src = d.src;
+      // Cloudinary URL이면 극소 썸네일로 감지 (네트워크 비용 최소화)
+      const detectUrl = d.src.includes('res.cloudinary.com')
+        ? d.src.replace('/upload/', '/upload/w_1,f_auto,q_1/')
+        : d.src;
+      img.src = detectUrl;
       img.onload = () => {
         d.orientation = img.naturalWidth > img.naturalHeight ? 'landscape' : 'portrait';
         classified++;
@@ -556,9 +565,13 @@ const backdrops: any[] = bdResult.status === 'fulfilled' ? bdResult.value.rows a
       const cardH = isMobile
         ? (d.orientation === 'landscape' ? '80px' : '130px')
         : (d.orientation === 'landscape' ? '140px' : '220px');
+      // Cloudinary URL에 리사이즈 transform 적용 (포토스트립 썸네일용)
+      const thumbSrc = d.src.includes('res.cloudinary.com')
+        ? d.src.replace('/upload/', '/upload/w_300,f_auto,q_auto/')
+        : d.src;
       card.innerHTML = `
         <div class="relative overflow-hidden flex items-center justify-center" style="height: ${cardH};">
-          <img src="${d.src}" alt="${d.alt}" class="max-w-full max-h-full object-contain transition-transform duration-500 group-hover:scale-105 shadow-[0_2px_8px_rgba(0,0,0,0.12)]" loading="lazy" />
+          <img src="${thumbSrc}" alt="${d.alt}" class="max-w-full max-h-full object-contain transition-transform duration-500 group-hover:scale-105 shadow-[0_2px_8px_rgba(0,0,0,0.12)]" loading="lazy" />
           <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
             <svg class="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />

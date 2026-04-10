@@ -74,7 +74,7 @@ const models = [
     ],
     note: '*랩핑 진행시 추가 비용이 발생합니다.',
     portfolio: [
-      { src: '/images/popup/simplecube-popup-photobooth-cj.jpg', alt: '팝업부스 CJ 행사' },
+      { src: '/images/popup/simplecube-popup-photobooth-cj.webp', alt: '팝업부스 CJ 행사' },
     ],
   },
   {
@@ -95,9 +95,9 @@ const models = [
     ],
     note: '',
     portfolio: [
-      { src: '/images/popup/simplecube-module-photobooth-nike.jpg', alt: '모듈형 나이키 행사' },
+      { src: '/images/popup/simplecube-module-photobooth-nike.webp', alt: '모듈형 나이키 행사' },
       { src: '/images/popup/simplecube-module-photobooth-shinsegae.webp', alt: '모듈형 신세계 행사' },
-      { src: '/images/popup/simplecube-module-photobooth-wave.png', alt: '모듈형 웨이브 행사' },
+      { src: '/images/popup/simplecube-module-photobooth-wave.webp', alt: '모듈형 웨이브 행사' },
       { src: '/images/popup/simplecube-module-photobooth-honda.webp', alt: '모듈형 혼다 행사' },
     ],
   },
@@ -260,6 +260,13 @@ const models = [
 <!-- Pass data to script -->
 <script is:inline define:vars={{ models: JSON.parse(JSON.stringify(models)), modelPhotosMap: JSON.parse(JSON.stringify(modelPhotosMap)), modelIdMap: JSON.parse(JSON.stringify(modelIdMap)), modelPortfolioMap: JSON.parse(JSON.stringify(modelPortfolioMap)) }}>
   // Merge DB model photos + DB portfolio into models
+  // Cloudinary 썸네일 URL 생성 헬퍼
+  function cloudThumb(url, width) {
+    if (!url || url.indexOf('res.cloudinary.com') === -1) return url;
+    return url.replace('/upload/', '/upload/w_' + width + ',f_auto,q_auto/');
+  }
+  window.__cloudThumb = cloudThumb;
+
   window.__models = models.map(function(m) {
     var dbModelId = modelIdMap[m.id] || m.id;
     var dbPhotos = modelPhotosMap[dbModelId];
@@ -314,7 +321,7 @@ const models = [
             <div id="modal-slider-track" class="flex transition-transform duration-300">
               ${model.modelPhotos.map((p: any) => `
                 <div class="w-full shrink-0">
-                  <img src="${p.src}" alt="${p.alt}" class="w-full aspect-[2/3] object-contain bg-[#f0f0f0] cursor-pointer model-photo-click" data-src="${p.src}" data-alt="${p.alt}" loading="lazy" />
+                  <img src="${(window as any).__cloudThumb(p.src, 500)}" alt="${p.alt}" class="w-full aspect-[2/3] object-contain bg-[#f0f0f0] cursor-pointer model-photo-click" data-src="${p.src}" data-alt="${p.alt}" loading="lazy" />
                 </div>
               `).join('')}
             </div>
@@ -357,7 +364,7 @@ const models = [
           <div class="grid grid-cols-3 gap-1.5">
             ${model.portfolio.map((p: any) => `
               <div class="modal-portfolio-thumb cursor-pointer overflow-hidden rounded-lg relative group" data-src="${p.src}" data-alt="${p.alt}">
-                <img src="${p.src}" alt="${p.alt}" class="aspect-square w-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" />
+                <img src="${(window as any).__cloudThumb(p.src, 300)}" alt="${p.alt}" class="aspect-square w-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" />
                 <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
                   <svg class="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />

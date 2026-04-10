@@ -228,9 +228,13 @@ import { POPUP_DEFAULT_TAGS, POPUP_CUSTOM_TAGS } from '@lib/defaultTags';
       for (let r = 0; r < minRepeats * 2; r++) {
         rowItems.forEach((item: any, i: number) => {
           const globalIdx = rowIdx === 0 ? i : mid + i;
+          // Cloudinary URL에 리사이즈 transform 적용 (마키 썸네일용)
+          const thumbUrl = item.image_url.includes('res.cloudinary.com')
+            ? item.image_url.replace('/upload/', '/upload/w_400,f_auto,q_auto/')
+            : item.image_url;
           html += `
             <div class="pf-marquee-item" data-src="${item.image_url}" data-alt="${item.title || '포트폴리오'}" data-idx="${globalIdx}">
-              <img src="${item.image_url}" alt="${item.title || '포트폴리오'}" loading="lazy" />
+              <img src="${thumbUrl}" alt="${item.title || '포트폴리오'}" loading="lazy" />
             </div>
           `;
         });
