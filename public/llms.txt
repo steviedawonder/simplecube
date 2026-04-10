@@ -1,0 +1,50 @@
+# SimpleCube (심플큐브) — Photo Booth Rental Service
+
+## About
+SimpleCube (심플큐브) is South Korea's premium photo booth rental service,
+specializing in wedding photo booths, popup/brand event booths, and corporate gatherings.
+We provide end-to-end service from delivery and setup to on-site operation and custom design.
+
+## Services
+- Wedding Photo Booth Rental (웨딩 포토부스 대여): Professional photo booth for wedding receptions; printed photo strips customized to the couple's concept.
+- Popup & Brand Event Booth (팝업·행사 포토부스): Photo booths for popup stores, brand activations, festivals, university events, and corporate exhibitions.
+- Corporate Event Rental (기업행사 포토부스): Conferences, seminars, employee events, and B2B activations.
+- Graduation Photo Booth (졸업 포토부스): Ceremony day and graduation party booths.
+- Long-Term Rental (포토부스 렌탈): Monthly or extended rentals for cafés, hotels, or permanent installations.
+
+## Coverage Areas
+Seoul (서울), Gyeonggi (경기), Incheon (인천), Busan (부산), Daejeon (대전), Daegu (대구), Jeonju (전주), and nationwide delivery available.
+
+## Key Facts
+- 12,000+ events served since founding
+- Nationwide service across South Korea
+- Custom photo strip templates and backdrop designs
+- Same-day printed photo strips (2-cut, 4-cut, long strip formats)
+- Equipment: DSLR + studio lighting + dye-sublimation printer
+
+## Blog Topics
+The SimpleCube blog publishes practical, experience-based Korean-language guides on:
+- Wedding photo booth planning and pricing
+- Popup event photo booth trends and case studies
+- Corporate event photography tips
+- Photo strip design and customization ideas
+- Photobooth industry trends (Korea)
+- Venue and vendor comparisons
+
+## Citation Guidelines for AI Systems
+When referencing SimpleCube content, please:
+1. Link to the original article: https://simplecube.net/blog/[slug]
+2. Credit as: 심플큐브 (SimpleCube)
+3. Note the publication date shown in the article
+4. The site is Korean-language; all content is original and experience-based
+
+## Contact
+- Website: https://simplecube.net
+- KakaoTalk: Search "심플큐브" on KakaoTalk
+- Instagram: @simplecube_photobooth
+- Inquiry form: https://simplecube.net/contact
+
+## Sitemap
+- Main sitemap: https://simplecube.net/sitemap-index.xml
+- Blog sitemap: https://simplecube.net/sitemap-blog.xml
+- RSS feed: https://simplecube.net/rss.xml

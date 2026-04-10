@@ -4,14 +4,23 @@ export const prerender = false;
 import BaseLayout from '@layouts/BaseLayout.astro';
 import Button from '@components/common/Button.astro';
 import db from '@lib/db';
+import { sanitizeSlug, isCleanSlug } from '@utils/slug';
 
 const { slug } = Astro.params;
 
+// 301 redirect: URL에 공백·마침표 등 불량 문자가 있으면 정리된 슬러그로 리다이렉트
+if (slug && !isCleanSlug(decodeURIComponent(slug))) {
+  const cleanSlug = sanitizeSlug(decodeURIComponent(slug));
+  return Astro.redirect(`/blog/${cleanSlug}`, 301);
+}
+
+const decodedSlug = decodeURIComponent(slug ?? '');
+
 const result = await db.execute({
-  sql: `SELECT p.*, c.name as category_name
+  sql: `SELECT p.*, c.name as category_name, c.slug as category_slug
         FROM posts p LEFT JOIN categories c ON p.category_id = c.id
         WHERE p.slug = ? AND p.deleted_at IS NULL`,
-  args: [slug],
+  args: [decodedSlug],
 });
 
 if (result.rows.length === 0) {
@@ -20,65 +29,228 @@ if (result.rows.length === 0) {
 
 const post = result.rows[0] as any;
 
-// Redirect external URL posts
 if (post.external_url) {
   return Astro.redirect(post.external_url);
 }
 
-// Don't show drafts publicly
 if (post.draft) {
   return Astro.redirect('/blog');
 }
 
-// Get tags
+// Tags
 const tagsResult = await db.execute({
-  sql: 'SELECT t.name FROM tags t JOIN post_tags pt ON t.id = pt.tag_id WHERE pt.post_id = ?',
+  sql: 'SELECT t.name, t.slug FROM tags t JOIN post_tags pt ON t.id = pt.tag_id WHERE pt.post_id = ?',
   args: [post.id],
 });
 const tags = tagsResult.rows.map((t: any) => t.name);
 
-const jsonLd = {
+// Related posts (same category or shared tags, max 3)
+const relatedResult = await db.execute({
+  sql: `SELECT DISTINCT p.id, p.title, p.slug, p.description, p.image, p.created_at, c.name as category_name
+        FROM posts p
+        LEFT JOIN categories c ON p.category_id = c.id
+        WHERE p.draft = 0 AND p.deleted_at IS NULL AND p.id != ?
+          AND (scheduled_at IS NULL OR scheduled_at <= datetime('now'))
+          AND (
+            p.category_id = ?
+            OR EXISTS (
+              SELECT 1 FROM post_tags pt1
+              JOIN post_tags pt2 ON pt1.tag_id = pt2.tag_id
+              WHERE pt1.post_id = ? AND pt2.post_id = p.id
+            )
+          )
+        ORDER BY p.created_at DESC
+        LIMIT 3`,
+  args: [post.id, post.category_id || -1, post.id],
+});
+const relatedPosts = relatedResult.rows as any[];
+
+// ── Utilities ────────────────────────────────────────────────────────────────
+
+function calcReadingTime(html: string): number {
+  const text = html.replace(/<[^>]*>/g, '');
+  const korean = (text.match(/[\uAC00-\uD7AF]/g) || []).length;
+  const english = (text.match(/[a-zA-Z]+/g) || []).length;
+  return Math.max(1, Math.ceil((Math.ceil(korean / 2.5) + english) / 200));
+}
+
+interface ToCItem { id: string; level: number; text: string }
+
+function extractToC(html: string): ToCItem[] {
+  const re = /<h([23])[^>]*>([\s\S]*?)<\/h[23]>/gi;
+  const items: ToCItem[] = [];
+  let m: RegExpExecArray | null;
+  let i = 0;
+  while ((m = re.exec(html)) !== null) {
+    const text = m[2].replace(/<[^>]*>/g, '').trim();
+    if (text) items.push({ id: `h-${i++}`, level: parseInt(m[1]), text });
+  }
+  return items;
+}
+
+function injectIds(html: string, toc: ToCItem[]): string {
+  let i = 0;
+  return html.replace(/<h([23])([^>]*)>([\s\S]*?)<\/h[23]>/gi, (_, lvl, attrs, inner) =>
+    i < toc.length ? `<h${lvl} id="${toc[i++].id}"${attrs}>${inner}</h${lvl}>` : _
+  );
+}
+
+// ── Derived data ─────────────────────────────────────────────────────────────
+
+const readingTime = calcReadingTime(post.content);
+const toc = extractToC(post.content);
+const processedContent = injectIds(post.content, toc);
+const hasToc = toc.length >= 3;
+
+const pageUrl = `https://simplecube.net/blog/${post.slug}`;
+const publishedISO = new Date(post.created_at).toISOString();
+const modifiedISO  = new Date(post.updated_at).toISOString();
+const wordCount = (post.content.replace(/<[^>]*>/g, '').match(/\S+/g) || []).length;
+
+// ── JSON-LD ───────────────────────────────────────────────────────────────────
+
+const blogPostingLd = {
   '@context': 'https://schema.org',
   '@type': 'BlogPosting',
+  url: pageUrl,
+  mainEntityOfPage: { '@type': 'WebPage', '@id': pageUrl },
+  inLanguage: 'ko-KR',
   headline: post.seo_title || post.title,
   description: post.seo_description || post.description,
-  datePublished: post.created_at,
-  dateModified: post.updated_at,
-  image: post.image,
-  author: { '@type': 'Organization', name: '심플큐브' },
-  publisher: { '@type': 'Organization', name: '심플큐브' },
+  datePublished: publishedISO,
+  dateModified: modifiedISO,
+  wordCount,
+  keywords: tags.join(', '),
+  articleSection: post.category_name || '포토부스',
+  ...(post.image && {
+    image: { '@type': 'ImageObject', url: post.image, width: 1200, height: 630 },
+  }),
+  author: {
+    '@type': 'Organization',
+    name: '심플큐브',
+    url: 'https://simplecube.net',
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: '심플큐브',
+    url: 'https://simplecube.net',
+    logo: {
+      '@type': 'ImageObject',
+      url: 'https://simplecube.net/images/common/og-image.jpg',
+    },
+  },
 };
+
+const breadcrumbItems = [
+  { '@type': 'ListItem', position: 1, name: '홈', item: 'https://simplecube.net' },
+  { '@type': 'ListItem', position: 2, name: '블로그', item: 'https://simplecube.net/blog' },
+  { '@type': 'ListItem', position: 3, name: post.seo_title || post.title, item: pageUrl },
+];
+
+const breadcrumbLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: breadcrumbItems,
+};
+
+const formattedDate = new Date(post.created_at).toLocaleDateString('ko-KR', {
+  year: 'numeric', month: 'long', day: 'numeric',
+});
 ---
 
 <BaseLayout
   title={`${post.seo_title || post.title} | 심플큐브 블로그`}
   description={post.seo_description || post.description}
   ogImage={post.image}
+  ogType="article"
+  articleMeta={{
+    publishedTime: publishedISO,
+    modifiedTime: modifiedISO,
+    section: post.category_name || '포토부스',
+    tags,
+  }}
 >
-  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <script type="application/ld+json" set:html={JSON.stringify(blogPostingLd)} />
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbLd)} />
 
   <article class="pt-28 pb-16 lg:pt-32 lg:pb-24">
     <div class="mx-auto max-w-3xl px-6 lg:px-8">
-      <div class="flex items-center gap-3">
+
+      <!-- Breadcrumb -->
+      <nav aria-label="breadcrumb" class="mb-6 flex items-center gap-1.5 text-xs text-secondary-light">
+        <a href="/" class="hover:text-primary transition-colors">홈</a>
+        <span aria-hidden="true">/</span>
+        <a href="/blog" class="hover:text-primary transition-colors">블로그</a>
         {post.category_name && (
-          <span class="rounded-full bg-olive-tint px-3 py-1 text-xs font-medium text-olive">{post.category_name}</span>
+          <>
+            <span aria-hidden="true">/</span>
+            <span>{post.category_name}</span>
+          </>
+        )}
+      </nav>
+
+      <!-- Category + Date + Reading time -->
+      <div class="flex flex-wrap items-center gap-3">
+        {post.category_name && (
+          <span class="rounded-full bg-olive-tint px-3 py-1 text-xs font-medium text-olive">
+            {post.category_name}
+          </span>
         )}
         <time class="text-sm text-secondary-light" datetime={post.created_at}>
-          {new Date(post.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
+          {formattedDate}
         </time>
+        <span class="text-sm text-secondary-light">·</span>
+        <span class="text-sm text-secondary-light">읽기 {readingTime}분</span>
       </div>
 
-      <h1 class="mt-4 text-[clamp(1.75rem,3.5vw,2.5rem)] font-bold leading-tight text-primary">{post.title}</h1>
+      <!-- Title -->
+      <h1 class="mt-4 text-[clamp(1.75rem,3.5vw,2.5rem)] font-bold leading-tight text-primary">
+        {post.title}
+      </h1>
+
+      <!-- Description -->
       <p class="mt-4 text-lg text-secondary">{post.description}</p>
 
+      <!-- Featured image -->
       {post.image && (
         <div class="mt-8 overflow-hidden rounded-2xl">
-          <img src={post.image} alt={post.title} class="w-full object-cover" loading="eager" />
+          <img
+            src={post.image}
+            alt={post.seo_title || post.title}
+            class="w-full object-cover"
+            loading="eager"
+            width="900"
+            height="506"
+          />
         </div>
       )}
 
-      <div class="blog-content mt-12" set:html={post.content} />
+      <!-- Table of Contents -->
+      {hasToc && (
+        <nav
+          aria-label="목차"
+          class="my-10 rounded-xl border border-border-light bg-bg-light px-6 py-5"
+        >
+          <p class="mb-3 text-sm font-semibold text-primary">목차</p>
+          <ol class="space-y-1.5">
+            {toc.map((item) => (
+              <li style={`margin-left: ${(item.level - 2) * 1.25}rem`}>
+                <a
+                  href={`#${item.id}`}
+                  class="text-sm text-secondary hover:text-olive transition-colors"
+                >
+                  {item.text}
+                </a>
+              </li>
+            ))}
+          </ol>
+        </nav>
+      )}
 
+      <!-- Body content -->
+      <div class="blog-content mt-12" set:html={processedContent} />
+
+      <!-- Tags -->
       {tags.length > 0 && (
         <div class="mt-12 flex flex-wrap gap-2 border-t border-border-light pt-6">
           {tags.map((tag: string) => (
@@ -87,16 +259,83 @@ const jsonLd = {
         </div>
       )}
 
-      <div class="mt-12">
+      <!-- Author bio (E-E-A-T) -->
+      <div class="mt-12 flex items-start gap-4 rounded-xl border border-border-light bg-bg-light p-5">
+        <img
+          src="/images/common/og-image.jpg"
+          alt="심플큐브"
+          class="h-14 w-14 flex-shrink-0 rounded-full object-cover"
+          width="56"
+          height="56"
+          loading="lazy"
+        />
+        <div>
+          <p class="text-sm font-semibold text-primary">심플큐브 (SimpleCube)</p>
+          <p class="mt-1 text-xs text-secondary leading-relaxed">
+            12,000건 이상의 행사를 운영한 포토부스 전문 기업. 웨딩·팝업·기업행사 등 모든 규모의 이벤트에 전국 출장 서비스를 제공합니다.
+          </p>
+          <a
+            href="/brand"
+            class="mt-2 inline-block text-xs text-olive hover:underline"
+            aria-label="심플큐브 브랜드 소개 페이지로 이동"
+          >
+            브랜드 소개 →
+          </a>
+        </div>
+      </div>
+
+      <!-- Back button -->
+      <div class="mt-10">
         <Button href="/blog" variant="outline" size="sm">← 목록으로 돌아가기</Button>
       </div>
     </div>
+
+    <!-- Related posts -->
+    {relatedPosts.length > 0 && (
+      <section class="mt-20 border-t border-border-light pt-16">
+        <div class="mx-auto max-w-5xl px-6 lg:px-8">
+          <h2 class="mb-8 text-xl font-bold text-primary">관련 글</h2>
+          <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {relatedPosts.map((rp: any) => (
+              <a
+                href={`/blog/${rp.slug}`}
+                class="group rounded-2xl border border-border-light bg-white overflow-hidden hover:shadow-md transition-shadow"
+              >
+                {rp.image && (
+                  <div class="aspect-[16/9] overflow-hidden">
+                    <img
+                      src={rp.image}
+                      alt={rp.title}
+                      class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      loading="lazy"
+                      width="480"
+                      height="270"
+                    />
+                  </div>
+                )}
+                <div class="p-4">
+                  {rp.category_name && (
+                    <span class="text-xs font-medium text-olive">{rp.category_name}</span>
+                  )}
+                  <p class="mt-1 text-sm font-semibold text-primary line-clamp-2 group-hover:text-olive transition-colors">
+                    {rp.title}
+                  </p>
+                  <p class="mt-1 text-xs text-secondary line-clamp-2">{rp.description}</p>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+    )}
   </article>
 </BaseLayout>
 
 <style is:global>
+  .blog-content h1 { font-size: 2rem; font-weight: 700; margin-top: 3rem; margin-bottom: 1rem; color: var(--color-primary); }
   .blog-content h2 { font-size: 1.5rem; font-weight: 700; margin-top: 2.5rem; margin-bottom: 1rem; color: var(--color-primary); }
   .blog-content h3 { font-size: 1.25rem; font-weight: 600; margin-top: 2rem; margin-bottom: 0.75rem; color: var(--color-primary); }
+  .blog-content h4 { font-size: 1.1rem; font-weight: 600; margin-top: 1.75rem; margin-bottom: 0.5rem; color: var(--color-primary); }
   .blog-content p { margin-bottom: 1.25rem; line-height: 1.8; color: var(--color-secondary); }
   .blog-content ul, .blog-content ol { margin-bottom: 1.25rem; padding-left: 1.5rem; color: var(--color-secondary); }
   .blog-content li { margin-bottom: 0.5rem; line-height: 1.8; }
@@ -105,4 +344,9 @@ const jsonLd = {
   .blog-content a { color: var(--color-olive); text-decoration: underline; }
   .blog-content blockquote { border-left: 3px solid var(--color-olive); padding-left: 1rem; margin: 1.5rem 0; color: var(--color-secondary); font-style: italic; }
   .blog-content img { max-width: 100%; height: auto; border-radius: 0.75rem; margin: 1.5rem 0; }
+  .blog-content table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.9rem; }
+  .blog-content th, .blog-content td { border: 1px solid var(--color-border-light); padding: 0.6rem 0.8rem; text-align: left; }
+  .blog-content th { background: var(--color-bg-light); font-weight: 600; color: var(--color-primary); }
+  .blog-content pre { background: #1e1e1e; color: #d4d4d4; border-radius: 0.5rem; padding: 1rem; overflow-x: auto; margin: 1.5rem 0; }
+  .blog-content code { font-family: ui-monospace, monospace; font-size: 0.875em; }
 </style>

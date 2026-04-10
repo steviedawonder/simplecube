@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import db from '@lib/db';
+import { sanitizeSlug } from '@utils/slug';
 
 export const prerender = false;
 
@@ -87,12 +88,20 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
+    const cleanSlug = sanitizeSlug(slug);
+    if (!cleanSlug) {
+      return new Response(JSON.stringify({ error: '올바른 슬러그를 입력하세요.' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
     const result = await db.execute({
       sql: `INSERT INTO posts (title, slug, description, content, category_id, image, focus_keyword, seo_title, seo_description, seo_score, external_url, draft, scheduled_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [
         title,
-        slug,
+        cleanSlug,
         description,
         content,
         category_id,
@@ -119,7 +128,7 @@ export const POST: APIRoute = async ({ request }) => {
       }
     }
 
-    return new Response(JSON.stringify({ id: postId, title, slug }), {
+    return new Response(JSON.stringify({ id: postId, title, slug: cleanSlug }), {
       status: 201,
       headers: { 'Content-Type': 'application/json' },
     });

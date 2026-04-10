@@ -499,6 +499,43 @@ export async function seedPageContents() {
   }
 }
 
+/**
+ * One-time migration: fix any post slugs that contain spaces, periods, or other
+ * characters that break SEO (e.g. "웨딩 포토부스. 완벽 가이드" → "웨딩-포토부스-완벽-가이드").
+ * Safe to run multiple times — idempotent.
+ */
+export async function migrateBadSlugs() {
+  const client = getClient();
+  const badPosts = await client.execute({
+    sql: "SELECT id, slug FROM posts WHERE slug LIKE '% %' OR slug LIKE '%.%'",
+    args: [],
+  });
+
+  for (const row of badPosts.rows) {
+    const oldSlug = String((row as any).slug);
+    const newSlug = oldSlug
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9가-힣\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-{2,}/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .substring(0, 100);
+
+    if (newSlug && newSlug !== oldSlug) {
+      try {
+        await client.execute({
+          sql: 'UPDATE posts SET slug = ?, updated_at = updated_at WHERE id = ?',
+          args: [newSlug, (row as any).id],
+        });
+        console.log(`[migrateBadSlugs] "${oldSlug}" → "${newSlug}"`);
+      } catch (e) {
+        console.warn(`[migrateBadSlugs] Could not update slug for post ${(row as any).id}:`, e);
+      }
+    }
+  }
+}
+
 export async function seedCustomContents() {
   const client = getClient();
   const customItems = [

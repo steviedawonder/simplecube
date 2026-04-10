@@ -1,6 +1,6 @@
 import { defineMiddleware } from 'astro:middleware';
 import { verifyToken, getTokenFromCookies } from './lib/auth';
-import { initDB, seedSEORules, seedOwnerAccount, seedFaqs, seedPackageItems, seedPageContents, seedCustomContents, migratePortfolioColumns, seedPhotostripCategories, migrateUsersEmailToUsername, migrateFaqsPageConstraint } from './lib/db';
+import { initDB, seedSEORules, seedOwnerAccount, seedFaqs, seedPackageItems, seedPageContents, seedCustomContents, migratePortfolioColumns, seedPhotostripCategories, migrateUsersEmailToUsername, migrateFaqsPageConstraint, migrateBadSlugs } from './lib/db';
 
 let dbInitialized = false;
 
@@ -54,6 +54,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
       await migrateFaqsPageConstraint();
       await migratePortfolioColumns();
       await seedPhotostripCategories();
+      await migrateBadSlugs();
       dbInitialized = true;
     } catch (e) {
       console.error('DB init error:', e);
