@@ -1,0 +1,218 @@
+---
+export const prerender = true;
+import BaseLayout from '@layouts/BaseLayout.astro';
+import BreadcrumbSchema from '@components/seo/BreadcrumbSchema.astro';
+import FAQSchema from '@components/seo/FAQSchema.astro';
+import ServiceSchema from '@components/seo/ServiceSchema.astro';
+import MachineShowcase from '@components/popup/MachineShowcase.astro';
+import ClientShowcase from '@components/popup/ClientShowcase.astro';
+import AccordionList from '@components/faq/AccordionList.astro';
+import db from '@lib/db';
+
+const [daeguFaqResult, rentalFaqResult, popupFaqResult] = await Promise.all([
+  db.execute({ sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC', args: ['daegu'] }),
+  db.execute({ sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC', args: ['rental'] }),
+  db.execute({ sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC', args: ['popup'] }),
+]);
+const faqItems = (
+  daeguFaqResult.rows.length > 0 ? daeguFaqResult.rows
+  : rentalFaqResult.rows.length > 0 ? rentalFaqResult.rows
+  : popupFaqResult.rows
+) as { question: string; answer: string }[];
+---
+
+<BaseLayout
+  title="대구 포토부스 대여 | 동성로·수성구·엑스코 출장 설치 — 심플큐브"
+  description="대구 전 지역 포토부스 출장 설치. 동성로, 수성구, 엑스코, 두류공원 등 대구 어디든 설치 가능. 웨딩, 기업행사, 팝업스토어 맞춤 포토부스 렌탈."
+  ogImage="/images/photobooth-rental-simplecube.jpg"
+  transparentNav={false}
+>
+  <BreadcrumbSchema items={[
+    { name: '포토부스 대여', url: '/rental' },
+    { name: '대구 포토부스', url: '/daegu' },
+  ]} />
+  <ServiceSchema services={[
+    {
+      name: '대구 포토부스 대여 — 대구 전 지역 출장 설치',
+      description: '심플큐브의 대구 포토부스 대여 서비스. 동성로, 수성구, 엑스코(EXCO), 두류공원 등 대구 전 지역 출장 설치. 웨딩, 기업행사, 팝업스토어, 페스티벌 맞춤 포토부스 렌탈.',
+      url: '/daegu',
+    },
+  ]} />
+  {faqItems.length > 0 && <FAQSchema faqs={faqItems} />}
+
+  <!-- Hero -->
+  <section class="pt-20 lg:pt-22">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8 py-6 border-b border-border-light">
+      <div class="flex items-start gap-4">
+        <div class="w-[3px] h-12 bg-olive rounded-full shrink-0 mt-0.5"></div>
+        <div>
+          <div class="flex items-baseline gap-3">
+            <h1 class="text-2xl font-bold text-primary">대구 포토부스 대여</h1>
+            <span class="text-[11px] font-medium tracking-[0.12em] text-secondary/40">DAEGU</span>
+          </div>
+          <p class="text-[12px] text-secondary/50 mt-1">동성로, 수성구, 엑스코, 두류공원 — 대구 전 지역 출장 설치</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Daegu service introduction -->
+  <section class="bg-bg-light py-12 lg:py-16">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      <div class="mb-8 lg:mb-10">
+        <div class="inline-flex items-center justify-center w-9 h-9 rounded-full border-[1.5px] border-olive text-olive text-[13px] font-bold mb-4">01</div>
+        <span class="block text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">DAEGU SERVICE</span>
+        <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">대구 포토부스 서비스</h2>
+        <div class="mt-4 h-[2px] w-8 bg-olive"></div>
+      </div>
+      <div class="grid gap-8 lg:grid-cols-2">
+        <div class="space-y-4 text-sm leading-relaxed text-secondary">
+          <p>
+            <strong>심플큐브</strong>는 대구 전 지역에 포토부스 출장 설치를 제공하는 <strong>대구 포토부스 대여 전문 업체</strong>입니다.
+            동성로, 수성구, 엑스코(EXCO), 두류공원, 범어동, 대명동 등 대구 어디든 설치가 가능하며,
+            결혼식, 기업행사, 브랜드 팝업스토어, 페스티벌 등 행사 유형에 맞는 맞춤형 포토부스를 제공합니다.
+          </p>
+          <p>
+            부산 지점과 대전 지점이 가까워 대구·경북 권역까지 빠르게 출장이 가능합니다.
+            장비 설치부터 운영, 철거까지 원스톱으로 진행하며, 원목 소재의 프리미엄 포토부스, 브랜딩이 가능한 커스텀 부스 등 다양한 옵션을 갖추고 있습니다.
+          </p>
+        </div>
+        <div class="grid grid-cols-3 gap-4">
+          <div class="rounded-lg border border-border-light bg-white p-5 text-center">
+            <span class="block text-2xl font-bold text-olive">14,000+</span>
+            <span class="block mt-1 text-xs text-secondary">전체 누적 행사</span>
+          </div>
+          <div class="rounded-lg border border-border-light bg-white p-5 text-center">
+            <span class="block text-2xl font-bold text-olive">대구·경북</span>
+            <span class="block mt-1 text-xs text-secondary">출장 가능</span>
+          </div>
+          <div class="rounded-lg border border-border-light bg-white p-5 text-center">
+            <span class="block text-2xl font-bold text-olive">당일</span>
+            <span class="block mt-1 text-xs text-secondary">설치 · 철거</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
+
+  <!-- Popular event types in Daegu -->
+  <section class="bg-white py-12 lg:py-16">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      <div class="mb-8 lg:mb-10">
+        <div class="inline-flex items-center justify-center w-9 h-9 rounded-full border-[1.5px] border-olive text-olive text-[13px] font-bold mb-4">02</div>
+        <span class="block text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">EVENT TYPES</span>
+        <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">대구 인기 행사 유형</h2>
+        <div class="mt-4 h-[2px] w-8 bg-olive"></div>
+      </div>
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <a href="/wedding" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
+          <h3 class="text-lg font-bold text-primary group-hover:text-olive transition-colors">웨딩 포토부스</h3>
+          <p class="mt-1 text-xs text-olive font-medium">수성구 · 범어동</p>
+          <p class="mt-2 text-sm text-secondary leading-relaxed">호텔수성, 인터불고호텔, 라온제나 등 대구 주요 웨딩홀에서 가장 많이 찾는 포토부스. 하객 포토 서비스로 결혼식의 추억을 선물합니다.</p>
+          <span class="mt-3 inline-block text-xs text-olive font-medium">자세히 보기 →</span>
+        </a>
+        <a href="/corporate" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
+          <h3 class="text-lg font-bold text-primary group-hover:text-olive transition-colors">기업행사 포토부스</h3>
+          <p class="mt-1 text-xs text-olive font-medium">엑스코 · 산격동</p>
+          <p class="mt-2 text-sm text-secondary leading-relaxed">대구 EXCO 전시회, 산격동 컨벤션, 기업 컨퍼런스 등 대구 대표 비즈니스 행사를 위한 포토부스 렌탈.</p>
+          <span class="mt-3 inline-block text-xs text-olive font-medium">자세히 보기 →</span>
+        </a>
+        <a href="/popup" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
+          <h3 class="text-lg font-bold text-primary group-hover:text-olive transition-colors">팝업스토어 포토부스</h3>
+          <p class="mt-1 text-xs text-olive font-medium">동성로 · 삼덕동</p>
+          <p class="mt-2 text-sm text-secondary leading-relaxed">동성로 메인 상권, 삼덕동 카페거리, 김광석거리 등 대구 핫플레이스 팝업스토어를 위한 커스텀 포토부스. 브랜드 맞춤 디자인.</p>
+          <span class="mt-3 inline-block text-xs text-olive font-medium">자세히 보기 →</span>
+        </a>
+        <a href="/popup" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
+          <h3 class="text-lg font-bold text-primary group-hover:text-olive transition-colors">페스티벌 포토부스</h3>
+          <p class="mt-1 text-xs text-olive font-medium">두류공원 · 신천</p>
+          <p class="mt-2 text-sm text-secondary leading-relaxed">두류공원, 신천변, 대구치맥페스티벌 등 대구 대표 야외 행사장에서의 페스티벌·축제 포토부스 렌탈.</p>
+          <span class="mt-3 inline-block text-xs text-olive font-medium">자세히 보기 →</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
+
+  <!-- Daegu installation areas -->
+  <section class="bg-bg-light py-12 lg:py-16">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      <div class="mb-8 lg:mb-10">
+        <div class="inline-flex items-center justify-center w-9 h-9 rounded-full border-[1.5px] border-olive text-olive text-[13px] font-bold mb-4">03</div>
+        <span class="block text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">AREAS</span>
+        <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">대구 주요 설치 지역</h2>
+        <div class="mt-4 h-[2px] w-8 bg-olive"></div>
+      </div>
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          { area: '수성구 · 범어동', venues: '호텔수성, 인터불고호텔, 두산위브더제니스, 수성못 인근 행사장', highlight: true },
+          { area: '중구 · 동성로', venues: '동성로 메인 상권, 김광석거리, 삼덕동, 대구백화점·롯데백화점', highlight: false },
+          { area: '북구 · 엑스코', venues: 'EXCO 전시컨벤션센터, 산격동, 칠곡 행사장', highlight: false },
+          { area: '동구 · 신천', venues: '신세계백화점 동대구, 신천변 행사장, 동대구역 인근', highlight: false },
+          { area: '달서구 · 두류', venues: '두류공원, 이월드, 성서산업단지, 월배 웨딩홀', highlight: false },
+          { area: '서구 · 남구', venues: '두류네거리, 대명동, 앞산공원, 대구가톨릭대학교 인근', highlight: false },
+          { area: '달성군 · 외곽', venues: '테크노폴리스, 비슬산, 화원·다사 행사장', highlight: false },
+          { area: '기타 대구·경북', venues: '경산, 영천, 칠곡 등 대구 인근 어디든 출장 설치 가능. 맞춤 견적 안내.', highlight: false },
+        ].map(item => (
+          <div class:list={[
+            'rounded-lg border p-5',
+            item.highlight ? 'border-olive/40 bg-olive/5' : 'border-border-light bg-white'
+          ]}>
+            <h3 class="text-base font-semibold text-primary">{item.area}</h3>
+            <p class="mt-2 text-sm text-secondary leading-relaxed">{item.venues}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
+
+  <!-- Machine Showcase -->
+  <MachineShowcase />
+
+  <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
+
+  <!-- Client Showcase -->
+  <ClientShowcase />
+
+  <!-- FAQ -->
+  {faqItems.length > 0 && (
+    <Fragment>
+    <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
+    <section id="qna" class="bg-white py-12 lg:py-16">
+      <div class="mx-auto max-w-3xl px-6 lg:px-8">
+        <div class="mb-10">
+          <div class="inline-flex items-center justify-center w-9 h-9 rounded-full border-[1.5px] border-olive text-olive text-[13px] font-bold mb-4">06</div>
+          <span class="block text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">FAQ</span>
+          <h2 class="mt-3 text-2xl font-bold text-primary md:text-3xl">대구 포토부스 자주 묻는 질문</h2>
+          <div class="mt-4 h-[2px] w-8 bg-olive"></div>
+        </div>
+        <AccordionList items={faqItems} />
+      </div>
+    </section>
+    </Fragment>
+  )}
+
+  <!-- CTA -->
+  <section class="bg-[#6B5B4D] py-12 lg:py-16">
+    <div class="mx-auto max-w-3xl px-6 lg:px-8 text-center">
+      <h2 class="text-2xl font-bold text-[#FFFAF4] md:text-3xl">대구 지역 맞춤 견적 받기</h2>
+      <p class="mt-4 text-sm text-[#FFFAF4]/60 leading-relaxed">
+        대구 행사 일정과 장소를 알려주시면, 가까운 지점에서 맞춤 견적을 빠르게 안내해드립니다.
+      </p>
+      <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="/contact" class="inline-flex items-center gap-2 rounded-lg bg-olive px-8 py-3 text-sm font-semibold text-white hover:bg-olive/90 transition-colors">
+          문의하기
+        </a>
+        <a href="tel:01031224746" class="inline-flex items-center gap-2 text-sm text-[#FFFAF4]/80 hover:text-[#FFFAF4] transition-colors">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+          010-3122-4746 (부산 지점)
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

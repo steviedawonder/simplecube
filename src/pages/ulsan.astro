@@ -1,0 +1,218 @@
+---
+export const prerender = true;
+import BaseLayout from '@layouts/BaseLayout.astro';
+import BreadcrumbSchema from '@components/seo/BreadcrumbSchema.astro';
+import FAQSchema from '@components/seo/FAQSchema.astro';
+import ServiceSchema from '@components/seo/ServiceSchema.astro';
+import MachineShowcase from '@components/popup/MachineShowcase.astro';
+import ClientShowcase from '@components/popup/ClientShowcase.astro';
+import AccordionList from '@components/faq/AccordionList.astro';
+import db from '@lib/db';
+
+const [ulsanFaqResult, rentalFaqResult, popupFaqResult] = await Promise.all([
+  db.execute({ sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC', args: ['ulsan'] }),
+  db.execute({ sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC', args: ['rental'] }),
+  db.execute({ sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC', args: ['popup'] }),
+]);
+const faqItems = (
+  ulsanFaqResult.rows.length > 0 ? ulsanFaqResult.rows
+  : rentalFaqResult.rows.length > 0 ? rentalFaqResult.rows
+  : popupFaqResult.rows
+) as { question: string; answer: string }[];
+---
+
+<BaseLayout
+  title="울산 포토부스 대여 | 남구·중구·울주 출장 설치 — 심플큐브"
+  description="울산 전 지역 포토부스 출장 설치. 삼산동, 성남동, 울산대공원, 울주 등 울산 어디든 설치 가능. 웨딩, 기업행사, 팝업스토어 맞춤 포토부스 렌탈."
+  ogImage="/images/photobooth-rental-simplecube.jpg"
+  transparentNav={false}
+>
+  <BreadcrumbSchema items={[
+    { name: '포토부스 대여', url: '/rental' },
+    { name: '울산 포토부스', url: '/ulsan' },
+  ]} />
+  <ServiceSchema services={[
+    {
+      name: '울산 포토부스 대여 — 울산 전 지역 출장 설치',
+      description: '심플큐브의 울산 포토부스 대여 서비스. 삼산동, 성남동, 울산대공원, 울주 등 울산 전 지역 출장 설치. 웨딩, 기업행사, 팝업스토어, 페스티벌 맞춤 포토부스 렌탈. 부산 지점에서 출장.',
+      url: '/ulsan',
+    },
+  ]} />
+  {faqItems.length > 0 && <FAQSchema faqs={faqItems} />}
+
+  <!-- Hero -->
+  <section class="pt-20 lg:pt-22">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8 py-6 border-b border-border-light">
+      <div class="flex items-start gap-4">
+        <div class="w-[3px] h-12 bg-olive rounded-full shrink-0 mt-0.5"></div>
+        <div>
+          <div class="flex items-baseline gap-3">
+            <h1 class="text-2xl font-bold text-primary">울산 포토부스 대여</h1>
+            <span class="text-[11px] font-medium tracking-[0.12em] text-secondary/40">ULSAN</span>
+          </div>
+          <p class="text-[12px] text-secondary/50 mt-1">삼산동, 성남동, 울산대공원, 울주 — 울산 전 지역 출장 설치</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Ulsan service introduction -->
+  <section class="bg-bg-light py-12 lg:py-16">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      <div class="mb-8 lg:mb-10">
+        <div class="inline-flex items-center justify-center w-9 h-9 rounded-full border-[1.5px] border-olive text-olive text-[13px] font-bold mb-4">01</div>
+        <span class="block text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">ULSAN SERVICE</span>
+        <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">울산 포토부스 서비스</h2>
+        <div class="mt-4 h-[2px] w-8 bg-olive"></div>
+      </div>
+      <div class="grid gap-8 lg:grid-cols-2">
+        <div class="space-y-4 text-sm leading-relaxed text-secondary">
+          <p>
+            <strong>심플큐브</strong>는 울산 전 지역에 포토부스 출장 설치를 제공하는 <strong>울산 포토부스 대여 전문 업체</strong>입니다.
+            삼산동, 성남동, 울산대공원, 무거동, 옥동, 울주군 등 울산 어디든 설치가 가능하며,
+            결혼식, 기업행사, 브랜드 팝업스토어, 페스티벌 등 행사 유형에 맞는 맞춤형 포토부스를 제공합니다.
+          </p>
+          <p>
+            부산 지점이 인접해 있어 울산 전 지역으로 빠르게 출장이 가능합니다.
+            장비 설치부터 운영, 철거까지 원스톱으로 진행하며, 원목 소재의 프리미엄 포토부스, 브랜딩이 가능한 커스텀 부스 등 다양한 옵션을 갖추고 있습니다.
+          </p>
+        </div>
+        <div class="grid grid-cols-3 gap-4">
+          <div class="rounded-lg border border-border-light bg-white p-5 text-center">
+            <span class="block text-2xl font-bold text-olive">14,000+</span>
+            <span class="block mt-1 text-xs text-secondary">전체 누적 행사</span>
+          </div>
+          <div class="rounded-lg border border-border-light bg-white p-5 text-center">
+            <span class="block text-2xl font-bold text-olive">부산 지점</span>
+            <span class="block mt-1 text-xs text-secondary">출장 운영</span>
+          </div>
+          <div class="rounded-lg border border-border-light bg-white p-5 text-center">
+            <span class="block text-2xl font-bold text-olive">당일</span>
+            <span class="block mt-1 text-xs text-secondary">설치 · 철거</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
+
+  <!-- Popular event types in Ulsan -->
+  <section class="bg-white py-12 lg:py-16">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      <div class="mb-8 lg:mb-10">
+        <div class="inline-flex items-center justify-center w-9 h-9 rounded-full border-[1.5px] border-olive text-olive text-[13px] font-bold mb-4">02</div>
+        <span class="block text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">EVENT TYPES</span>
+        <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">울산 인기 행사 유형</h2>
+        <div class="mt-4 h-[2px] w-8 bg-olive"></div>
+      </div>
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <a href="/wedding" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
+          <h3 class="text-lg font-bold text-primary group-hover:text-olive transition-colors">웨딩 포토부스</h3>
+          <p class="mt-1 text-xs text-olive font-medium">남구 · 중구</p>
+          <p class="mt-2 text-sm text-secondary leading-relaxed">롯데호텔 울산, 현대호텔, 울산 주요 웨딩홀에서 가장 많이 찾는 포토부스. 하객 포토 서비스로 결혼식의 추억을 선물합니다.</p>
+          <span class="mt-3 inline-block text-xs text-olive font-medium">자세히 보기 →</span>
+        </a>
+        <a href="/corporate" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
+          <h3 class="text-lg font-bold text-primary group-hover:text-olive transition-colors">기업행사 포토부스</h3>
+          <p class="mt-1 text-xs text-olive font-medium">UECO · 산업단지</p>
+          <p class="mt-2 text-sm text-secondary leading-relaxed">울산전시컨벤션센터(UECO), 현대중공업·SK·HD현대 등 울산 산업단지 기업행사를 위한 포토부스 렌탈.</p>
+          <span class="mt-3 inline-block text-xs text-olive font-medium">자세히 보기 →</span>
+        </a>
+        <a href="/popup" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
+          <h3 class="text-lg font-bold text-primary group-hover:text-olive transition-colors">팝업스토어 포토부스</h3>
+          <p class="mt-1 text-xs text-olive font-medium">삼산동 · 성남동</p>
+          <p class="mt-2 text-sm text-secondary leading-relaxed">삼산동 메인 상권, 성남동 원도심, 울산 주요 백화점 팝업스토어를 위한 커스텀 포토부스. 브랜드 맞춤 디자인.</p>
+          <span class="mt-3 inline-block text-xs text-olive font-medium">자세히 보기 →</span>
+        </a>
+        <a href="/popup" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
+          <h3 class="text-lg font-bold text-primary group-hover:text-olive transition-colors">페스티벌 포토부스</h3>
+          <p class="mt-1 text-xs text-olive font-medium">태화강 · 일산해수욕장</p>
+          <p class="mt-2 text-sm text-secondary leading-relaxed">태화강 국가정원, 일산해수욕장, 울산고래축제, 처용문화제 등 울산 대표 야외 행사장에서의 페스티벌 포토부스.</p>
+          <span class="mt-3 inline-block text-xs text-olive font-medium">자세히 보기 →</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
+
+  <!-- Ulsan installation areas -->
+  <section class="bg-bg-light py-12 lg:py-16">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      <div class="mb-8 lg:mb-10">
+        <div class="inline-flex items-center justify-center w-9 h-9 rounded-full border-[1.5px] border-olive text-olive text-[13px] font-bold mb-4">03</div>
+        <span class="block text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">AREAS</span>
+        <h2 class="mt-5 text-[clamp(1.75rem,3vw,2.8rem)] font-bold text-primary">울산 주요 설치 지역</h2>
+        <div class="mt-4 h-[2px] w-8 bg-olive"></div>
+      </div>
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          { area: '남구 · 삼산동', venues: '롯데호텔 울산, 삼산동 상권, 울산광역시청, UECO 울산전시컨벤션센터', highlight: true },
+          { area: '중구 · 성남동', venues: '성남동 원도심, 옥교동, 울산문화예술회관, 시계탑사거리', highlight: false },
+          { area: '동구 · 일산', venues: '현대중공업, 일산해수욕장, 동구 웨딩홀, 방어진', highlight: false },
+          { area: '북구 · 농소', venues: '농소·진장 행사장, 강동·정자해변, 북구청 인근', highlight: false },
+          { area: '울주군 · 언양', venues: '언양읍, 영남알프스, 간절곶, 울주 야외 행사장', highlight: false },
+          { area: '태화강 · 무거동', venues: '태화강 국가정원, 무거동 웨딩홀, 울산대학교 인근', highlight: false },
+          { area: '온산 · 산업단지', venues: '온산국가산업단지, 미포·매암 산업단지 행사장', highlight: false },
+          { area: '기타 울산·경남', venues: '양산·김해 등 인근 어디든 출장 설치 가능. 맞춤 견적 안내.', highlight: false },
+        ].map(item => (
+          <div class:list={[
+            'rounded-lg border p-5',
+            item.highlight ? 'border-olive/40 bg-olive/5' : 'border-border-light bg-white'
+          ]}>
+            <h3 class="text-base font-semibold text-primary">{item.area}</h3>
+            <p class="mt-2 text-sm text-secondary leading-relaxed">{item.venues}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
+
+  <!-- Machine Showcase -->
+  <MachineShowcase />
+
+  <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
+
+  <!-- Client Showcase -->
+  <ClientShowcase />
+
+  <!-- FAQ -->
+  {faqItems.length > 0 && (
+    <Fragment>
+    <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
+    <section id="qna" class="bg-white py-12 lg:py-16">
+      <div class="mx-auto max-w-3xl px-6 lg:px-8">
+        <div class="mb-10">
+          <div class="inline-flex items-center justify-center w-9 h-9 rounded-full border-[1.5px] border-olive text-olive text-[13px] font-bold mb-4">06</div>
+          <span class="block text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">FAQ</span>
+          <h2 class="mt-3 text-2xl font-bold text-primary md:text-3xl">울산 포토부스 자주 묻는 질문</h2>
+          <div class="mt-4 h-[2px] w-8 bg-olive"></div>
+        </div>
+        <AccordionList items={faqItems} />
+      </div>
+    </section>
+    </Fragment>
+  )}
+
+  <!-- CTA -->
+  <section class="bg-[#6B5B4D] py-12 lg:py-16">
+    <div class="mx-auto max-w-3xl px-6 lg:px-8 text-center">
+      <h2 class="text-2xl font-bold text-[#FFFAF4] md:text-3xl">울산 지역 맞춤 견적 받기</h2>
+      <p class="mt-4 text-sm text-[#FFFAF4]/60 leading-relaxed">
+        울산 행사 일정과 장소를 알려주시면, 부산 지점에서 빠르게 출장 견적을 안내해드립니다.
+      </p>
+      <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="/contact" class="inline-flex items-center gap-2 rounded-lg bg-olive px-8 py-3 text-sm font-semibold text-white hover:bg-olive/90 transition-colors">
+          문의하기
+        </a>
+        <a href="tel:01031224746" class="inline-flex items-center gap-2 text-sm text-[#FFFAF4]/80 hover:text-[#FFFAF4] transition-colors">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+          010-3122-4746 (부산 지점)
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
