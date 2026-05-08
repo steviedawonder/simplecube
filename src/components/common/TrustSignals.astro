@@ -73,20 +73,10 @@ const compensationRows = [
   { situation: '단순 변심·개인적 취향·기대와의 차이·이용 빈도 등 주관적 사유', detail: '환불 불가' },
 ];
 
-// Wedding compensation (전액 + 일부 환불) — contract §12
-const weddingFullRefundRows = [
-  { situation: '기계 오작동으로 서비스 제공이 이뤄지지 않은 경우', detail: '결제 금액 100% 환불' },
-  { situation: '당일 설치가 약속된 진행 시간보다 30분 이상 지체된 경우', detail: '결제 금액 100% 환불 (천재지변 또는 식장 요청에 의한 지연은 제외)' },
-];
-
-const weddingPartialRefundRows = [
-  { situation: '2인 운영 원칙인데 1인 운영으로 진행된 경우', detail: '촬영 금액의 20% 환불' },
-  { situation: '계약된 운영 시간을 채우지 못한 경우', detail: '(결제 금액 − 할인 금액) ÷ 계약 시간 × 부족 시간 환불' },
-  { situation: '구성품 누락 (백드롭·가랜드·테이블 등)', detail: '행사비의 30% 환불' },
-  { situation: '심플큐브 직원 실수로 방명록이 분실된 경우', detail: '70% 환불' },
-  { situation: '사진 디자인에 다른 사람의 이름이 표기된 경우', detail: '70% 환불' },
-  { situation: '대기 화면·사진 철자에 단순 오타가 있는 경우', detail: '20% 환불 (이용자가 상담 과정에서 최종 컨펌한 내역은 제외)' },
-];
+// Wedding compensation cases (전액·부분) are intentionally not surfaced on
+// the public site — the detailed list was distracting and the policy is
+// communicated via contract + consultation. Penalty schedule is enough for
+// the booking-decision context.
 ---
 
 <!-- Operations standard guide + event refund policy -->
@@ -196,37 +186,7 @@ const weddingPartialRefundRows = [
           </table>
         </div>
 
-        <div class="mt-4 rounded-lg border border-border-light bg-white">
-          <h4 class="border-b border-border-light px-5 py-3 text-sm font-semibold text-primary">2. 전액 환불 (심플큐브 과실 시)</h4>
-          <table class="w-full text-sm">
-            <caption class="sr-only">웨딩 포토부스 전액 환불 사유</caption>
-            <tbody>
-              {weddingFullRefundRows.map((row, idx) => (
-                <tr class:list={[idx > 0 ? 'border-t border-border-light/60' : '']}>
-                  <th scope="row" class="px-5 py-3 align-top w-1/2 sm:w-3/5 text-left font-semibold text-primary whitespace-normal break-keep">{row.situation}</th>
-                  <td class="px-5 py-3 align-top text-secondary leading-relaxed break-keep">{row.detail}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div class="mt-4 rounded-lg border border-border-light bg-white">
-          <h4 class="border-b border-border-light px-5 py-3 text-sm font-semibold text-primary">3. 부분 환불 (심플큐브 과실 시)</h4>
-          <table class="w-full text-sm">
-            <caption class="sr-only">웨딩 포토부스 부분 환불 사유</caption>
-            <tbody>
-              {weddingPartialRefundRows.map((row, idx) => (
-                <tr class:list={[idx > 0 ? 'border-t border-border-light/60' : '']}>
-                  <th scope="row" class="px-5 py-3 align-top w-1/2 sm:w-3/5 text-left font-semibold text-primary whitespace-normal break-keep">{row.situation}</th>
-                  <td class="px-5 py-3 align-top text-secondary leading-relaxed break-keep">{row.detail}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <p class="mt-4 text-xs text-secondary/70 leading-relaxed">※ 단순 변심·기대와의 차이·하객 측 사유(촬영 거부·방명록 미작성 등)·식장 측 요청에 의한 지연 등은 환불 사유에서 제외됩니다. 약관 원본은 계약 시 임차인에게 전달되며, 위 내용과 약관 본문에 차이가 있는 경우 약관 본문이 우선합니다.</p>
+        <p class="mt-4 text-xs text-secondary/70 leading-relaxed">※ 심플큐브 과실에 따른 보상·전액·부분 환불 규정은 별도 약관에 명시되어 있으며 계약 시 임차인에게 전달됩니다. 위 내용과 약관 본문에 차이가 있는 경우 약관 본문이 우선합니다. 자세한 안내는 카카오톡 또는 전화 상담 시 받아보실 수 있습니다.</p>
       </Fragment>
     )}
   </div>
