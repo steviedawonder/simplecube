@@ -7,6 +7,7 @@ import ServiceSchema from '@components/seo/ServiceSchema.astro';
 import MachineShowcase from '@components/popup/MachineShowcase.astro';
 import ClientShowcase from '@components/popup/ClientShowcase.astro';
 import AccordionList from '@components/faq/AccordionList.astro';
+import RegionUniqueInfo from '@components/region/RegionUniqueInfo.astro';
 import db from '@lib/db';
 
 const [daeguFaqResult, rentalFaqResult, popupFaqResult] = await Promise.all([
@@ -24,6 +25,7 @@ const faqItems = (
 <BaseLayout
   title="대구 포토부스 대여 | 동성로·수성구·엑스코 출장 설치 — 심플큐브"
   description="대구 전 지역 포토부스 출장 설치. 동성로, 수성구, 엑스코, 두류공원 등 대구 어디든 설치 가능. 웨딩, 기업행사, 팝업스토어 맞춤 포토부스 렌탈."
+  keywords="대구 포토부스, 대구 포토부스 대여, 동성로 포토부스, 수성구 포토부스, 대구 EXCO 포토부스, 대구 웨딩 포토부스, 대구 팝업 포토부스, 동대구 포토부스, 심플큐브 대구"
   ogImage="/images/photobooth-rental-simplecube.jpg"
   transparentNav={false}
 >
@@ -168,6 +170,42 @@ const faqItems = (
       </div>
     </div>
   </section>
+
+  <RegionUniqueInfo
+    city="대구"
+    cityEn="DAEGU"
+    branchOrigin="심플큐브 부산 지점"
+    highlights={[
+      { label: 'NEAREST BRANCH', value: '부산 지점 — 약 1시간 30분' },
+      { label: 'COVERAGE', value: '대구·경북 권역 당일 출장' },
+      { label: 'RESPONSE', value: '평일 일과시간 내 30분 내 견적 회신' },
+    ]}
+    localStory={`<strong>대구</strong>는 동성로 메인 상권의 강한 유동인구와 수성구 럭셔리 웨딩홀(호텔수성·인터불고)을 동시에 가진 도시로, 결혼식 포토부스 수요와 동성로·삼덕동 카페거리 브랜드 팝업스토어 수요가 분리되어 있습니다. 심플큐브는 부산 지점에서 출발해 약 1시간 30분 안에 동대구역·수성·중구 권역에 도착하며, EXCO 전시 일정에 맞춘 새벽 설치도 가능합니다.`}
+    serviceTrend={`최근 대구는 <a href="/popup" class="text-olive underline">동성로 K-패션 팝업</a>과 EXCO 박람회 부스 포토 마케팅이 빠르게 늘고 있습니다. 심플큐브는 동성로 도보 상권의 협소한 공간에 맞는 슬림형 부스, EXCO 박람회용 브랜딩 부스 등 대구 행사장 특성에 맞춘 옵션을 제공합니다.`}
+    priceRows={[
+      { type: '대구 시내', detail: '수성·중구·동구·북구·서구·남구·달서·달성 — 별도 문의' },
+      { type: '경북 권역', detail: '경산·영천·구미·포항·칠곡 — 별도 문의' },
+      { type: '운영 시간 (웨딩)', detail: '본식 90분 전 설치 → 예식 시작 후 30분까지 운영', note: '식장 상황·요청에 따라 조정 가능' },
+      { type: '운영 시간 (팝업·기업·페스티벌)', detail: '최소 2시간부터 예약 가능', note: '일·주·월 단위 장기 예약 가능' },
+    ]}
+    nearbyAreas={[
+      { name: '부산 포토부스', url: '/busan', note: '본 지점' },
+      { name: '울산 포토부스', url: '/ulsan', note: '90분' },
+      { name: '경산', note: '대구 권역' },
+      { name: '영천', note: '대구 권역' },
+      { name: '구미', note: '경북 협의' },
+      { name: '포항', note: '경북 협의' },
+      { name: '칠곡', note: '경북 협의' },
+    ]}
+    bestVenues={[
+      { category: '수성·범어 호텔 웨딩홀', venues: '호텔수성, 인터불고 호텔, 두산위브더제니스, 수성못 인근 라온제나' },
+      { category: '중구·동성로', venues: '대구백화점, 롯데백화점, 김광석거리, 삼덕동 카페거리, 동성로 메인 상권 팝업' },
+      { category: '북구·EXCO 컨벤션', venues: 'EXCO 제1·2전시장, 산격동 컨벤션, 칠곡 행사장' },
+      { category: '동구·신천', venues: '신세계백화점 동대구, 동대구역 인근, 신천변 야외 행사장' },
+      { category: '달서·달성 외곽', venues: '두류공원, 이월드, 성서산업단지, 테크노폴리스 행사장' },
+      { category: '경산·영천 인접', venues: '경산 영남대학교 행사, 영천 군부대 행사, 칠곡 군부대 행사' },
+    ]}
+  />
 
   <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
 

@@ -7,6 +7,7 @@ import ServiceSchema from '@components/seo/ServiceSchema.astro';
 import MachineShowcase from '@components/popup/MachineShowcase.astro';
 import ClientShowcase from '@components/popup/ClientShowcase.astro';
 import AccordionList from '@components/faq/AccordionList.astro';
+import TrustSignals from '@components/common/TrustSignals.astro';
 import db from '@lib/db';
 
 // Fetch both page-specific and fallback FAQs in parallel
@@ -20,6 +21,7 @@ const faqItems = (rentalFaqResult.rows.length > 0 ? rentalFaqResult.rows : popup
 <BaseLayout
   title="포토부스 대여 · 렌탈 | 심플큐브 — 행사용 포토부스 렌탈 전문"
   description="포토부스 대여 전문 심플큐브. 결혼식, 기업행사 등 다양한 행사를 위한 포토부스 렌탈 서비스. 전국 출장 설치, 맞춤 디자인, 즉석 인화까지."
+  keywords="포토부스 대여, 포토부스 렌탈, 행사 포토부스 대여, 포토부스 출장, 전국 포토부스 대여, 웨딩 포토부스 대여, 기업행사 포토부스 대여, 팝업 포토부스 대여, 심플큐브"
   ogImage="/images/photobooth-rental-simplecube.jpg"
   transparentNav={false}
 >
@@ -297,6 +299,11 @@ const faqItems = (rentalFaqResult.rows.length > 0 ? rentalFaqResult.rows : popup
       <p class="mt-8 text-center text-sm text-secondary/70">※ 정확한 가격은 행사 규모와 옵션에 따라 달라집니다.</p>
     </div>
   </section>
+
+  <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
+
+  <!-- Trust Signals: operations, refund, payment terms (SEO content depth) -->
+  <TrustSignals context="rental" />
 
   <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
 

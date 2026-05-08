@@ -7,6 +7,7 @@ import ServiceSchema from '@components/seo/ServiceSchema.astro';
 import MachineShowcase from '@components/popup/MachineShowcase.astro';
 import ClientShowcase from '@components/popup/ClientShowcase.astro';
 import AccordionList from '@components/faq/AccordionList.astro';
+import RegionUniqueInfo from '@components/region/RegionUniqueInfo.astro';
 import db from '@lib/db';
 
 const [busanFaqResult, rentalFaqResult, popupFaqResult] = await Promise.all([
@@ -24,6 +25,7 @@ const faqItems = (
 <BaseLayout
   title="부산 포토부스 대여 | 해운대·서면·광안리 출장 설치 — 심플큐브"
   description="부산 전 지역 포토부스 출장 설치. 해운대, 서면, 광안리, 센텀시티 등 부산 어디든 설치 가능. 웨딩, 기업행사, 팝업스토어 맞춤 포토부스. 심플큐브 부산 지점 직접 운영."
+  keywords="부산 포토부스, 부산 포토부스 대여, 해운대 포토부스, 서면 포토부스, 광안리 포토부스, 센텀시티 포토부스, 부산 웨딩 포토부스, 부산 팝업 포토부스, BEXCO 포토부스, 심플큐브 부산"
   ogImage="/images/photobooth-rental-simplecube.jpg"
   transparentNav={false}
 >
@@ -168,6 +170,41 @@ const faqItems = (
       </div>
     </div>
   </section>
+
+  <RegionUniqueInfo
+    city="부산"
+    cityEn="BUSAN"
+    branchOrigin="심플큐브 부산 지점"
+    highlights={[
+      { label: 'BRANCH', value: '부산 지점 직영 운영' },
+      { label: 'COVERAGE', value: '부산 시내 당일 출장' },
+      { label: 'RESPONSE', value: '평일 일과시간 내 30분 내 견적 회신' },
+    ]}
+    localStory={`<strong>부산</strong>은 해운대 그랜드조선·파크하얏트·시그니엘 부산 등 럭셔리 웨딩홀이 밀집한 한국 제2의 결혼식 도시입니다. 심플큐브 부산 지점은 해운대·광안리·서면을 중심으로 매주 4~6건의 결혼식 포토부스를 운영하고 있으며, 부산만의 해양 풍경과 어울리는 원목 부스 디자인을 선호하시는 신랑신부님께 특히 좋은 평을 받고 있습니다.`}
+    serviceTrend={`또한 광안리 SUP·요트 페스티벌, 부산국제영화제(BIFF), 부산불꽃축제 등 야외 행사가 활발한 지역 특성상, 비·바람에도 안정적으로 운영되는 방수 부스와 야외 전원 솔루션을 따로 갖추고 있습니다. <a href="/popup" class="text-olive underline">팝업 포토부스</a>는 광안리·서면·전포 카페거리 브랜드 팝업스토어 설치 사례가 가장 많습니다.`}
+    priceRows={[
+      { type: '부산 시내', detail: '해운대·서면·동래·연제·남구·수영·금정 등 — 출장비 별도 없음' },
+      { type: '부산 외 권역', detail: '경남(김해·양산·창원·진해) 및 울산 — 별도 문의' },
+      { type: '운영 시간 (웨딩)', detail: '본식 90분 전 설치 → 예식 시작 후 30분까지 운영', note: '식장 상황·요청에 따라 조정 가능' },
+      { type: '운영 시간 (팝업·기업·페스티벌)', detail: '최소 2시간부터 예약 가능', note: '일·주·월 단위 장기 예약 가능' },
+    ]}
+    nearbyAreas={[
+      { name: '울산 포토부스', url: '/ulsan', note: '60분' },
+      { name: '대구 포토부스', url: '/daegu', note: '90분' },
+      { name: '김해', note: '경남 협의 출장' },
+      { name: '양산', note: '경남 협의 출장' },
+      { name: '창원·진해', note: '경남 협의 출장' },
+      { name: '거제', note: '경남 협의 출장' },
+    ]}
+    bestVenues={[
+      { category: '해운대·우동 호텔 웨딩홀', venues: '파크하얏트 부산, 시그니엘 부산, 그랜드조선 부산, 웨스틴조선 부산, 노보텔 앰버서더 해운대' },
+      { category: '서면·연제 컨벤션', venues: '롯데호텔 부산, 부산은행 본점, 시청 옆 컨벤션, 부산시민공원 야외 행사장' },
+      { category: '광안리·수영 야외', venues: '광안리해수욕장 야외 무대, 수영만 요트경기장, 민락수변공원 페스티벌' },
+      { category: '벡스코·센텀 비즈니스', venues: 'BEXCO 제1·2전시장, 센텀시티 비즈니스 호텔, 영화의전당, 신세계 센텀시티' },
+      { category: '동래·금정 클래식', venues: '동래베네치아, 부산진구 가야 웨딩홀, 동래읍성 야외 행사' },
+      { category: '강서·기장 외곽', venues: '아난티 코브, 힐튼 부산, 오시리아 관광단지, 강서 명지 신도시 행사장' },
+    ]}
+  />
 
   <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
 

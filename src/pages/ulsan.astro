@@ -7,6 +7,7 @@ import ServiceSchema from '@components/seo/ServiceSchema.astro';
 import MachineShowcase from '@components/popup/MachineShowcase.astro';
 import ClientShowcase from '@components/popup/ClientShowcase.astro';
 import AccordionList from '@components/faq/AccordionList.astro';
+import RegionUniqueInfo from '@components/region/RegionUniqueInfo.astro';
 import db from '@lib/db';
 
 const [ulsanFaqResult, rentalFaqResult, popupFaqResult] = await Promise.all([
@@ -24,6 +25,7 @@ const faqItems = (
 <BaseLayout
   title="울산 포토부스 대여 | 남구·중구·울주 출장 설치 — 심플큐브"
   description="울산 전 지역 포토부스 출장 설치. 삼산동, 성남동, 울산대공원, 울주 등 울산 어디든 설치 가능. 웨딩, 기업행사, 팝업스토어 맞춤 포토부스 렌탈."
+  keywords="울산 포토부스, 울산 포토부스 대여, 삼산동 포토부스, 성남동 포토부스, 울산 웨딩 포토부스, 울산 기업행사 포토부스, 태화강 포토부스, 울주 포토부스, 심플큐브 울산"
   ogImage="/images/photobooth-rental-simplecube.jpg"
   transparentNav={false}
 >
@@ -168,6 +170,41 @@ const faqItems = (
       </div>
     </div>
   </section>
+
+  <RegionUniqueInfo
+    city="울산"
+    cityEn="ULSAN"
+    branchOrigin="심플큐브 부산 지점"
+    highlights={[
+      { label: 'NEAREST BRANCH', value: '부산 지점 — 약 60분' },
+      { label: 'COVERAGE', value: '울산·경주·양산권 당일 출장' },
+      { label: 'RESPONSE', value: '평일 일과시간 내 30분 내 견적 회신' },
+    ]}
+    localStory={`<strong>울산</strong>은 현대자동차·HD현대중공업·SK에너지로 대표되는 한국 최대의 중공업 도시로, 임직원 가족 체육대회·창립기념일·신년회 등 대규모 기업행사 포토부스 수요가 가장 큰 도시 중 하나입니다. 심플큐브 부산 지점에서 60분 내 도착하며, 울산 시내·울주군·경주까지 같은 출장 권역으로 운영합니다.`}
+    serviceTrend={`또한 태화강 국가정원 야외 페스티벌, 간절곶·일산해수욕장 가족 행사, 남구 신정·달동의 신축 웨딩홀 등 산업도시 특유의 다양한 수요가 있습니다. <a href="/corporate" class="text-olive underline">기업행사 포토부스</a> 운영 경험이 풍부하여, 임직원 명찰 연동, 가족 동반 무제한 인화, 대규모 동시 운영 노하우를 보유하고 있습니다.`}
+    priceRows={[
+      { type: '울산 시내', detail: '남·북·동·중·울주 — 별도 문의' },
+      { type: '인근 권역', detail: '울주·언양·경주·포항·양산 — 별도 문의' },
+      { type: '운영 시간 (웨딩)', detail: '본식 90분 전 설치 → 예식 시작 후 30분까지 운영', note: '식장 상황·요청에 따라 조정 가능' },
+      { type: '운영 시간 (팝업·기업·임직원 행사)', detail: '최소 2시간부터 예약 가능', note: '일·주·월 단위 장기 예약 가능' },
+    ]}
+    nearbyAreas={[
+      { name: '부산 포토부스', url: '/busan', note: '본 지점' },
+      { name: '대구 포토부스', url: '/daegu', note: '90분' },
+      { name: '경주', note: '울산 권역' },
+      { name: '양산', note: '부산 권역' },
+      { name: '포항', note: '협의 출장' },
+      { name: '언양·온양', note: '울산 권역' },
+    ]}
+    bestVenues={[
+      { category: '남구·신정 호텔 웨딩홀', venues: '롯데호텔 울산, 현대호텔 울산, 울산 컨벤션, 라한 셀렉트 울산' },
+      { category: '현대·HD현대 임직원 행사', venues: '현대자동차 울산공장, HD현대중공업, SK에너지 울산CLX, 영남알프스 야외 행사' },
+      { category: '태화강·울산대공원', venues: '태화강 국가정원, 울산대공원 야외 행사, 울산문화예술회관' },
+      { category: '울주·언양·간절곶', venues: '간절곶 일출 행사, 영남알프스 케이블카, 언양 한우 축제, 외고산 옹기마을' },
+      { category: '북·동·중구 신도심', venues: '북구 매곡산업단지, 동구 일산해수욕장, 중구 성남동 청년상권' },
+      { category: '경주·포항 인접', venues: '경주 보문관광단지, 황리단길 팝업, 포항 영일대해수욕장' },
+    ]}
+  />
 
   <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
 

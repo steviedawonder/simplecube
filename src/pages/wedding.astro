@@ -6,6 +6,7 @@ import PackageDetails from '@components/wedding/PackageDetails.astro';
 import BookingInquiry from '@components/wedding/BookingInquiry.astro';
 import PartnerHalls from '@components/wedding/PartnerHalls.astro';
 import AccordionList from '@components/faq/AccordionList.astro';
+import TrustSignals from '@components/common/TrustSignals.astro';
 import db from '@lib/db';
 
 // Run all queries in parallel to reduce Turso round-trips
@@ -25,6 +26,7 @@ const backdrops: any[] = bdResult.status === 'fulfilled' ? bdResult.value.rows a
 <BaseLayout
   title="웨딩 포토부스 | 심플큐브 - 결혼식 포토부스 대여"
   description="결혼식 포토부스로 특별한 순간을 남기세요. 심플큐브 웨딩 포토부스는 맞춤 디자인과 전문 운영을 제공합니다. 패키지 확인 및 예약 문의하세요."
+  keywords="웨딩 포토부스, 결혼식 포토부스, 웨딩 포토부스 대여, 결혼식 포토부스 대여, 하객 포토 서비스, 포토방명록, 웨딩홀 포토부스, 호텔웨딩 포토부스, 심플큐브 웨딩"
   transparentNav={false}
 >
   <!-- 좌측 골드 보더 히어로 (투명 배경) -->
@@ -240,6 +242,10 @@ const backdrops: any[] = bdResult.status === 'fulfilled' ? bdResult.value.rows a
   <!-- BookingInquiry removed -->
   <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
   <PartnerHalls />
+
+  <!-- Trust Signals: operations, refund, payment terms (SEO content depth) -->
+  <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
+  <TrustSignals context="wedding" />
 
   <!-- Cross-link: other services -->
   <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />

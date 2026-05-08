@@ -7,6 +7,10 @@ import ClientShowcase from '@components/popup/ClientShowcase.astro';
 import MachineShowcase from '@components/popup/MachineShowcase.astro';
 import CustomOptions from '@components/popup/CustomOptions.astro';
 import AccordionList from '@components/faq/AccordionList.astro';
+import TrustSignals from '@components/common/TrustSignals.astro';
+import BreadcrumbSchema from '@components/seo/BreadcrumbSchema.astro';
+import FAQSchema from '@components/seo/FAQSchema.astro';
+import ServiceSchema from '@components/seo/ServiceSchema.astro';
 import db from '@lib/db';
 
 // Run both queries in parallel
@@ -20,10 +24,24 @@ const backgrounds: any[] = bgResult.status === 'fulfilled' ? bgResult.value.rows
 ---
 
 <BaseLayout
-  title="POP-UP | 심플큐브"
-  description="심플큐브 팝업 포토부스. 브랜드 팝업스토어, 기업 행사, 페스티벌을 위한 맞춤형 포토부스 서비스."
+  title="팝업 포토부스 대여 | 브랜드 팝업스토어·기업행사·페스티벌 — 심플큐브"
+  description="브랜드 팝업스토어·기업행사·페스티벌·박람회 맞춤 팝업 포토부스 대여. 14,000건 이상 행사 운영 경력의 심플큐브가 커스텀 부스, 즉석 인화, QR 디지털 공유까지 원스톱으로 진행합니다."
+  keywords="팝업 포토부스, 팝업 포토부스 대여, 브랜드 팝업스토어 포토부스, 기업행사 포토부스, 페스티벌 포토부스, 박람회 포토부스, 커스텀 포토부스, 행사 포토부스, 심플큐브, SIMPLE CUBE"
   transparentNav={false}
 >
+  <BreadcrumbSchema items={[
+    { name: '포토부스 대여', url: '/rental' },
+    { name: '팝업 포토부스', url: '/popup' },
+  ]} />
+  <ServiceSchema services={[
+    {
+      name: '팝업 포토부스 대여 — 브랜드 팝업스토어·기업행사·페스티벌',
+      description: '심플큐브의 팝업 포토부스 대여 서비스. 브랜드 팝업스토어, 기업행사, 페스티벌, 박람회에 맞춤형 커스텀 포토부스를 제공합니다. CI/BI 맞춤 디자인, 즉석 인화, QR 디지털 공유까지 원스톱 운영. 전국 4개 지점에서 직영 출장 설치.',
+      url: '/popup',
+    },
+  ]} />
+  {faqItems.length > 0 && <FAQSchema faqs={faqItems} />}
+
   <!-- 좌측 골드 보더 히어로 (투명 배경) -->
   <section class="pt-20 lg:pt-22">
     <div class="mx-auto max-w-7xl px-6 lg:px-8 py-6 border-b border-border-light">
@@ -93,6 +111,10 @@ const backgrounds: any[] = bgResult.status === 'fulfilled' ? bgResult.value.rows
     </section>
     </Fragment>
   )}
+
+  <!-- Trust Signals: operations, refund, payment terms (SEO content depth) -->
+  <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
+  <TrustSignals context="popup" />
 
   <!-- Cross-link: other services -->
   <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />

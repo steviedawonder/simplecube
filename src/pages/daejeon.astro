@@ -7,6 +7,7 @@ import ServiceSchema from '@components/seo/ServiceSchema.astro';
 import MachineShowcase from '@components/popup/MachineShowcase.astro';
 import ClientShowcase from '@components/popup/ClientShowcase.astro';
 import AccordionList from '@components/faq/AccordionList.astro';
+import RegionUniqueInfo from '@components/region/RegionUniqueInfo.astro';
 import db from '@lib/db';
 
 const [daejeonFaqResult, rentalFaqResult, popupFaqResult] = await Promise.all([
@@ -24,6 +25,7 @@ const faqItems = (
 <BaseLayout
   title="대전 포토부스 대여 | 둔산동·유성·DCC 출장 설치 — 심플큐브"
   description="대전 전 지역 포토부스 출장 설치. 둔산동, 유성, 대전컨벤션센터(DCC), 대덕연구단지 등 대전 어디든 설치 가능. 웨딩, 기업행사, 팝업스토어 맞춤 포토부스. 심플큐브 대전 지점 직접 운영."
+  keywords="대전 포토부스, 대전 포토부스 대여, 둔산동 포토부스, 유성 포토부스, 대전 DCC 포토부스, 대덕 포토부스, 대전 웨딩 포토부스, 대전 기업행사 포토부스, 세종 포토부스, 심플큐브 대전"
   ogImage="/images/photobooth-rental-simplecube.jpg"
   transparentNav={false}
 >
@@ -168,6 +170,41 @@ const faqItems = (
       </div>
     </div>
   </section>
+
+  <RegionUniqueInfo
+    city="대전"
+    cityEn="DAEJEON"
+    branchOrigin="심플큐브 대전 지점"
+    highlights={[
+      { label: 'BRANCH', value: '대전 지점 직영 운영' },
+      { label: 'COVERAGE', value: '대전·세종·충청권 당일 출장' },
+      { label: 'RESPONSE', value: '평일 일과시간 내 30분 내 견적 회신' },
+    ]}
+    localStory={`<strong>대전</strong>은 둔산·도룡·노은으로 이어지는 신도심 웨딩 벨트와, KAIST·UST·정부청사를 중심으로 한 컨퍼런스/연구기관 행사가 동시에 활발합니다. 심플큐브 대전 지점은 둔산·유성·DCC 컨벤션 권역을 30분 내 커버하며, 매주 평균 3~4건의 결혼식과 1~2건의 정부청사·연구기관 컨퍼런스 포토부스를 운영합니다.`}
+    serviceTrend={`<a href="/corporate" class="text-olive underline">기업행사 포토부스</a> 수요가 큰 지역 특성상, 컨퍼런스 명찰 연동 ID 출력, 보안 요청에 따른 사진 자동 삭제 옵션 등 정부·연구기관 행사에 특화된 운영을 갖추고 있습니다. 또한 대전 본점은 충청권 hub 역할을 겸하며, 천안·청주·충주·세종은 모두 대전 지점에서 출장합니다.`}
+    priceRows={[
+      { type: '대전·세종 시내', detail: '서·중·동·유성·대덕 + 세종 신도심·조치원 — 별도 문의' },
+      { type: '충남·충북 인접', detail: '천안·아산·청주·공주·충주·제천 — 별도 문의' },
+      { type: '운영 시간 (웨딩)', detail: '본식 90분 전 설치 → 예식 시작 후 30분까지 운영', note: '식장 상황·요청에 따라 조정 가능' },
+      { type: '운영 시간 (팝업·기업·컨퍼런스)', detail: '최소 2시간부터 예약 가능', note: '일·주·월 단위 장기 예약 가능' },
+    ]}
+    nearbyAreas={[
+      { name: '천안 포토부스', url: '/cheonan', note: '50분' },
+      { name: '청주 포토부스', url: '/cheongju', note: '50분' },
+      { name: '충주 포토부스', url: '/chungju', note: '90분' },
+      { name: '세종', note: '대전 권역' },
+      { name: '공주', note: '대전 권역' },
+      { name: '계룡', note: '대전 권역' },
+    ]}
+    bestVenues={[
+      { category: '둔산·서구 웨딩홀', venues: 'ICC호텔 대전, 라온제나 둔산, 더베네치아, 신세계백화점 대전' },
+      { category: '유성·도룡 호텔', venues: '인터시티 호텔 대전, 라온갤러리, 호텔 ICC, 유성 호텔 권역' },
+      { category: 'DCC·과학기술 컨벤션', venues: 'DCC 대전컨벤션센터, KAIST 행사장, ETRI, 한국전자통신연구원, 대전 정부청사' },
+      { category: '대덕·노은 신도심', venues: '노은 컨벤션, 대덕테크노밸리, 카이스트 본관 야외, 엑스포공원' },
+      { category: '동·중구 시민회관', venues: '대전시민회관, 한밭문화제, 으능정이거리, 중앙로 행사' },
+      { category: '인근 충남·충북', venues: '세종 정부청사, 천안 신부지구, 청주 오송 바이오, 공주 한옥' },
+    ]}
+  />
 
   <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
 
