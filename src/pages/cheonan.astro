@@ -7,6 +7,7 @@ import ServiceSchema from '@components/seo/ServiceSchema.astro';
 import MachineShowcase from '@components/popup/MachineShowcase.astro';
 import ClientShowcase from '@components/popup/ClientShowcase.astro';
 import AccordionList from '@components/faq/AccordionList.astro';
+import RegionUniqueInfo from '@components/region/RegionUniqueInfo.astro';
 import db from '@lib/db';
 
 const [cheonanFaqResult, rentalFaqResult, popupFaqResult] = await Promise.all([
@@ -24,6 +25,7 @@ const faqItems = (
 <BaseLayout
   title="천안 포토부스 대여 | 불당동·천안아산역·아산 출장 설치 — 심플큐브"
   description="천안 전 지역 포토부스 출장 설치. 불당동, 신부동, 천안아산역, 아산 등 천안 어디든 설치 가능. 웨딩, 기업행사, 팝업스토어 맞춤 포토부스 렌탈."
+  keywords="천안 포토부스, 천안 포토부스 대여, 불당동 포토부스, 신부동 포토부스, 천안아산역 포토부스, 아산 포토부스, 천안 웨딩 포토부스, 천안 비렌티웨딩 포토부스, 심플큐브 천안"
   ogImage="/images/photobooth-rental-simplecube.jpg"
   transparentNav={false}
 >
@@ -168,6 +170,41 @@ const faqItems = (
       </div>
     </div>
   </section>
+
+  <RegionUniqueInfo
+    city="천안"
+    cityEn="CHEONAN"
+    branchOrigin="심플큐브 대전 지점"
+    highlights={[
+      { label: 'NEAREST BRANCH', value: '대전 지점 — 약 50분' },
+      { label: 'COVERAGE', value: '천안·아산·평택권 당일 출장' },
+      { label: 'RESPONSE', value: '평일 일과시간 내 30분 내 견적 회신' },
+    ]}
+    localStory={`<strong>천안</strong>은 KTX 천안아산역을 거점으로 수도권과 충청권을 연결하는 핵심 도시로, 불당동·신부지구의 신축 웨딩홀과 두정동·성정동의 신혼부부 인구가 빠르게 늘고 있습니다. 심플큐브는 대전 지점에서 50분 내 도착하며, 매주 2~3건의 천안·아산 결혼식 포토부스를 운영합니다.`}
+    serviceTrend={`또한 KTX 역사 상권과 백화점·아울렛이 밀집한 천안아산 권역은 브랜드 <a href="/popup" class="text-olive underline">팝업스토어 포토부스</a> 설치도 활발합니다. 신부동 갤러리아 백화점, 천안아산역 인근 갤러리, 아산 신정호 행사장 등에서 최근 가장 자주 진행되었습니다.`}
+    priceRows={[
+      { type: '천안·아산 시내', detail: '동남·서북·불당·신부·두정·아산 — 별도 문의' },
+      { type: '인접 권역', detail: '평택·안성·세종·공주 — 별도 문의' },
+      { type: '운영 시간 (웨딩)', detail: '본식 90분 전 설치 → 예식 시작 후 30분까지 운영', note: '식장 상황·요청에 따라 조정 가능' },
+      { type: '운영 시간 (팝업·기업)', detail: '최소 2시간부터 예약 가능', note: '일·주·월 단위 장기 예약 가능' },
+    ]}
+    nearbyAreas={[
+      { name: '대전 포토부스', url: '/daejeon', note: '본 지점' },
+      { name: '청주 포토부스', url: '/cheongju', note: '60분' },
+      { name: '아산', note: '천안 권역' },
+      { name: '평택', note: '협의 출장' },
+      { name: '안성', note: '협의 출장' },
+      { name: '진천', note: '협의 출장' },
+    ]}
+    bestVenues={[
+      { category: '천안 대형 웨딩 컨벤션', venues: '천안 비렌티웨딩, CA웨딩컨벤션 (KTX 천안아산역), 천안웨딩베리컨벤션, 티웨딩 천안, 더포레 천안' },
+      { category: 'KTX 천안아산역 권역', venues: 'CA웨딩컨벤션 (천안아산역사 2층), KTX역 인근 행사장, 신부동 갤러리아 센터시티' },
+      { category: '신부·두정 신도심', venues: '신부동 갤러리아 센터시티, 신부동 상권, 두정동 카페거리' },
+      { category: '아산 온양·탕정', venues: '온양관광호텔, 신정호 카페거리, 탕정 신도시 행사장, 아산테크노밸리' },
+      { category: '동남구·구도심', venues: '천안종합운동장, 천안 구시가지 카페거리, 단국대 천안캠퍼스 행사장' },
+      { category: '인근 평택·안성', venues: '평택·안성·진천 인근 행사장' },
+    ]}
+  />
 
   <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
 

@@ -1,0 +1,159 @@
+---
+interface Highlight {
+  label: string;
+  value: string;
+}
+
+interface PriceRow {
+  type: string;
+  detail: string;
+  note?: string;
+}
+
+interface NearbyArea {
+  name: string;
+  url?: string;
+  note?: string;
+}
+
+interface Props {
+  city: string;
+  cityEn: string;
+  branchOrigin: string;
+  highlights: Highlight[];
+  localStory: string;
+  serviceTrend: string;
+  priceRows: PriceRow[];
+  nearbyAreas: NearbyArea[];
+  bestVenues: { category: string; venues: string }[];
+}
+
+const {
+  city,
+  cityEn,
+  branchOrigin,
+  highlights,
+  localStory,
+  serviceTrend,
+  priceRows,
+  nearbyAreas,
+  bestVenues,
+} = Astro.props;
+---
+
+<!-- Region-specific story (unique per city to avoid doorway pattern) -->
+<hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
+<section class="bg-white py-12 lg:py-16">
+  <div class="mx-auto max-w-7xl px-6 lg:px-8">
+    <div class="mb-8 lg:mb-10">
+      <span class="block text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">{cityEn} INSIGHT</span>
+      <h2 class="mt-3 text-[clamp(1.5rem,2.6vw,2.4rem)] font-bold text-primary">{city} 포토부스 — 지역 인사이트</h2>
+      <div class="mt-4 h-[2px] w-8 bg-olive"></div>
+    </div>
+
+    <div class="grid gap-10 lg:grid-cols-[1.4fr_1fr]">
+      <div class="space-y-5 text-sm leading-relaxed text-secondary">
+        <p set:html={localStory} />
+        <p set:html={serviceTrend} />
+      </div>
+      <div class="space-y-3">
+        {highlights.map(item => (
+          <div class="rounded-lg border border-border-light bg-bg-light p-4">
+            <span class="block text-[10px] font-semibold tracking-[0.3em] text-olive uppercase">{item.label}</span>
+            <span class="mt-1 block text-base font-semibold text-primary">{item.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Region-specific price guide (unique pricing context per city) -->
+<hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
+<section class="bg-bg-light py-12 lg:py-16">
+  <div class="mx-auto max-w-7xl px-6 lg:px-8">
+    <div class="mb-8 lg:mb-10">
+      <span class="block text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">{cityEn} PRICING</span>
+      <h2 class="mt-3 text-[clamp(1.5rem,2.6vw,2.4rem)] font-bold text-primary">{city} 출장비·이용 안내</h2>
+      <div class="mt-4 h-[2px] w-8 bg-olive"></div>
+      <p class="mt-3 text-xs text-secondary/70">
+        {branchOrigin}에서 {city}까지 출장 시 적용되는 표준 안내입니다. 정확한 견적은 행사 일정·장소 확정 후 별도 안내해드립니다.
+      </p>
+    </div>
+    <div class="overflow-x-auto rounded-lg border border-border-light bg-white">
+      <table class="w-full text-sm">
+        <caption class="sr-only">{city} 출장 지역과 운영 시간 안내</caption>
+        <thead class="bg-bg-light/60 text-xs text-secondary">
+          <tr>
+            <th scope="col" class="text-left font-semibold p-4">구분</th>
+            <th scope="col" class="text-left font-semibold p-4">안내</th>
+            <th scope="col" class="text-left font-semibold p-4 hidden sm:table-cell">비고</th>
+          </tr>
+        </thead>
+        <tbody>
+          {priceRows.map(row => (
+            <tr class="border-t border-border-light/60">
+              <th scope="row" class="p-4 text-left font-semibold text-primary break-keep">{row.type}</th>
+              <td class="p-4 text-secondary leading-relaxed break-keep">{row.detail}{row.note && <span class="block sm:hidden mt-1 text-xs text-secondary/70">· {row.note}</span>}</td>
+              <td class="p-4 text-secondary/70 hidden sm:table-cell">{row.note ?? '—'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- Region-specific best venues (unique venue list per city) -->
+{bestVenues.length > 0 && (
+  <Fragment>
+    <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
+    <section class="bg-white py-12 lg:py-16">
+      <div class="mx-auto max-w-7xl px-6 lg:px-8">
+        <div class="mb-8 lg:mb-10">
+          <span class="block text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">{cityEn} VENUES</span>
+          <h2 class="mt-3 text-[clamp(1.5rem,2.6vw,2.4rem)] font-bold text-primary">{city}에서 자주 진행한 행사장</h2>
+          <div class="mt-4 h-[2px] w-8 bg-olive"></div>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {bestVenues.map(item => (
+            <div class="rounded-lg border border-border-light p-5">
+              <h3 class="text-sm font-semibold text-olive">{item.category}</h3>
+              <p class="mt-2 text-sm text-secondary leading-relaxed">{item.venues}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  </Fragment>
+)}
+
+<!-- Region-specific nearby links (unique internal linking per city) -->
+{nearbyAreas.length > 0 && (
+  <Fragment>
+    <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
+    <section class="bg-bg-light py-10 lg:py-12">
+      <div class="mx-auto max-w-7xl px-6 lg:px-8">
+        <div class="mb-6 lg:mb-8">
+          <span class="block text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">NEARBY</span>
+          <h2 class="mt-3 text-lg font-bold text-primary md:text-xl">{city} 인근 지역도 출장 가능합니다</h2>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          {nearbyAreas.map(area => (
+            area.url ? (
+              <a href={area.url} class="inline-flex items-center rounded-full border border-olive/30 bg-white px-4 py-2 text-xs text-secondary hover:border-olive hover:text-olive transition-colors">
+                {area.name}
+                {area.note && <span class="ml-2 text-secondary/50">· {area.note}</span>}
+              </a>
+            ) : (
+              <span class="inline-flex items-center rounded-full border border-border-light bg-white px-4 py-2 text-xs text-secondary/70">
+                {area.name}
+                {area.note && <span class="ml-2 text-secondary/50">· {area.note}</span>}
+              </span>
+            )
+          ))}
+        </div>
+      </div>
+    </section>
+  </Fragment>
+)}

@@ -7,6 +7,7 @@ import ServiceSchema from '@components/seo/ServiceSchema.astro';
 import MachineShowcase from '@components/popup/MachineShowcase.astro';
 import ClientShowcase from '@components/popup/ClientShowcase.astro';
 import AccordionList from '@components/faq/AccordionList.astro';
+import RegionUniqueInfo from '@components/region/RegionUniqueInfo.astro';
 import db from '@lib/db';
 
 const [cheongjuFaqResult, rentalFaqResult, popupFaqResult] = await Promise.all([
@@ -24,6 +25,7 @@ const faqItems = (
 <BaseLayout
   title="청주 포토부스 대여 | 청주시·오송·세종 출장 설치 — 심플큐브"
   description="청주 전 지역 포토부스 출장 설치. 청주시청, 오송바이오단지, 청주공항, 충북대 등 청주 어디든 설치 가능. 웨딩, 기업행사, 팝업스토어 맞춤 포토부스 렌탈."
+  keywords="청주 포토부스, 청주 포토부스 대여, 흥덕 포토부스, 오송 포토부스, 오창 포토부스, 청주 웨딩 포토부스, 청주 기업행사 포토부스, 충북대 포토부스, 심플큐브 청주"
   ogImage="/images/photobooth-rental-simplecube.jpg"
   transparentNav={false}
 >
@@ -168,6 +170,41 @@ const faqItems = (
       </div>
     </div>
   </section>
+
+  <RegionUniqueInfo
+    city="청주"
+    cityEn="CHEONGJU"
+    branchOrigin="심플큐브 대전 지점"
+    highlights={[
+      { label: 'NEAREST BRANCH', value: '대전 지점 — 약 50분' },
+      { label: 'COVERAGE', value: '청주·세종·충북 당일 출장' },
+      { label: 'RESPONSE', value: '평일 일과시간 내 30분 내 견적 회신' },
+    ]}
+    localStory={`<strong>청주</strong>는 흥덕·청원·서원 신도심의 신축 웨딩홀, 오송 바이오 클러스터의 R&D 컨퍼런스, CJB 미디어센터의 방송·기업 행사가 한 도시 안에서 동시에 일어나는 충북의 핵심 도시입니다. 심플큐브 대전 지점에서 50분 내 도착하며, 청주공항·오송역 권역까지 같은 출장 권역으로 운영합니다.`}
+    serviceTrend={`최근에는 오창 산업단지·오송 바이오 클러스터의 임직원 행사 포토부스 수요가 매월 늘어나고 있습니다. 또한 충북대·청주대 학내 페스티벌과 흥덕 신도심 카페 <a href="/popup" class="text-olive underline">팝업스토어</a> 운영도 함께 진행합니다.`}
+    priceRows={[
+      { type: '청주 시내·오송·오창', detail: '흥덕·청원·서원·상당 + 오송 바이오·오창 산업단지 — 별도 문의' },
+      { type: '충북 외곽 권역', detail: '제천·진천·음성·괴산 — 별도 문의' },
+      { type: '운영 시간 (웨딩)', detail: '본식 90분 전 설치 → 예식 시작 후 30분까지 운영', note: '식장 상황·요청에 따라 조정 가능' },
+      { type: '운영 시간 (팝업·기업·컨퍼런스)', detail: '최소 2시간부터 예약 가능', note: '일·주·월 단위 장기 예약 가능' },
+    ]}
+    nearbyAreas={[
+      { name: '대전 포토부스', url: '/daejeon', note: '본 지점' },
+      { name: '천안 포토부스', url: '/cheonan', note: '60분' },
+      { name: '충주 포토부스', url: '/chungju', note: '70분' },
+      { name: '오송', note: '청주 권역' },
+      { name: '진천', note: '협의 출장' },
+      { name: '음성', note: '협의 출장' },
+    ]}
+    bestVenues={[
+      { category: '흥덕·복대 웨딩홀', venues: '청주 메리어트, 그랜드 플라자 청주, 더라루체 청주, 라온파크' },
+      { category: '오송 바이오·R&D', venues: '오송 바이오 헬스 클러스터, 첨단의료재단, 식품의약품안전처, KTX 오송역 인근' },
+      { category: '오창·산업단지', venues: '오창과학산업단지, 오창 테크노폴리스 권역 임직원 행사장' },
+      { category: '청주공항·미디어', venues: '청주국제공항, CJB 미디어센터 행사장, MBC충북' },
+      { category: '상당·서원 구도심', venues: '청주문화원, 청주예술의전당, 무심천 야외 행사' },
+      { category: '인근 충북 외곽', venues: '진천 행사장, 음성 행사장, 제천 청풍 호반' },
+    ]}
+  />
 
   <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
 

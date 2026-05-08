@@ -7,6 +7,7 @@ import ServiceSchema from '@components/seo/ServiceSchema.astro';
 import MachineShowcase from '@components/popup/MachineShowcase.astro';
 import ClientShowcase from '@components/popup/ClientShowcase.astro';
 import AccordionList from '@components/faq/AccordionList.astro';
+import RegionUniqueInfo from '@components/region/RegionUniqueInfo.astro';
 import db from '@lib/db';
 
 const [jeonjuFaqResult, rentalFaqResult, popupFaqResult] = await Promise.all([
@@ -24,6 +25,7 @@ const faqItems = (
 <BaseLayout
   title="전주 포토부스 대여 | 한옥마을·서신동·완산구 출장 설치 — 심플큐브"
   description="전주 전 지역 포토부스 출장 설치. 전주한옥마을, 서신동, 완산구, 덕진구 등 전주 어디든 설치 가능. 웨딩, 기업행사, 팝업스토어 맞춤 포토부스. 심플큐브 전주 지점 직접 운영."
+  keywords="전주 포토부스, 전주 포토부스 대여, 한옥마을 포토부스, 서신동 포토부스, 완산구 포토부스, 전주 웨딩 포토부스, 전주 팝업 포토부스, JIFF 포토부스, 심플큐브 전주"
   ogImage="/images/photobooth-rental-simplecube.jpg"
   transparentNav={false}
 >
@@ -168,6 +170,42 @@ const faqItems = (
       </div>
     </div>
   </section>
+
+  <RegionUniqueInfo
+    city="전주"
+    cityEn="JEONJU"
+    branchOrigin="심플큐브 전주 지점"
+    highlights={[
+      { label: 'BRANCH', value: '전주 지점 직영 운영' },
+      { label: 'COVERAGE', value: '전주·전북·호남 권역 당일 출장' },
+      { label: 'RESPONSE', value: '평일 일과시간 내 30분 내 견적 회신' },
+    ]}
+    localStory={`<strong>전주</strong>는 한옥마을 관광 상권과 서신·완산구 신축 웨딩홀, 전주국제영화제(JIFF)·전주비빔밥축제 등 연중 끊이지 않는 도시 축제가 어우러진 호남의 대표 도시입니다. 심플큐브 전주 지점은 한옥마을·서신동·완산구를 30분 내 커버하며, 한옥마을 분위기에 어울리는 원목 부스 디자인과 한식 콘셉트 옵션을 따로 운영합니다.`}
+    serviceTrend={`또한 전주 본점은 호남권 hub 역할을 겸해 광주·군산·익산·정읍을 같은 권역으로 출장합니다. 전주 한옥마을 브랜드 <a href="/popup" class="text-olive underline">팝업스토어 포토부스</a>와 영화제 야외 부스 운영 사례가 매년 늘고 있으며, 한복 대여점·한식당과의 협업 포토 옵션도 인기입니다.`}
+    priceRows={[
+      { type: '전주 시내', detail: '완산·덕진·한옥마을·서신·송천 등 — 별도 문의' },
+      { type: '전북·호남 권역', detail: '군산·익산·정읍·남원·김제·광주 — 별도 문의' },
+      { type: '운영 시간 (웨딩)', detail: '본식 90분 전 설치 → 예식 시작 후 30분까지 운영', note: '식장 상황·요청에 따라 조정 가능' },
+      { type: '운영 시간 (팝업·기업·영화제·축제)', detail: '최소 2시간부터 예약 가능', note: '일·주·월 단위 장기 예약 가능' },
+    ]}
+    nearbyAreas={[
+      { name: '광주 포토부스', url: '/gwangju', note: '70분' },
+      { name: '군산', note: '전주 권역' },
+      { name: '익산', note: '전주 권역' },
+      { name: '정읍', note: '전주 권역' },
+      { name: '남원', note: '전주 권역' },
+      { name: '김제', note: '전주 권역' },
+      { name: '대전·천안', note: '협의 출장' },
+    ]}
+    bestVenues={[
+      { category: '서신·완산 웨딩홀', venues: '라한호텔 전주, 베스트웨스턴 전주, 전주코아호텔, 더베스트 컨벤션 전주' },
+      { category: '한옥마을·풍남동', venues: '경기전, 전주한옥마을 거리 행사, 풍남문 야외, 오목대 행사장' },
+      { category: '덕진·송천 신도심', venues: '덕진공원, 송천 신축 웨딩홀, 효자동 컨벤션, 전북대학교 본관' },
+      { category: 'JIFF·축제 야외', venues: '전주국제영화제(JIFF), 전주비빔밥축제, 한지문화축제, 풍남제' },
+      { category: '익산·군산·정읍', venues: '익산 미륵사지, 군산 시간여행마을, 정읍 내장산, 김제 지평선축제' },
+      { category: '한복·한식 협업', venues: '한복 대여점 협업 포토, 한식당 외부 행사, 한지공예 갤러리 컬래버' },
+    ]}
+  />
 
   <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
 

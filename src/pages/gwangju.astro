@@ -7,6 +7,7 @@ import ServiceSchema from '@components/seo/ServiceSchema.astro';
 import MachineShowcase from '@components/popup/MachineShowcase.astro';
 import ClientShowcase from '@components/popup/ClientShowcase.astro';
 import AccordionList from '@components/faq/AccordionList.astro';
+import RegionUniqueInfo from '@components/region/RegionUniqueInfo.astro';
 import db from '@lib/db';
 
 const [gwangjuFaqResult, rentalFaqResult, popupFaqResult] = await Promise.all([
@@ -24,6 +25,7 @@ const faqItems = (
 <BaseLayout
   title="광주 포토부스 대여 | 상무지구·충장로·김대중컨벤션 출장 설치 — 심플큐브"
   description="광주 전 지역 포토부스 출장 설치. 상무지구, 충장로, 김대중컨벤션센터, 첨단지구 등 광주 어디든 설치 가능. 웨딩, 기업행사, 팝업스토어 맞춤 포토부스 렌탈."
+  keywords="광주 포토부스, 광주 포토부스 대여, 상무지구 포토부스, 충장로 포토부스, 김대중컨벤션 포토부스, KDJ 포토부스, 광주 웨딩 포토부스, 광주 기업행사 포토부스, 심플큐브 광주"
   ogImage="/images/photobooth-rental-simplecube.jpg"
   transparentNav={false}
 >
@@ -168,6 +170,42 @@ const faqItems = (
       </div>
     </div>
   </section>
+
+  <RegionUniqueInfo
+    city="광주"
+    cityEn="GWANGJU"
+    branchOrigin="심플큐브 전주 지점"
+    highlights={[
+      { label: 'NEAREST BRANCH', value: '전주 지점 — 약 70분' },
+      { label: 'COVERAGE', value: '광주·전남 권역 당일 출장' },
+      { label: 'RESPONSE', value: '평일 일과시간 내 30분 내 견적 회신' },
+    ]}
+    localStory={`<strong>광주</strong>는 상무지구의 호텔 웨딩홀, 충장로의 청년 상권, 김대중컨벤션센터의 박람회·국제 컨퍼런스가 동시에 활발한 호남 거점 도시입니다. 심플큐브는 전주 지점에서 70분 내 도착하며, 광주 광역권은 물론 나주·화순·담양·장성까지 같은 출장 권역으로 운영합니다.`}
+    serviceTrend={`최근에는 5·18민주광장·국립아시아문화전당 야외 페스티벌, 충장로·동구 청년몰 <a href="/popup" class="text-olive underline">팝업스토어 포토부스</a> 수요가 늘었습니다. 김대중컨벤션센터 박람회·미디어 행사장 부스 운영 경험이 풍부해, 대형 박람회의 다중 부스 동시 설치도 가능합니다.`}
+    priceRows={[
+      { type: '광주 시내', detail: '서·남·북·동·광산 — 별도 문의' },
+      { type: '전남 권역', detail: '나주·화순·담양·장성·목포·순천·여수 — 별도 문의' },
+      { type: '운영 시간 (웨딩)', detail: '본식 90분 전 설치 → 예식 시작 후 30분까지 운영', note: '식장 상황·요청에 따라 조정 가능' },
+      { type: '운영 시간 (팝업·기업·박람회)', detail: '최소 2시간부터 예약 가능', note: '일·주·월 단위 장기 예약 가능' },
+    ]}
+    nearbyAreas={[
+      { name: '전주 포토부스', url: '/jeonju', note: '본 지점' },
+      { name: '나주', note: '광주 권역' },
+      { name: '화순', note: '광주 권역' },
+      { name: '담양', note: '광주 권역' },
+      { name: '장성', note: '광주 권역' },
+      { name: '목포', note: '협의 출장' },
+      { name: '순천·여수', note: '협의 출장' },
+    ]}
+    bestVenues={[
+      { category: '상무지구 호텔 웨딩홀', venues: '홀리데이인 광주, 라마다 플라자 광주, 호텔 무등파크, 상무 컨벤션' },
+      { category: '김대중컨벤션·박람회', venues: 'KDJ센터 제1·2전시장, 김대중컨벤션 미디어센터, 광주 디자인비엔날레' },
+      { category: '동구·충장로 청년상권', venues: '국립아시아문화전당, 충장로 청년몰, 5·18민주광장 야외 행사' },
+      { category: '북·광산 신도심', venues: '첨단지구 컨벤션, 수완지구 카페거리, 하남산업단지 임직원 행사' },
+      { category: '담양·화순 자연', venues: '담양 메타세콰이어길, 화순 운주사, 장성 황룡강 야외 행사' },
+      { category: '나주 혁신도시', venues: '한국전력 본사, 한전KDN, 한국농어촌공사, 빛가람 혁신도시 행사장' },
+    ]}
+  />
 
   <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
 
