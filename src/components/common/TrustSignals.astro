@@ -11,32 +11,42 @@ const operations = {
   popup: '최소 2시간부터 예약 가능. 일·주·월 단위 장기 예약도 진행',
 };
 
-const operationsTable = [
-  {
-    item: '운영 시간',
-    detail: context === 'wedding'
-      ? '본식 시작 90분 전 설치 시작 → 예식 시작 후 30분까지 운영. 식장의 상황과 요청에 따라 시간이 조정될 수 있습니다.'
-      : context === 'popup'
-        ? '최소 2시간부터 예약 가능. 일 단위·주 단위·월 단위 장기 예약도 진행합니다.'
-        : '웨딩은 본식 90분 전 설치 → 예식 시작 후 30분까지 운영. 팝업·기업·페스티벌은 최소 2시간부터 일·주·월 단위 장기 예약 가능.',
-  },
-  {
-    item: '인쇄·디지털',
-    detail: '현장 무제한 인화. QR 디지털 다운로드는 옵션으로 제공합니다.',
-  },
-  {
-    item: '운영 인력',
-    detail: context === 'wedding'
-      ? '웨딩은 전문 매니저 2인이 현장 상주 운영합니다. 사진 안내·하객 유도·기기 트러블 슈팅까지 즉시 대응합니다.'
-      : context === 'popup'
-        ? '팝업·기업·페스티벌은 운영 형태에 따라 현장 매니저 상주 또는 실시간 원격 대응 운영이 가능합니다.'
-        : '웨딩은 매니저 2인 현장 상주, 팝업·기업은 현장 상주 또는 실시간 원격 대응 중 선택 가능합니다.',
-  },
-  {
-    item: '커스텀 디자인',
-    detail: '신랑신부 이름·브랜드 로고·컬러·이벤트 컨셉을 반영한 커스텀 템플릿 제작이 가능합니다.',
-  },
-];
+// Wedding rows are intentionally trimmed — items duplicated by upstream
+// wedding sections (printing, onsite manager, custom template) live there.
+// This block keeps only the truly operational SOP info.
+const operationsTable = context === 'wedding'
+  ? [
+      {
+        item: '운영 시간',
+        detail: '본식 시작 90분 전 설치 시작 → 예식 시작 후 30분까지 운영 <span class="text-[80%]">(식장의 상황과 요청에 따라 시간이 조정될 수 있습니다.)</span>',
+      },
+      {
+        item: '설치·철수',
+        detail: '설치 약 30분 / 철수 약 20분 소요 <span class="text-[80%]">(식장 일정과 동선에 맞춰 진행됩니다.)</span>',
+      },
+    ]
+  : [
+      {
+        item: '운영 시간',
+        detail: context === 'popup'
+          ? '최소 2시간부터 예약 가능. 일 단위·주 단위·월 단위 장기 예약도 진행합니다.'
+          : '웨딩은 본식 90분 전 설치 → 예식 시작 후 30분까지 운영. 팝업·기업·페스티벌은 최소 2시간부터 일·주·월 단위 장기 예약 가능.',
+      },
+      {
+        item: '인쇄·디지털',
+        detail: '현장 무제한 인화. QR 디지털 다운로드는 옵션으로 제공합니다.',
+      },
+      {
+        item: '운영 인력',
+        detail: context === 'popup'
+          ? '팝업·기업·페스티벌은 운영 형태에 따라 현장 매니저 상주 또는 실시간 원격 대응 운영이 가능합니다.'
+          : '웨딩은 매니저 2인 현장 상주, 팝업·기업은 현장 상주 또는 실시간 원격 대응 중 선택 가능합니다.',
+      },
+      {
+        item: '커스텀 디자인',
+        detail: '신랑신부 이름·브랜드 로고·컬러·이벤트 컨셉을 반영한 커스텀 템플릿 제작이 가능합니다.',
+      },
+    ];
 
 // Cancellation, penalty, and compensation policy.
 // 위약금 (penalty) is identical between general events (rental·popup) and
@@ -96,7 +106,7 @@ const compensationRows = [
           {operationsTable.map((row, idx) => (
             <tr class:list={[idx > 0 ? 'border-t border-border-light/60' : '']}>
               <th scope="row" class="px-5 py-4 align-top w-28 sm:w-40 text-left font-semibold text-primary whitespace-nowrap">{row.item}</th>
-              <td class="px-5 py-4 align-top text-secondary leading-relaxed break-keep">{row.detail}</td>
+              <td class="px-5 py-4 align-top text-secondary leading-relaxed break-keep" set:html={row.detail}></td>
             </tr>
           ))}
         </tbody>
