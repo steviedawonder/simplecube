@@ -13,13 +13,18 @@ const wpPrefixRedirects: [string, string][] = [
   ['/portfolio-category/', '/popup'],
   ['/portfolio/', '/popup'],
   ['/category/', '/'],
-  ['/tag/', '/'],
   ['/wp-content/', '/'],
   ['/wp-admin/', '/'],
   ['/wp-includes/', '/'],
   ['/feed/', '/'],
   ['/author/', '/'],
 ];
+
+// Permanently removed WordPress paths — return 410 Gone so search engines
+// drop them from the index quickly (instead of 301 → / which keeps them in
+// the soft-noise pool). Naver's site diagnostic showed 144 stale /tag/* URLs
+// from the WordPress era still flagged as noindex.
+const wpGonePrefixes = ['/tag/'];
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const { pathname } = context.url;
@@ -32,6 +37,15 @@ export const onRequest = defineMiddleware(async (context, next) => {
   for (const [prefix, dest] of wpPrefixRedirects) {
     if (pathname.startsWith(prefix)) {
       return context.redirect(dest, 301);
+    }
+  }
+  // Permanently removed WordPress paths — 410 Gone
+  for (const prefix of wpGonePrefixes) {
+    if (pathname.startsWith(prefix)) {
+      return new Response('Gone', {
+        status: 410,
+        headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+      });
     }
   }
   if (pathname === '/wp-login.php') {
