@@ -37,9 +37,40 @@ const operationsTable = [
     detail: '신랑신부 이름·브랜드 로고·컬러·이벤트 컨셉을 반영한 커스텀 템플릿 제작이 가능합니다.',
   },
 ];
+
+// Refund and penalty policy for general events (popup, corporate, festival).
+// Wedding has its own separate policy that the owner will provide later.
+const showEventRefund = context === 'rental' || context === 'popup';
+
+const refundConditions = [
+  {
+    when: '계약 후 14일 이내이면서 행사 당일 60일 전까지 취소',
+    amount: '위약금 없이 100% 환불',
+    note: '두 조건 모두 충족해야 합니다.',
+  },
+  {
+    when: '계약 후 14일 이내이지만 행사일까지 14일 미만',
+    amount: '환불 불가',
+    note: '이 경우 이용료 전액이 위약금으로 지불됩니다.',
+  },
+];
+
+const penaltyRows = [
+  { period: '행사일까지 60일 이상 남은 시점 취소', amount: '총 렌탈 금액의 30%' },
+  { period: '행사일까지 30일~59일 남은 시점 취소', amount: '총 렌탈 금액의 50%' },
+  { period: '행사일까지 1일~29일 남은 시점 취소', amount: '총 렌탈 금액의 100% (환불 불가)' },
+];
+
+const compensationRows = [
+  { situation: '심플큐브 과실로 계약한 운영 시간을 채우지 못한 경우', detail: '(결제 금액 − 할인 금액) ÷ 계약 시간 × 부족 시간 환불' },
+  { situation: '기기 오작동·고장으로 촬영이 지연된 경우', detail: '(결제 금액 − 할인 금액) ÷ 계약 시간 × 부족 시간 환불' },
+  { situation: '기본 구성 사항 누락 (백월·가랜드·테이블 등)', detail: '행사비의 20% 환불' },
+  { situation: '기기 고장·지각 등 심플큐브 과실로 촬영을 진행하지 못했거나 계약 시간의 50%를 채우지 못한 경우', detail: '이용 금액의 100% 환불' },
+  { situation: '단순 변심·개인적 취향·기대와의 차이·이용 빈도 등 주관적 사유', detail: '환불 불가' },
+];
 ---
 
-<!-- Operations standard guide (refund/payment terms intentionally pending owner review) -->
+<!-- Operations standard guide + event refund policy -->
 <section class="bg-bg-light py-12 lg:py-16">
   <div class="mx-auto max-w-5xl px-6 lg:px-8">
     <div class="mb-8 lg:mb-10">
@@ -49,7 +80,7 @@ const operationsTable = [
       <p class="mt-3 text-sm text-secondary leading-relaxed">{operations[context]}.</p>
     </div>
 
-    <div class="rounded-lg border border-border-light bg-white overflow-hidden">
+    <div class="rounded-lg border border-border-light bg-white">
       <table class="w-full text-sm">
         <caption class="sr-only">심플큐브 포토부스 운영 표준 안내</caption>
         <tbody>
@@ -63,8 +94,68 @@ const operationsTable = [
       </table>
     </div>
 
-    <p class="mt-4 text-xs text-secondary/70 leading-relaxed">
-      ※ 정확한 견적·운영 옵션·취소·환불 규정은 행사 일정과 장소가 확정된 후 별도로 안내해드립니다. 카카오톡 또는 전화 문의로 상담을 받아보세요.
-    </p>
+    {showEventRefund && (
+      <Fragment>
+        <!-- Cancellation, penalty, refund policy (general event contract terms §10) -->
+        <div class="mt-10 lg:mt-12">
+          <h3 class="text-lg font-bold text-primary md:text-xl">취소·위약금·환불 규정</h3>
+          <p class="mt-2 text-xs text-secondary/70 leading-relaxed">팝업스토어·기업행사·페스티벌 등 일반행사 표준 약관 기준입니다. 결제 시 임차인은 아래 조건을 인지·동의한 것으로 간주됩니다. 웨딩 포토부스는 별도 약관이 적용됩니다.</p>
+        </div>
+
+        <div class="mt-5 rounded-lg border border-border-light bg-white">
+          <h4 class="border-b border-border-light px-5 py-3 text-sm font-semibold text-primary">1. 환불 조건</h4>
+          <table class="w-full text-sm">
+            <caption class="sr-only">환불 조건</caption>
+            <tbody>
+              {refundConditions.map((row, idx) => (
+                <tr class:list={[idx > 0 ? 'border-t border-border-light/60' : '']}>
+                  <td class="px-5 py-3 align-top w-1/2 sm:w-2/5 font-semibold text-primary leading-relaxed break-keep">{row.when}</td>
+                  <td class="px-5 py-3 align-top text-secondary leading-relaxed break-keep">
+                    {row.amount}
+                    {row.note && <span class="block text-xs text-secondary/70 mt-1">· {row.note}</span>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="mt-4 rounded-lg border border-border-light bg-white">
+          <h4 class="border-b border-border-light px-5 py-3 text-sm font-semibold text-primary">2. 위약금 (행사일까지 잔여 기간 기준)</h4>
+          <table class="w-full text-sm">
+            <caption class="sr-only">행사 잔여 기간별 위약금</caption>
+            <tbody>
+              {penaltyRows.map((row, idx) => (
+                <tr class:list={[idx > 0 ? 'border-t border-border-light/60' : '']}>
+                  <th scope="row" class="px-5 py-3 align-top w-1/2 sm:w-2/5 text-left font-semibold text-primary whitespace-normal break-keep">{row.period}</th>
+                  <td class="px-5 py-3 align-top text-secondary leading-relaxed break-keep">{row.amount}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="mt-4 rounded-lg border border-border-light bg-white">
+          <h4 class="border-b border-border-light px-5 py-3 text-sm font-semibold text-primary">3. 보상 규정 (심플큐브 과실 시)</h4>
+          <table class="w-full text-sm">
+            <caption class="sr-only">심플큐브 과실 시 보상 규정</caption>
+            <tbody>
+              {compensationRows.map((row, idx) => (
+                <tr class:list={[idx > 0 ? 'border-t border-border-light/60' : '']}>
+                  <th scope="row" class="px-5 py-3 align-top w-1/2 sm:w-3/5 text-left font-semibold text-primary whitespace-normal break-keep">{row.situation}</th>
+                  <td class="px-5 py-3 align-top text-secondary leading-relaxed break-keep">{row.detail}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <p class="mt-4 text-xs text-secondary/70 leading-relaxed">※ 정확한 견적·운영 옵션은 행사 일정과 장소가 확정된 후 별도로 안내해드립니다. 약관 원본은 계약 시 임차인에게 전달되며, 위 내용과 약관 본문에 차이가 있는 경우 약관 본문이 우선합니다.</p>
+      </Fragment>
+    )}
+
+    {context === 'wedding' && (
+      <p class="mt-6 text-xs text-secondary/70 leading-relaxed">※ 웨딩 포토부스 취소·환불 규정은 별도 약관이 적용됩니다. 카카오톡 또는 전화 상담 시 안내해드립니다.</p>
+    )}
   </div>
 </section>
