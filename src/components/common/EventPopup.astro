@@ -1,0 +1,85 @@
+---
+---
+
+<div id="event-popup-overlay" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4" style="display:none;">
+  <div class="relative w-full max-w-[420px]">
+    <!-- Close button -->
+    <button id="event-popup-close" class="absolute -top-10 right-0 text-white text-sm flex items-center gap-1 hover:opacity-80 transition-opacity" aria-label="닫기">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+      닫기
+    </button>
+
+    <!-- Popup image with clickable bottom button -->
+    <div class="relative rounded-lg overflow-hidden shadow-2xl">
+      <img
+        src="/images/popup/noui-event.png"
+        alt="SIMPLE CUBE X NOUI 제휴 고객 한정 특별 혜택 이벤트"
+        class="w-full h-auto block"
+        loading="eager"
+      />
+      <!-- Clickable area covering only the brown button at the bottom (~7% of image height) -->
+      <a
+        href="https://www.noui.co.kr/product/list.html?cate_no=42"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="absolute bottom-0 left-0 w-full"
+        style="height: 7.5%; cursor: pointer;"
+        aria-label="쿠폰 받고 누이 컬렉션 보러가기"
+      ></a>
+    </div>
+
+    <!-- "오늘 하루 보지 않기" -->
+    <button id="event-popup-dismiss" class="mt-3 text-white/80 text-sm hover:text-white transition-colors w-full text-center">
+      오늘 하루 보지 않기
+    </button>
+  </div>
+</div>
+
+<script>
+  const STORAGE_KEY = 'noui-event-popup-dismissed';
+
+  function shouldShowPopup(): boolean {
+    const dismissed = localStorage.getItem(STORAGE_KEY);
+    if (!dismissed) return true;
+    const dismissedDate = new Date(dismissed).toDateString();
+    const today = new Date().toDateString();
+    return dismissedDate !== today;
+  }
+
+  function showPopup() {
+    const overlay = document.getElementById('event-popup-overlay');
+    if (overlay) {
+      overlay.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function hidePopup() {
+    const overlay = document.getElementById('event-popup-overlay');
+    if (overlay) {
+      overlay.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    if (shouldShowPopup()) {
+      showPopup();
+    }
+
+    document.getElementById('event-popup-close')?.addEventListener('click', hidePopup);
+
+    document.getElementById('event-popup-dismiss')?.addEventListener('click', () => {
+      localStorage.setItem(STORAGE_KEY, new Date().toISOString());
+      hidePopup();
+    });
+
+    document.getElementById('event-popup-overlay')?.addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) {
+        hidePopup();
+      }
+    });
+  });
+</script>

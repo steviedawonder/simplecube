@@ -7,6 +7,7 @@ import WhySimpleCube from '@components/home/WhySimpleCube.astro';
 import ClientShowcase from '@components/popup/ClientShowcase.astro';
 import BrandStory from '@components/brand/BrandStory.astro';
 import OrganizationSchema from '@components/seo/OrganizationSchema.astro';
+import EventPopup from '@components/common/EventPopup.astro';
 ---
 
 <BaseLayout
@@ -16,6 +17,7 @@ import OrganizationSchema from '@components/seo/OrganizationSchema.astro';
   transparentNav={true}
 >
   <OrganizationSchema />
+  <EventPopup />
   <HeroSection />
   <ServicesSection />
   <WhySimpleCube />
