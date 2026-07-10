@@ -304,6 +304,20 @@ const boothModels = [
       });
 
       if (res.ok) {
+        // 전환 추적: 문의 완료 시 GTM으로 lead 이벤트 전송
+        // (분석 전용 — 위 fetch 성공 이후에만 실행되며 문의/이메일 발송 로직과 무관)
+        try {
+          const w = window as any;
+          w.dataLayer = w.dataLayer || [];
+          w.dataLayer.push({
+            event: 'generate_lead',
+            form_id: 'event_inquiry',
+            booth_type: boothTypes,
+            region,
+            referral,
+          });
+        } catch { /* 추적 실패는 문의 성공에 영향 주지 않음 */ }
+
         form.classList.add('hidden');
         successMsg.classList.remove('hidden');
         window.scrollTo({ top: 0, behavior: 'smooth' });
