@@ -1,6 +1,5 @@
 {
   "permissions": {
-    "defaultMode": "dontAsk",
     "allow": [
       "Bash(node --version)",
       "Bash(npm --version)",
@@ -84,7 +83,12 @@
       "Bash(bash setup.sh)",
       "Bash(git stash:*)",
       "Skill(update-config)",
-      "Skill(update-config:*)"
-    ]
+      "Skill(update-config:*)",
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "mcp__Claude_in_Chrome__select_browser",
+      "mcp__Claude_in_Chrome__navigate",
+      "mcp__Claude_in_Chrome__computer"
+    ],
+    "defaultMode": "dontAsk"
   }
 }
