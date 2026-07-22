@@ -4,26 +4,213 @@ import AdminLayout from '@layouts/AdminLayout.astro';
 import db from '@lib/db';
 
 let inquiries: any[] = [];
+let total = 0;
+let thisMonth = 0;
+let last7Days = 0;
+let newCount = 0;
+let readCount = 0;
+let doneCount = 0;
+let monthly: { ym: string; cnt: number }[] = [];
+let boothDist: { label: string; cnt: number }[] = [];
+let regionDist: { label: string; cnt: number }[] = [];
+let referralDist: { label: string; cnt: number }[] = [];
+
 try {
   const result = await db.execute('SELECT * FROM inquiries ORDER BY created_at DESC');
   inquiries = result.rows as any[];
+
+  // 통계 (한국 시간 기준으로 집계)
+  const kst = "datetime(created_at, '+9 hours')";
+  const statsResult = await db.execute(`
+    SELECT
+      COUNT(*) as total,
+      SUM(CASE WHEN strftime('%Y-%m', ${kst}) = strftime('%Y-%m', datetime('now', '+9 hours')) THEN 1 ELSE 0 END) as this_month,
+      SUM(CASE WHEN created_at >= datetime('now', '-7 days') THEN 1 ELSE 0 END) as last_7_days,
+      SUM(CASE WHEN status = 'new' THEN 1 ELSE 0 END) as new_count,
+      SUM(CASE WHEN status = 'read' THEN 1 ELSE 0 END) as read_count,
+      SUM(CASE WHEN status = 'done' THEN 1 ELSE 0 END) as done_count
+    FROM inquiries
+  `);
+  const s = statsResult.rows[0] as any;
+  total = Number(s.total || 0);
+  thisMonth = Number(s.this_month || 0);
+  last7Days = Number(s.last_7_days || 0);
+  newCount = Number(s.new_count || 0);
+  readCount = Number(s.read_count || 0);
+  doneCount = Number(s.done_count || 0);
+
+  const monthlyResult = await db.execute(`
+    SELECT strftime('%Y-%m', ${kst}) as ym, COUNT(*) as cnt
+    FROM inquiries
+    WHERE ${kst} >= datetime('now', '+9 hours', '-11 months', 'start of month')
+    GROUP BY ym ORDER BY ym
+  `);
+  const monthlyMap = new Map(
+    (monthlyResult.rows as any[]).map((r) => [String(r.ym), Number(r.cnt)])
+  );
+  // 최근 12개월을 빠짐없이 채움 (문의 0건인 달 포함)
+  const now = new Date(Date.now() + 9 * 3600 * 1000);
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1));
+    const ym = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+    monthly.push({ ym, cnt: monthlyMap.get(ym) || 0 });
+  }
+
+  async function topDist(column: string, limit: number) {
+    const r = await db.execute(`
+      SELECT CASE WHEN TRIM(COALESCE(${column}, '')) = '' THEN '(미입력)' ELSE TRIM(${column}) END as label,
+             COUNT(*) as cnt
+      FROM inquiries
+      GROUP BY label ORDER BY cnt DESC LIMIT ${limit}
+    `);
+    return (r.rows as any[]).map((row) => ({ label: String(row.label), cnt: Number(row.cnt) }));
+  }
+
+  boothDist = await topDist('booth_type', 6);
+  regionDist = await topDist('region', 8);
+  referralDist = await topDist('referral', 6);
 } catch { /* table may not exist */ }
+
+const maxMonthly = Math.max(1, ...monthly.map((m) => m.cnt));
+
+function fmtDate(utc: string): string {
+  if (!utc) return '-';
+  const d = new Date(utc.replace(' ', 'T') + 'Z');
+  if (isNaN(d.getTime())) return utc;
+  return d.toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+}
 ---
 
 <AdminLayout title="문의 관리">
+  <h2 class="page-title">문의 관리</h2>
+  <p class="page-desc">홈페이지 행사 문의 접수 현황과 통계입니다.</p>
+
+  <!-- 요약 카드 -->
+  <div class="inq-stats-grid">
+    <div class="inq-stat-card">
+      <div class="inq-stat-label">전체 문의</div>
+      <div class="inq-stat-value">{total}<span class="inq-unit">건</span></div>
+    </div>
+    <div class="inq-stat-card">
+      <div class="inq-stat-label">이번 달</div>
+      <div class="inq-stat-value" style="color:#D4AA45;">{thisMonth}<span class="inq-unit">건</span></div>
+    </div>
+    <div class="inq-stat-card">
+      <div class="inq-stat-label">최근 7일</div>
+      <div class="inq-stat-value" style="color:#3b82f6;">{last7Days}<span class="inq-unit">건</span></div>
+    </div>
+    <div class="inq-stat-card">
+      <div class="inq-stat-label">미확인 (신규)</div>
+      <div class="inq-stat-value" style="color:#ef4444;">{newCount}<span class="inq-unit">건</span></div>
+    </div>
+  </div>
+
+  <!-- 월별 추이 + 분포 -->
+  <div class="inq-charts-grid">
+    <div class="inq-panel">
+      <h3 class="inq-panel-title">월별 문의 추이 <span class="inq-panel-sub">최근 12개월</span></h3>
+      <div class="month-chart">
+        {monthly.map((m) => (
+          <div class="month-col" title={`${m.ym}: ${m.cnt}건`}>
+            <span class="month-count">{m.cnt > 0 ? m.cnt : ''}</span>
+            <div class="month-bar-track">
+              <div class="month-bar" style={`height: ${Math.max(m.cnt / maxMonthly * 100, m.cnt > 0 ? 4 : 0)}%`}></div>
+            </div>
+            <span class="month-label">{Number(m.ym.slice(5))}월</span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div class="inq-panel">
+      <h3 class="inq-panel-title">처리 상태</h3>
+      <div class="dist-list">
+        {[
+          { label: '신규', cnt: newCount, color: '#ef4444' },
+          { label: '확인', cnt: readCount, color: '#3b82f6' },
+          { label: '완료', cnt: doneCount, color: '#22c55e' },
+        ].map((d) => (
+          <div class="dist-row">
+            <span class="dist-label">{d.label}</span>
+            <div class="dist-track">
+              <div class="dist-bar" style={`width: ${total > 0 ? (d.cnt / total * 100) : 0}%; background-color: ${d.color};`}></div>
+            </div>
+            <span class="dist-count">{d.cnt}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <div class="inq-charts-grid-3">
+    <div class="inq-panel">
+      <h3 class="inq-panel-title">포토부스 기기별</h3>
+      <div class="dist-list">
+        {boothDist.map((d) => (
+          <div class="dist-row">
+            <span class="dist-label" title={d.label}>{d.label}</span>
+            <div class="dist-track">
+              <div class="dist-bar" style={`width: ${(d.cnt / Math.max(1, boothDist[0]?.cnt || 1)) * 100}%; background-color: #D4AA45;`}></div>
+            </div>
+            <span class="dist-count">{d.cnt}</span>
+          </div>
+        ))}
+        {boothDist.length === 0 && <p class="dist-empty">데이터 없음</p>}
+      </div>
+    </div>
+
+    <div class="inq-panel">
+      <h3 class="inq-panel-title">지역별</h3>
+      <div class="dist-list">
+        {regionDist.map((d) => (
+          <div class="dist-row">
+            <span class="dist-label" title={d.label}>{d.label}</span>
+            <div class="dist-track">
+              <div class="dist-bar" style={`width: ${(d.cnt / Math.max(1, regionDist[0]?.cnt || 1)) * 100}%; background-color: #3b82f6;`}></div>
+            </div>
+            <span class="dist-count">{d.cnt}</span>
+          </div>
+        ))}
+        {regionDist.length === 0 && <p class="dist-empty">데이터 없음</p>}
+      </div>
+    </div>
+
+    <div class="inq-panel">
+      <h3 class="inq-panel-title">인지 경로별</h3>
+      <div class="dist-list">
+        {referralDist.map((d) => (
+          <div class="dist-row">
+            <span class="dist-label" title={d.label}>{d.label}</span>
+            <div class="dist-track">
+              <div class="dist-bar" style={`width: ${(d.cnt / Math.max(1, referralDist[0]?.cnt || 1)) * 100}%; background-color: #8b5cf6;`}></div>
+            </div>
+            <span class="dist-count">{d.cnt}</span>
+          </div>
+        ))}
+        {referralDist.length === 0 && <p class="dist-empty">데이터 없음</p>}
+      </div>
+    </div>
+  </div>
+
+  <!-- 문의 목록 -->
   <div class="admin-card">
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
       <h2 class="text-lg font-bold">행사 문의 내역</h2>
-      <span class="text-sm text-secondary">{inquiries.length}건</span>
+      <div class="filter-tabs">
+        <button class="filter-tab active" data-filter="all">전체 {total}</button>
+        <button class="filter-tab" data-filter="new">신규 {newCount}</button>
+        <button class="filter-tab" data-filter="read">확인 {readCount}</button>
+        <button class="filter-tab" data-filter="done">완료 {doneCount}</button>
+      </div>
     </div>
 
     {inquiries.length === 0 ? (
       <p class="text-center text-secondary py-12">접수된 문의가 없습니다.</p>
     ) : (
-      <div class="space-y-4">
+      <div class="space-y-4" id="inquiry-list">
         {inquiries.map((item) => (
-          <div class:list={[
-            'rounded-xl border p-5 transition-colors',
+          <div data-status={item.status} class:list={[
+            'inq-item rounded-xl border p-5 transition-colors',
             item.status === 'new' ? 'border-olive/30 bg-olive/5' : 'border-border-light bg-white',
           ]}>
             <div class="flex items-start justify-between gap-4 mb-3">
@@ -73,7 +260,7 @@ try {
                 <span>인지: {item.referral || '-'}</span>
               </div>
               <div class="flex items-center gap-2">
-                <span>{item.created_at}</span>
+                <span>{fmtDate(item.created_at)}</span>
                 {item.status === 'new' && (
                   <button class="inq-status-btn px-2 py-0.5 rounded bg-blue-500 text-white hover:bg-blue-600" data-id={item.id} data-status="read">확인</button>
                 )}
@@ -87,6 +274,209 @@ try {
       </div>
     )}
   </div>
+
+  <style>
+    .page-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1d1d1f;
+      margin-bottom: 0.25rem;
+    }
+    .page-desc {
+      font-size: 0.9rem;
+      color: #6e6e73;
+      margin-bottom: 1.5rem;
+    }
+
+    .inq-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    @media (max-width: 768px) {
+      .inq-stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .inq-stat-card {
+      background-color: #ffffff;
+      border: 1px solid #e8e8ed;
+      border-radius: 10px;
+      padding: 1.25rem;
+    }
+    .inq-stat-label {
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: #6e6e73;
+      margin-bottom: 0.25rem;
+    }
+    .inq-stat-value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #1d1d1f;
+    }
+    .inq-unit {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #8c8c8c;
+      margin-left: 2px;
+    }
+
+    .inq-charts-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    @media (max-width: 900px) {
+      .inq-charts-grid { grid-template-columns: 1fr; }
+    }
+    .inq-charts-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    @media (max-width: 900px) {
+      .inq-charts-grid-3 { grid-template-columns: 1fr; }
+    }
+    .inq-panel {
+      background-color: #ffffff;
+      border: 1px solid #e8e8ed;
+      border-radius: 10px;
+      padding: 1.25rem;
+    }
+    .inq-panel-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #1d1d1f;
+      margin: 0 0 1rem;
+    }
+    .inq-panel-sub {
+      font-size: 0.75rem;
+      font-weight: 400;
+      color: #8c8c8c;
+      margin-left: 0.375rem;
+    }
+
+    /* 월별 차트 */
+    .month-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      height: 160px;
+    }
+    .month-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100%;
+      min-width: 0;
+    }
+    .month-count {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      color: #6e6e73;
+      height: 16px;
+      line-height: 16px;
+    }
+    .month-bar-track {
+      flex: 1;
+      width: 100%;
+      max-width: 28px;
+      display: flex;
+      align-items: flex-end;
+      background-color: #f5f5f7;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .month-bar {
+      width: 100%;
+      background-color: #D4AA45;
+      border-radius: 4px 4px 0 0;
+      transition: height 0.3s;
+    }
+    .month-label {
+      font-size: 0.6875rem;
+      color: #8c8c8c;
+      margin-top: 4px;
+      white-space: nowrap;
+    }
+
+    /* 분포 바 */
+    .dist-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .dist-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .dist-label {
+      font-size: 0.8125rem;
+      color: #6e6e73;
+      width: 90px;
+      flex-shrink: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .dist-track {
+      flex: 1;
+      height: 8px;
+      background-color: #f5f5f7;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .dist-bar {
+      height: 100%;
+      border-radius: 4px;
+      min-width: 2px;
+      transition: width 0.3s;
+    }
+    .dist-count {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: #1d1d1f;
+      min-width: 28px;
+      text-align: right;
+    }
+    .dist-empty {
+      font-size: 0.8125rem;
+      color: #8c8c8c;
+      text-align: center;
+      padding: 1rem 0;
+    }
+
+    /* 상태 필터 탭 */
+    .filter-tabs {
+      display: flex;
+      gap: 6px;
+    }
+    .filter-tab {
+      padding: 0.375rem 0.875rem;
+      border: 1px solid #d2d2d7;
+      border-radius: 100px;
+      background: #ffffff;
+      font-size: 0.8125rem;
+      font-family: inherit;
+      color: #6e6e73;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .filter-tab:hover {
+      border-color: #1d1d1f;
+      color: #1d1d1f;
+    }
+    .filter-tab.active {
+      background-color: #1d1d1f;
+      border-color: #1d1d1f;
+      color: #ffffff;
+      font-weight: 600;
+    }
+  </style>
 </AdminLayout>
 
 <script>
@@ -101,6 +491,19 @@ try {
         body: JSON.stringify({ id, status }),
       });
       if (res.ok) window.location.reload();
+    });
+  });
+
+  // 상태 필터
+  document.querySelectorAll('.filter-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const filter = (tab as HTMLElement).dataset.filter;
+      document.querySelectorAll('.inq-item').forEach(item => {
+        const el = item as HTMLElement;
+        el.style.display = (filter === 'all' || el.dataset.status === filter) ? '' : 'none';
+      });
     });
   });
 }

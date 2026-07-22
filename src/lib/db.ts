@@ -218,6 +218,28 @@ export async function initDB() {
       created_at TEXT DEFAULT (datetime('now')),
       updated_at TEXT DEFAULT (datetime('now'))
     );
+
+    CREATE TABLE IF NOT EXISTS inquiries (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      type TEXT DEFAULT 'popup',
+      booth_type TEXT DEFAULT '',
+      wrapping TEXT DEFAULT '',
+      region TEXT DEFAULT '',
+      event_name TEXT DEFAULT '',
+      venue TEXT DEFAULT '',
+      event_schedule TEXT DEFAULT '',
+      setup_schedule TEXT DEFAULT '',
+      detail TEXT DEFAULT '',
+      company TEXT DEFAULT '',
+      contact_name TEXT DEFAULT '',
+      phone TEXT DEFAULT '',
+      email TEXT DEFAULT '',
+      referral TEXT DEFAULT '',
+      status TEXT DEFAULT 'new',
+      email_sent INTEGER DEFAULT 0,
+      email_error TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
   `);
 }
 
