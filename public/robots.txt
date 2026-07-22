@@ -5,7 +5,7 @@ Allow: /
 Disallow: /admin/
 Disallow: /api/
 
-# Sitemaps
-Sitemap: https://simplecube.net/sitemap-index.xml
+# Sitemaps (master index chains static pages + blog posts + images)
+Sitemap: https://simplecube.net/sitemap.xml
 Sitemap: https://simplecube.net/sitemap-blog.xml
 Sitemap: https://simplecube.net/image-sitemap.xml
