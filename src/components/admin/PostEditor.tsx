@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { colors, s } from './shared/styles';
 import { calculateScores } from './shared/seoScoring';
 import { ScoreCategoryPanel, ScoreCircle } from './shared/SeoComponents';
@@ -9,6 +9,23 @@ interface PostEditorProps {
   post?: any;
   categories: any[];
   tags: any[];
+}
+
+function CollapsibleCard({ title, defaultOpen, children }: { title: string; defaultOpen?: boolean; children: React.ReactNode }) {
+  const [open, setOpen] = useState(defaultOpen ?? false);
+  return (
+    <div style={s.card}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', marginBottom: open ? 12 : 0 }}
+      >
+        <span style={{ fontSize: 13, fontWeight: 700, color: colors.text }}>{title}</span>
+        <span style={{ fontSize: 12, color: colors.textLight }}>{open ? '▾' : '▸'}</span>
+      </button>
+      {open && children}
+    </div>
+  );
 }
 
 function generateSlug(title: string): string {
@@ -23,7 +40,10 @@ function generateSlug(title: string): string {
 }
 
 export default function PostEditor({ post, categories, tags }: PostEditorProps) {
-  const isEditing = !!post;
+  // Track post id so a freshly-created post can keep being edited without leaving (#save-and-stay)
+  const [currentPostId, setCurrentPostId] = useState<number | null>(post?.id ?? null);
+  const isEditing = currentPostId != null;
+  const draftKey = `post_draft_${currentPostId ?? 'new'}`;
 
   // ── State ──
   const [title, setTitle] = useState(post?.title || '');
@@ -60,6 +80,12 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
   const [revisions, setRevisions] = useState<any[]>([]);
   const [loadingRevisions, setLoadingRevisions] = useState(false);
 
+  // ── Autosave (localStorage) + recovery ──
+  const [autosavedAt, setAutosavedAt] = useState<number | null>(null);
+  const [recovery, setRecovery] = useState<any | null>(null);
+  const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saveRef = useRef<() => void>(() => {});
+
   // ── Auto-generate slug from title ──
   useEffect(() => {
     if (!slugManuallyEdited && title) {
@@ -81,6 +107,73 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
 
   // Mark dirty when content changes
   const markDirty = useCallback(() => { if (!isDirty) setIsDirty(true); }, [isDirty]);
+
+  // ── Recovery: on mount, offer to restore a leftover local draft ──
+  // We clear the local draft on every successful server save, so a draft that
+  // still exists here means the last session ended without saving.
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(draftKey);
+      if (raw) {
+        const snap = JSON.parse(raw);
+        if (snap && (snap.title || snap.content)) setRecovery(snap);
+      }
+    } catch { /* ignore */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ── Debounced autosave to localStorage (only while there are unsaved edits) ──
+  useEffect(() => {
+    if (!isDirty) return;
+    if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+    autosaveTimer.current = setTimeout(() => {
+      try {
+        localStorage.setItem(draftKey, JSON.stringify({
+          title, slug, content, categoryId, selectedTagIds, image,
+          focusKeyword, seoTitle, seoDescription, draft, scheduledAt,
+          slugManuallyEdited, savedAt: Date.now(),
+        }));
+        setAutosavedAt(Date.now());
+      } catch { /* quota / private mode — ignore */ }
+    }, 1000);
+    return () => { if (autosaveTimer.current) clearTimeout(autosaveTimer.current); };
+  }, [isDirty, title, slug, content, categoryId, selectedTagIds, image, focusKeyword, seoTitle, seoDescription, draft, scheduledAt, slugManuallyEdited, draftKey]);
+
+  // ── Ctrl/Cmd+S saves without leaving the editor ──
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        saveRef.current();
+      }
+    };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, []);
+
+  function applyRecovery() {
+    const snap = recovery;
+    if (!snap) return;
+    setTitle(snap.title || '');
+    setSlug(snap.slug || '');
+    setContent(snap.content || '');
+    setCategoryId(snap.categoryId ?? null);
+    setSelectedTagIds(snap.selectedTagIds || []);
+    setImage(snap.image || '');
+    setFocusKeyword(snap.focusKeyword || '');
+    setSeoTitle(snap.seoTitle || '');
+    setSeoDescription(snap.seoDescription || '');
+    setDraft(!!snap.draft);
+    setScheduledAt(snap.scheduledAt || '');
+    setSlugManuallyEdited(!!snap.slugManuallyEdited);
+    setIsDirty(true);
+    setRecovery(null);
+  }
+
+  function discardRecovery() {
+    try { localStorage.removeItem(draftKey); } catch { /* ignore */ }
+    setRecovery(null);
+  }
 
   // ── Toast helper ──
   function showToast(msg: string) {
@@ -104,6 +197,41 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
     category: categoryName,
     slug,
   });
+
+  // ── Content analysis (parse body HTML once) for writing helpers ──
+  const analysis = useMemo(() => {
+    const doc = new DOMParser().parseFromString(content || '', 'text/html');
+    const plainText = (doc.body.textContent || '').replace(/\s+/g, ' ').trim();
+    const firstP = doc.querySelector('p')?.textContent?.trim() || '';
+    const headings = Array.from(doc.querySelectorAll('h1,h2,h3,h4')).map((h) => ({
+      level: Number(h.tagName[1]),
+      text: (h.textContent || '').trim(),
+    })).filter((h) => h.text);
+    const imgAlts = Array.from(doc.querySelectorAll('img')).map((img) => img.getAttribute('alt') || '');
+    return {
+      plainText,
+      charCount: plainText.length,
+      firstParagraph: firstP || plainText,
+      headings,
+      imgAlts,
+    };
+  }, [content]);
+
+  // Focus keyword checklist (only meaningful when a keyword is set)
+  const kw = focusKeyword.trim().toLowerCase();
+  const kwChecks = kw ? [
+    { label: '제목', ok: title.toLowerCase().includes(kw) },
+    { label: '첫 문단', ok: analysis.firstParagraph.toLowerCase().includes(kw) },
+    { label: '소제목', ok: analysis.headings.some((h) => h.text.toLowerCase().includes(kw)) },
+    { label: '이미지 alt', ok: analysis.imgAlts.some((a) => a.toLowerCase().includes(kw)) },
+  ] : [];
+
+  // Auto-fill meta description from body
+  function fillMetaFromBody() {
+    const src = analysis.firstParagraph || analysis.plainText;
+    setSeoDescription(src.slice(0, 155));
+    markDirty();
+  }
 
   // ── Save handler ──
   async function handleSave(publish?: boolean) {
@@ -138,7 +266,7 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
     };
 
     try {
-      const url = isEditing ? `/api/posts/${post.id}` : '/api/posts';
+      const url = isEditing ? `/api/posts/${currentPostId}` : '/api/posts';
       const method = isEditing ? 'PUT' : 'POST';
       const res = await fetch(url, {
         method,
@@ -147,22 +275,41 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
       });
 
       if (!res.ok) {
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         setError(data.error || '저장 실패');
         setSaving(false);
         return;
       }
 
+      const data = await res.json().catch(() => null);
+
       setIsDirty(false);
-      showToast(publish ? '발행되었습니다!' : '임시저장 완료!');
-      setTimeout(() => {
-        window.location.href = '/admin/posts';
-      }, 1000);
+      try { localStorage.removeItem(draftKey); } catch { /* ignore */ }
+      setAutosavedAt(null);
+
+      // 발행: 목록으로 이동. 저장/임시저장: 편집기에 머물러 계속 작성.
+      if (publish) {
+        showToast('발행되었습니다!');
+        setTimeout(() => { window.location.href = '/admin/posts'; }, 800);
+        return;
+      }
+
+      // New post → adopt the created id so further saves update in place (no reload)
+      if (!isEditing && data?.id) {
+        setCurrentPostId(data.id);
+        window.history.replaceState(null, '', `/admin/posts/${data.id}`);
+      }
+
+      showToast(isDraft ? '임시저장됨 · 계속 작성하세요' : '저장됨 · 계속 작성하세요');
+      setSaving(false);
     } catch {
       setError('네트워크 오류');
       setSaving(false);
     }
   }
+
+  // Keep the Ctrl+S handler pointed at the latest save closure
+  saveRef.current = () => { if (!saving) handleSave(); };
 
   // ── Tag management (ID-based) ──
   function handleTagInputKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -218,7 +365,7 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
     if (!isEditing) return;
     setLoadingRevisions(true);
     try {
-      const res = await fetch(`/api/posts/${post.id}/revisions`);
+      const res = await fetch(`/api/posts/${currentPostId}/revisions`);
       if (res.ok) {
         const data = await res.json();
         setRevisions(data);
@@ -232,7 +379,7 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
   async function restoreRevision(revisionId: number) {
     if (!window.confirm('이 버전으로 복원하시겠습니까? 현재 내용은 리비전으로 저장됩니다.')) return;
     try {
-      const res = await fetch(`/api/posts/${post.id}/revisions`, {
+      const res = await fetch(`/api/posts/${currentPostId}/revisions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ revisionId }),
@@ -255,6 +402,17 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
       {toastMsg && (
         <div style={{ position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)', background: '#1a1a1a', color: '#fff', padding: '10px 28px', borderRadius: 8, fontSize: 13, fontWeight: 600, zIndex: 9999, boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }}>
           {toastMsg}
+        </div>
+      )}
+
+      {/* Recovery banner: leftover local draft from a session that ended without saving */}
+      {recovery && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', padding: '10px 16px', marginBottom: 12, background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 8 }}>
+          <span style={{ fontSize: 13, color: '#92400e', flex: 1, minWidth: 200 }}>
+            저장하지 않고 종료된 작성 내용이 있습니다{recovery.savedAt ? ` (${new Date(recovery.savedAt).toLocaleString('ko-KR')})` : ''}. 이어서 작성하시겠어요?
+          </span>
+          <button onClick={applyRecovery} style={{ ...s.btn, fontSize: 12, padding: '6px 14px', background: '#f59e0b', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}>이어서 쓰기</button>
+          <button onClick={discardRecovery} style={{ background: 'none', border: 'none', color: '#92400e', fontSize: 12, cursor: 'pointer', textDecoration: 'underline' }}>삭제</button>
         </div>
       )}
 
@@ -346,6 +504,13 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
             미리보기
           </a>
         )}
+
+        {/* Autosave status */}
+        <span style={{ fontSize: 11, color: colors.textLight, marginLeft: (isEditing && !post?.draft) ? 12 : 'auto', display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}>
+          {autosavedAt
+            ? `자동저장됨 ${new Date(autosavedAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}`
+            : isDirty ? '저장 안 됨' : ''}
+        </span>
 
         {/* Error */}
         {error && (
@@ -566,8 +731,7 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
           )}
 
           {/* Panel 2: Category */}
-          <div style={s.card}>
-            <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>카테고리</h3>
+          <CollapsibleCard title="카테고리" defaultOpen>
             <select
               style={s.input}
               value={categoryId ?? ''}
@@ -578,11 +742,10 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
                 <option key={cat.id} value={cat.id}>{cat.name}</option>
               ))}
             </select>
-          </div>
+          </CollapsibleCard>
 
           {/* Panel 3: Tags - no dropdown, Enter to add (#6) */}
-          <div style={s.card}>
-            <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>태그</h3>
+          <CollapsibleCard title="태그" defaultOpen>
             <input
               style={s.input}
               value={tagInput}
@@ -606,11 +769,29 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
                 })}
               </div>
             )}
-          </div>
+          </CollapsibleCard>
+
+          {/* Panel: Writing Helper (글자 수·읽기 시간·목차) */}
+          <CollapsibleCard title="작성 도우미">
+            <div style={{ display: 'flex', gap: 16, fontSize: 12, color: colors.textLight, marginBottom: 10 }}>
+              <span>글자 수 <strong style={{ color: colors.text }}>{analysis.charCount.toLocaleString()}</strong>자</span>
+              <span>읽기 시간 <strong style={{ color: colors.text }}>{Math.max(1, Math.round(analysis.charCount / 500))}</strong>분</span>
+            </div>
+            {analysis.headings.length > 0 ? (
+              <div style={{ maxHeight: 160, overflowY: 'auto', borderTop: `1px solid ${colors.border}`, paddingTop: 8 }}>
+                {analysis.headings.map((h, i) => (
+                  <div key={i} style={{ fontSize: 12, color: colors.textLight, padding: '2px 0', paddingLeft: (h.level - 1) * 12 }}>
+                    {h.text}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ fontSize: 12, color: colors.textLight, borderTop: `1px solid ${colors.border}`, paddingTop: 8 }}>소제목이 없습니다</div>
+            )}
+          </CollapsibleCard>
 
           {/* Panel 6: Featured Image */}
-          <div style={s.card}>
-            <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>대표 이미지</h3>
+          <CollapsibleCard title="대표 이미지" defaultOpen>
             <div
               onClick={() => setShowImagePicker(true)}
               style={{ border: `2px dashed ${colors.border}`, borderRadius: 8, padding: image ? 0 : 24, textAlign: 'center', cursor: 'pointer', background: '#fafafa', transition: 'border-color 0.15s', overflow: 'hidden', position: 'relative' }}
@@ -639,14 +820,22 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
                 </>
               )}
             </div>
-          </div>
+          </CollapsibleCard>
 
           {/* Panel 7: SEO Settings */}
-          <div style={s.card}>
-            <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 12 }}>SEO 설정</h3>
+          <CollapsibleCard title="SEO 설정">
             <div style={{ marginBottom: 10 }}>
               <label style={{ fontSize: 12, fontWeight: 600, color: colors.textLight, marginBottom: 4, display: 'block' }}>포커스 키워드</label>
               <input style={s.input} value={focusKeyword} onChange={(e) => setFocusKeyword(e.target.value)} placeholder="예: 웨딩 촬영" />
+              {kwChecks.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 6 }}>
+                  {kwChecks.map((c) => (
+                    <span key={c.label} style={{ fontSize: 11, color: c.ok ? colors.green : colors.textLight }}>
+                      {c.ok ? '✓' : '✗'} {c.label}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
             <div style={{ marginBottom: 10 }}>
               <label style={{ fontSize: 12, fontWeight: 600, color: colors.textLight, marginBottom: 4, display: 'block' }}>SEO 제목</label>
@@ -654,15 +843,23 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
               <span style={{ fontSize: 11, color: (seoTitle || title).length > 60 ? colors.red : colors.textLight }}>{(seoTitle || title).length}/60</span>
             </div>
             <div>
-              <label style={{ fontSize: 12, fontWeight: 600, color: colors.textLight, marginBottom: 4, display: 'block' }}>SEO 설명</label>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                <label style={{ fontSize: 12, fontWeight: 600, color: colors.textLight }}>SEO 설명</label>
+                <button
+                  type="button"
+                  onClick={fillMetaFromBody}
+                  style={{ ...s.btn, ...s.btnOutline, fontSize: 11, padding: '3px 8px' }}
+                >
+                  본문에서 자동
+                </button>
+              </div>
               <textarea style={{ ...s.textarea, minHeight: 60 }} value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} placeholder="검색 결과에 표시될 설명" />
               <span style={{ fontSize: 11, color: seoDescription.length > 160 ? colors.red : colors.textLight }}>{seoDescription.length}/160</span>
             </div>
-          </div>
+          </CollapsibleCard>
 
           {/* Panel 8: Share Preview */}
-          <div style={s.card}>
-            <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 12 }}>공유 미리보기</h3>
+          <CollapsibleCard title="공유 미리보기">
             <div style={{ fontSize: 11, color: colors.textLight, marginBottom: 6 }}>카카오톡 / Facebook</div>
             <div style={{ border: `1px solid ${colors.border}`, borderRadius: 6, padding: 12, marginBottom: 12, background: '#fafafa' }}>
               <div style={{ fontSize: 11, color: colors.textLight }}>simplecube.co.kr</div>
@@ -675,7 +872,7 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
               <div style={{ fontSize: 11, color: '#006621' }}>simplecube.co.kr/blog/{slug || 'post-slug'}</div>
               <div style={{ fontSize: 11, color: colors.textLight }}>{seoDescription || '메타 설명이 여기에 표시됩니다.'}</div>
             </div>
-          </div>
+          </CollapsibleCard>
 
           {/* Panel 9: Revisions (only if editing) */}
           {isEditing && (

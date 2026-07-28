@@ -19,8 +19,8 @@ const faqItems = (pricingFaqResult.rows.length > 0 ? pricingFaqResult.rows : ren
 ---
 
 <BaseLayout
-  title="포토부스 대여 가격 안내 | 심플큐브 포토부스"
-  description="심플큐브 포토부스 대여 가격 50만원~. 웨딩, 기업행사, 팝업스토어 등 행사 유형별 맞춤 견적. 무제한 인화·커스텀 프레임·전문 스태프 포함. 14,000건+ 행사 경험."
+  title="포토부스 대여 가격 | 50만원~ 행사별 맞춤견적 — 심플큐브"
+  description="심플큐브 포토부스 대여 가격 50만원~. 웨딩, 기업행사, 팝업스토어 등 행사 유형별 맞춤 견적. 무제한 인화·커스텀 프레임·전문 스태프 포함. 16,000건+ 행사 경험."
   ogImage="/images/photobooth-rental-simplecube.jpg"
   transparentNav={false}
 >
@@ -30,6 +30,7 @@ const faqItems = (pricingFaqResult.rows.length > 0 ? pricingFaqResult.rows : ren
       name: '포토부스 대여 가격 안내',
       description: '심플큐브 포토부스 대여 가격 안내. 웨딩, 기업행사, 팝업스토어, 페스티벌 등 행사 유형별 맞춤 견적을 제공합니다. 전국 출장 설치 및 전문 운영 스태프 포함.',
       url: '/pricing',
+      price: '500000',
     },
   ]} />
   {faqItems.length > 0 && <FAQSchema faqs={faqItems} />}
@@ -55,7 +56,7 @@ const faqItems = (pricingFaqResult.rows.length > 0 ? pricingFaqResult.rows : ren
     <div class="mx-auto max-w-6xl px-6 lg:px-8">
       <div class="grid grid-cols-2 md:grid-cols-4 gap-6 rounded-xl bg-white shadow-md p-8">
         <div class="text-center">
-          <p class="text-3xl md:text-4xl font-bold text-primary">14,000<span class="text-olive">+</span></p>
+          <p class="text-3xl md:text-4xl font-bold text-primary">16,000<span class="text-olive">+</span></p>
           <p class="mt-1 text-sm text-secondary">누적 행사</p>
         </div>
         <div class="text-center">

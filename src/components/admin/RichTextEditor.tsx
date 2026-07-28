@@ -220,6 +220,31 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
     }
   };
 
+  // Set image width by preset (25% / 50% / 100% / original)
+  const setImageSize = (preset: 'sm' | 'md' | 'lg' | 'orig') => {
+    const target = getResizeTarget();
+    if (!target) return;
+    if (preset === 'orig') {
+      target.style.width = '';
+      target.style.height = '';
+      target.style.maxWidth = '100%';
+    } else {
+      target.style.width = preset === 'sm' ? '25%' : preset === 'md' ? '50%' : '100%';
+      target.style.maxWidth = '100%';
+      target.style.height = 'auto';
+    }
+    syncContent();
+    // Update rect
+    const editor = editorRef.current;
+    if (editor) {
+      setTimeout(() => {
+        const editorRect = editor.getBoundingClientRect();
+        const r = target.getBoundingClientRect();
+        setImgRect({ top: r.top - editorRect.top + editor.scrollTop, left: r.left - editorRect.left + editor.scrollLeft, width: r.width, height: r.height });
+      }, 50);
+    }
+  };
+
   // Delete selected media (image/video/iframe) - also removes wrapper if present
   const deleteSelectedMedia = () => {
     if (!selectedImg) return;
@@ -1420,6 +1445,16 @@ function RichTextEditor({ value, onChange, onImageSelect }: { value: string; onC
                   {a === 'left' ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="14" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/></svg>
                   : a === 'center' ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
                   : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="6" y1="18" x2="21" y2="18"/></svg>}
+                </button>
+              ))}
+              <div style={{ width: 1, height: 16, background: '#555', margin: '0 2px' }} />
+              {/* Size presets */}
+              {([['sm', '작게'], ['md', '중간'], ['lg', '크게'], ['orig', '원본']] as const).map(([p, label]) => (
+                <button key={p} onMouseDown={e => { e.preventDefault(); e.stopPropagation(); setImageSize(p); }}
+                  style={{ padding: '0 6px', height: 24, minWidth: 28, fontSize: 11, color: '#fff', background: 'none', border: 'none', borderRadius: 4, cursor: 'pointer' }}
+                  onMouseEnter={e => (e.currentTarget.style.background = '#444')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'none')}>
+                  {label}
                 </button>
               ))}
               <div style={{ width: 1, height: 16, background: '#555', margin: '0 2px' }} />

@@ -7,6 +7,7 @@ import ServiceSchema from '@components/seo/ServiceSchema.astro';
 import MachineShowcase from '@components/popup/MachineShowcase.astro';
 import ClientShowcase from '@components/popup/ClientShowcase.astro';
 import AccordionList from '@components/faq/AccordionList.astro';
+import RegionUniqueInfo from '@components/region/RegionUniqueInfo.astro';
 import db from '@lib/db';
 
 // Fetch Seoul-specific FAQs, fallback to rental, then popup
@@ -82,7 +83,7 @@ const faqItems = (
         </div>
         <div class="grid grid-cols-3 gap-4">
           <div class="rounded-lg border border-border-light bg-white p-5 text-center">
-            <span class="block text-2xl font-bold text-olive">14,000+</span>
+            <span class="block text-2xl font-bold text-olive">16,000+</span>
             <span class="block mt-1 text-xs text-secondary">전체 누적 행사</span>
           </div>
           <div class="rounded-lg border border-border-light bg-white p-5 text-center">
@@ -171,6 +172,40 @@ const faqItems = (
       </div>
     </div>
   </section>
+
+  <RegionUniqueInfo
+    city="서울"
+    cityEn="SEOUL"
+    branchOrigin="심플큐브 서울 본점"
+    highlights={[
+      { label: 'BRANCH', value: '서울 본점 직영 운영' },
+      { label: 'COVERAGE', value: '서울 전역 당일 출장' },
+      { label: 'RESPONSE', value: '평일 일과시간 내 30분 내 견적 회신' },
+    ]}
+    localStory={`<strong>서울</strong>은 강남·서초 호텔 웨딩홀, 성수·홍대 브랜드 팝업, 여의도·삼성동 기업 컨퍼런스가 가장 밀집한 대한민국 최대의 행사 도시입니다. 심플큐브 서울 본점은 2019년 창업 이래 누적 1,500건 이상의 서울 지역 행사를 운영해 왔으며, 강남·성수·잠실을 중심으로 매주 다양한 유형의 포토부스를 동시에 설치하고 있습니다.`}
+    serviceTrend={`특히 성수동·홍대·한남동은 브랜드 <a href="/popup" class="text-olive underline">팝업스토어 포토부스</a> 수요가 가장 높은 권역으로, 브랜드 아이덴티티를 반영한 커스텀 부스 래핑과 즉석 인화 운영 사례가 가장 많습니다. COEX·여의도 IFC·세텍(SETEC) 등 전시·컨벤션 행사에서는 QR 디지털 다운로드와 리드 수집을 결합한 <a href="/corporate" class="text-olive underline">기업행사 포토부스</a> 패키지를 주로 운영합니다.`}
+    priceRows={[
+      { type: '서울 시내', detail: '강남·서초·성수·송파·마포·용산·종로 등 — 출장비 별도 없음' },
+      { type: '서울 외 권역', detail: '경기 남부·북부 및 인근 도시 — 별도 문의' },
+      { type: '운영 시간 (웨딩)', detail: '본식 90분 전 설치 → 예식 시작 후 30분까지 운영', note: '식장 상황·요청에 따라 조정 가능' },
+      { type: '운영 시간 (팝업·기업·페스티벌)', detail: '최소 2시간부터 예약 가능', note: '일·주·월 단위 장기 예약 가능' },
+    ]}
+    nearbyAreas={[
+      { name: '천안 포토부스', url: '/cheonan', note: '60분' },
+      { name: '대전 포토부스', url: '/daejeon', note: '90분' },
+      { name: '수원·성남·분당', note: '경기 남부 출장' },
+      { name: '고양·일산', note: '경기 북부 출장' },
+      { name: '의정부·남양주', note: '경기 동북부 출장' },
+    ]}
+    bestVenues={[
+      { category: '강남·서초 호텔 웨딩홀', venues: 'JW메리어트 강남, 파르나스호텔, 더리버사이드호텔, 라움아트센터, 채플앳청담' },
+      { category: '성수·홍대·한남 팝업', venues: '성수동 에스팩토리·코사이어티, 홍대 AK&, 한남동 디뮤지엄 인근 팝업스토어' },
+      { category: '여의도·삼성동 비즈니스', venues: 'COEX, 여의도 IFC, 세텍(SETEC), 글래드 여의도, 그랜드인터컨티넨탈 파르나스' },
+      { category: '잠실·송파 대형 행사', venues: '롯데월드타워, 시그니엘 서울, 올림픽공원, 잠실종합운동장' },
+      { category: '종로·중구 클래식', venues: '웨스틴조선 서울, 롯데호텔 서울, 세종문화회관, 경복궁 인근 행사장' },
+      { category: '한강·야외 페스티벌', venues: '한강공원(여의도·반포·뚝섬), 올림픽공원 88잔디마당, 노들섬' },
+    ]}
+  />
 
   <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
 

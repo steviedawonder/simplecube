@@ -7,6 +7,9 @@ import BookingInquiry from '@components/wedding/BookingInquiry.astro';
 import PartnerHalls from '@components/wedding/PartnerHalls.astro';
 import AccordionList from '@components/faq/AccordionList.astro';
 import TrustSignals from '@components/common/TrustSignals.astro';
+import BreadcrumbSchema from '@components/seo/BreadcrumbSchema.astro';
+import FAQSchema from '@components/seo/FAQSchema.astro';
+import ServiceSchema from '@components/seo/ServiceSchema.astro';
 import db from '@lib/db';
 
 // Run all queries in parallel to reduce Turso round-trips
@@ -24,11 +27,21 @@ const backdrops: any[] = bdResult.status === 'fulfilled' ? bdResult.value.rows a
 ---
 
 <BaseLayout
-  title="웨딩 포토부스 | 심플큐브 - 결혼식 포토부스 대여"
-  description="결혼식 포토부스로 특별한 순간을 남기세요. 심플큐브 웨딩 포토부스는 맞춤 디자인과 전문 운영을 제공합니다. 패키지 확인 및 예약 문의하세요."
+  title="웨딩 포토부스 대여 | 16,000건 결혼식 경험·프리미엄 — 심플큐브"
+  description="결혼식 포토부스로 하객 반응까지 특별하게. 프리미엄 웨딩 포토부스, 맞춤 프레임·무제한 인화·전문 운영. 16,000건 경험의 심플큐브, 지금 예약 문의하세요."
   keywords="웨딩 포토부스, 결혼식 포토부스, 웨딩 포토부스 대여, 결혼식 포토부스 대여, 하객 포토 서비스, 포토방명록, 웨딩홀 포토부스, 호텔웨딩 포토부스, 심플큐브 웨딩"
   transparentNav={false}
 >
+  <BreadcrumbSchema items={[{ name: '웨딩 포토부스', url: '/wedding' }]} />
+  <ServiceSchema services={[
+    {
+      name: '웨딩 포토부스 대여 — 결혼식·웨딩홀 하객 포토 서비스',
+      description: '결혼식과 웨딩홀을 위한 심플큐브 웨딩 포토부스 대여 서비스. 맞춤 포토스트립 디자인, 6종 백드롭, 하객 포토 방명록, 전문 운영 스태프 지원. 전국 출장 설치.',
+      url: '/wedding',
+    },
+  ]} />
+  {faqItems.length > 0 && <FAQSchema faqs={faqItems} />}
+
   <!-- 좌측 골드 보더 히어로 (투명 배경) -->
   <section class="pt-20 lg:pt-22">
     <div class="mx-auto max-w-7xl px-6 lg:px-8 py-6 border-b border-border-light">
