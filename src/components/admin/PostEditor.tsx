@@ -200,6 +200,11 @@ export default function PostEditor({ post, categories, tags }: PostEditorProps) 
 
   // ── Content analysis (parse body HTML once) for writing helpers ──
   const analysis = useMemo(() => {
+    // DOMParser is browser-only; on the server (Astro SSR of this client:load
+    // component) return empty analysis — it recomputes after hydration.
+    if (typeof DOMParser === 'undefined') {
+      return { plainText: '', charCount: 0, firstParagraph: '', headings: [] as { level: number; text: string }[], imgAlts: [] as string[] };
+    }
     const doc = new DOMParser().parseFromString(content || '', 'text/html');
     const plainText = (doc.body.textContent || '').replace(/\s+/g, ' ').trim();
     const firstP = doc.querySelector('p')?.textContent?.trim() || '';
