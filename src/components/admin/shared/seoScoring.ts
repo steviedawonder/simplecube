@@ -33,7 +33,10 @@ export function calculateScores(data: { title: string; excerpt: string; body: st
   const questionCount = (plainBody.match(/\?/g) || []).length;
   const sentenceCount = (plainBody.match(/[.!?。]\s*/g) || []).length || 1;
   const avgSentenceLen = bodyLen / sentenceCount;
-  const paragraphs = plainBody.split(/\n\s*\n/).filter(p => p.trim().length > 0);
+  const paragraphs = body
+    .split(/<\/(?:p|div|h[1-6]|li|blockquote)>/i)
+    .map(p => p.replace(/<[^>]*>/g, '').trim())
+    .filter(Boolean);
   const shortParagraphs = paragraphs.filter(p => p.replace(/\s/g, '').length <= 300).length;
   const kwInFirst100 = kwLower ? bodyLower.slice(0, 150).includes(kwLower) : false;
   const titleHasNumber = /\d/.test(title);
