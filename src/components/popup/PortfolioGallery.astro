@@ -128,6 +128,9 @@ import { POPUP_DEFAULT_TAGS, POPUP_CUSTOM_TAGS } from '@lib/defaultTags';
       const res = await fetch('/api/portfolio?page_tag=popup');
       const items: any[] = await res.json();
 
+      // 최근 업로드 순 (id 내림차순 = 최신 우선)
+      items.sort((a, b) => Number(b.id) - Number(a.id));
+
       loading.classList.add('hidden');
 
       if (items.length === 0) {
