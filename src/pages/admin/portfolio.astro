@@ -634,7 +634,8 @@ const photostripCats = catResult.rows as any[];
   pfGrid.querySelectorAll('.portfolio-card').forEach(card => {
     card.addEventListener('click', (e) => {
       if (!pfDeleteMode) return;
-      e.preventDefault();
+      // preventDefault 제거: 체크박스 직접 클릭 시 네이티브 토글이 취소되어
+      // 체크 표시가 안 되던 문제 수정 (카드가 <div>라 막을 기본 동작 없음)
       e.stopPropagation();
       const id = Number((card as HTMLElement).dataset.id);
       const checkbox = card.querySelector<HTMLInputElement>('.pf-checkbox input');
