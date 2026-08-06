@@ -25,6 +25,8 @@ export async function GET() {
             WHERE draft = 0
               AND deleted_at IS NULL
               AND (scheduled_at IS NULL OR scheduled_at <= datetime('now'))
+              -- 외부 연동 글은 /blog/{slug} 접근 시 외부로 302 되므로 사이트맵에서 제외
+              AND (external_url IS NULL OR external_url = '')
             ORDER BY updated_at DESC`,
       args: [],
     });
