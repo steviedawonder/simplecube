@@ -3,9 +3,8 @@
   "configurations": [
     {
       "name": "simplecube-admin",
-      "runtimeExecutable": "/opt/homebrew/bin/npm",
+      "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
-      "env": { "PATH": "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin" },
       "port": 4321
     }
   ]
