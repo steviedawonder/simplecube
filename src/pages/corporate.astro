@@ -1,5 +1,6 @@
 ---
-export const prerender = true;
+// 관리자 수정(FAQ·패키지·포트폴리오 등)이 바로 반영되도록 요청 시 렌더링 — CDN 캐시는 미들웨어에서 60초
+export const prerender = false;
 import BaseLayout from '@layouts/BaseLayout.astro';
 import BreadcrumbSchema from '@components/seo/BreadcrumbSchema.astro';
 import FAQSchema from '@components/seo/FAQSchema.astro';

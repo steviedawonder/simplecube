@@ -128,14 +128,12 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   const response = await next();
 
-  // CDN cache for public SSR pages — first request hits DB, subsequent served from Vercel edge
-  if (!pathname.startsWith('/admin') && !pathname.startsWith('/api/') && !pathname.startsWith('/inquiry')) {
-    if (/^\/(wedding|popup|rental|corporate|pricing|brand|contact)\/?$/.test(pathname)) {
-      response.headers.set('Cache-Control', 's-maxage=300, stale-while-revalidate=30');
-    } else if (pathname.startsWith('/blog')) {
-      // Blog content may be updated more frequently
-      response.headers.set('Cache-Control', 's-maxage=60, stale-while-revalidate=30');
-    }
+  // 공개 HTML 은 Vercel CDN 에 60초 캐시 + 만료 후에도 백그라운드 갱신(stale-while-revalidate).
+  // 관리자에서 수정하면 최대 약 1분 뒤 다음 방문부터 반영된다. (관리자·API·문의폼·미리보기·오류 응답은 캐시 안 함)
+  const isPublicPage = !/^\/(admin|api|inquiry|blog-preview)(\/|$)/.test(pathname);
+  const isHtml = (response.headers.get('Content-Type') || '').includes('text/html');
+  if (context.request.method === 'GET' && isPublicPage && isHtml && response.status === 200 && !response.headers.has('Cache-Control')) {
+    response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=86400');
   }
 
   return response;
