@@ -24,7 +24,7 @@ export default defineConfig({
 
   integrations: [
     sitemap({
-      filter: (page) => !page.includes('/admin/') && !page.includes('/api/') && !page.includes('/blog-preview'),
+      filter: (page) => !page.includes('/admin/') && !page.includes('/api/') && !page.includes('/blog-preview') && !page.includes('/inquiry/'),
     }),
     react(),
   ],

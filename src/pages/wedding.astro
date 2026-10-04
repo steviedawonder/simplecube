@@ -32,12 +32,12 @@ const backdrops: any[] = bdResult.status === 'fulfilled' ? bdResult.value.rows a
   keywords="웨딩 포토부스, 결혼식 포토부스, 웨딩 포토부스 대여, 결혼식 포토부스 대여, 하객 포토 서비스, 포토방명록, 웨딩홀 포토부스, 호텔웨딩 포토부스, 심플큐브 웨딩"
   transparentNav={false}
 >
-  <BreadcrumbSchema items={[{ name: '웨딩 포토부스', url: '/wedding' }]} />
+  <BreadcrumbSchema items={[{ name: '웨딩 포토부스', url: '/wedding/' }]} />
   <ServiceSchema services={[
     {
       name: '웨딩 포토부스 대여 — 결혼식·웨딩홀 하객 포토 서비스',
       description: '결혼식과 웨딩홀을 위한 심플큐브 웨딩 포토부스 대여 서비스. 맞춤 포토스트립 디자인, 6종 백드롭, 하객 포토 방명록, 전문 운영 스태프 지원. 전국 출장 설치.',
-      url: '/wedding',
+      url: '/wedding/',
     },
   ]} />
   {faqItems.length > 0 && <FAQSchema faqs={faqItems} />}
@@ -266,22 +266,22 @@ const backdrops: any[] = bdResult.status === 'fulfilled' ? bdResult.value.rows a
     <div class="mx-auto max-w-7xl px-6 lg:px-8">
       <h2 class="text-lg font-bold text-primary mb-6">다른 서비스 보기</h2>
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <a href="/popup" class="group rounded-lg border border-border-light bg-white p-5 hover:border-olive/40 transition-colors">
+        <a href="/popup/" class="group rounded-lg border border-border-light bg-white p-5 hover:border-olive/40 transition-colors">
           <h3 class="text-base font-semibold text-primary group-hover:text-olive transition-colors">행사 포토부스</h3>
           <p class="mt-2 text-sm text-secondary leading-relaxed">팝업스토어·기업행사·페스티벌 맞춤 포토부스</p>
           <span class="mt-2 inline-block text-xs text-olive font-medium">자세히 보기 →</span>
         </a>
-        <a href="/rental" class="group rounded-lg border border-border-light bg-white p-5 hover:border-olive/40 transition-colors">
+        <a href="/rental/" class="group rounded-lg border border-border-light bg-white p-5 hover:border-olive/40 transition-colors">
           <h3 class="text-base font-semibold text-primary group-hover:text-olive transition-colors">포토부스 대여</h3>
           <p class="mt-2 text-sm text-secondary leading-relaxed">전국 출장 가능한 포토부스 렌탈 서비스</p>
           <span class="mt-2 inline-block text-xs text-olive font-medium">자세히 보기 →</span>
         </a>
-        <a href="/corporate" class="group rounded-lg border border-border-light bg-white p-5 hover:border-olive/40 transition-colors">
+        <a href="/corporate/" class="group rounded-lg border border-border-light bg-white p-5 hover:border-olive/40 transition-colors">
           <h3 class="text-base font-semibold text-primary group-hover:text-olive transition-colors">기업행사 포토부스</h3>
           <p class="mt-2 text-sm text-secondary leading-relaxed">기업 이벤트·컨퍼런스·전시회 포토부스</p>
           <span class="mt-2 inline-block text-xs text-olive font-medium">자세히 보기 →</span>
         </a>
-        <a href="/pricing" class="group rounded-lg border border-border-light bg-white p-5 hover:border-olive/40 transition-colors">
+        <a href="/pricing/" class="group rounded-lg border border-border-light bg-white p-5 hover:border-olive/40 transition-colors">
           <h3 class="text-base font-semibold text-primary group-hover:text-olive transition-colors">가격 안내</h3>
           <p class="mt-2 text-sm text-secondary leading-relaxed">포토부스 대여 가격 및 견적 안내</p>
           <span class="mt-2 inline-block text-xs text-olive font-medium">자세히 보기 →</span>
@@ -320,6 +320,7 @@ const backdrops: any[] = bdResult.status === 'fulfilled' ? bdResult.value.rows a
 </style>
 
 <script>
+  import { cdnImage } from '@utils/image';
 {
   // === Wedding Gallery: paginated grid with CSS slide animation ===
   async function loadWeddingGallery() {
@@ -492,7 +493,7 @@ const backdrops: any[] = bdResult.status === 'fulfilled' ? bdResult.value.rows a
 
       function showWg() {
         const item = wgItems[wgIdx]; if (!item) return;
-        lbImg.src = item.src; lbImg.alt = item.alt; lbCaption.textContent = item.alt;
+        lbImg.src = cdnImage(item.src, 1600); lbImg.alt = item.alt; lbCaption.textContent = item.alt;
       }
       function openWg(idx: number) {
         wgIdx = idx; showWg();

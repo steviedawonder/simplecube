@@ -40,7 +40,7 @@ export async function GET() {
           : new Date().toISOString().split('T')[0];
 
         return `  <url>
-    <loc>${siteUrl}/blog/${escapeXml(slug)}</loc>
+    <loc>${siteUrl}/blog/${escapeXml(slug)}/</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>

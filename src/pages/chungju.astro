@@ -2,24 +2,16 @@
 export const prerender = true;
 import BaseLayout from '@layouts/BaseLayout.astro';
 import BreadcrumbSchema from '@components/seo/BreadcrumbSchema.astro';
-import FAQSchema from '@components/seo/FAQSchema.astro';
 import ServiceSchema from '@components/seo/ServiceSchema.astro';
 import MachineShowcase from '@components/popup/MachineShowcase.astro';
 import ClientShowcase from '@components/popup/ClientShowcase.astro';
-import AccordionList from '@components/faq/AccordionList.astro';
 import RegionUniqueInfo from '@components/region/RegionUniqueInfo.astro';
 import db from '@lib/db';
 
-const [chungjuFaqResult, rentalFaqResult, popupFaqResult] = await Promise.all([
-  db.execute({ sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC', args: ['chungju'] }),
-  db.execute({ sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC', args: ['rental'] }),
-  db.execute({ sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC', args: ['popup'] }),
-]);
-const faqItems = (
-  chungjuFaqResult.rows.length > 0 ? chungjuFaqResult.rows
-  : rentalFaqResult.rows.length > 0 ? rentalFaqResult.rows
-  : popupFaqResult.rows
-) as { question: string; answer: string }[];
+// 지역 전용 FAQ(관리자 등록분)만 사용 — 렌탈/팝업 FAQ 를 지역 페이지마다 복제하지 않는다.
+// 나머지 FAQ 는 RegionUniqueInfo 가 이 페이지의 출장 범위·운영 시간·담당 지점 정보로 만든다.
+const cityFaqResult = await db.execute({ sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC', args: ['chungju'] });
+const cityFaqs = cityFaqResult.rows as unknown as { question: string; answer: string }[];
 ---
 
 <BaseLayout
@@ -30,17 +22,16 @@ const faqItems = (
   transparentNav={false}
 >
   <BreadcrumbSchema items={[
-    { name: '포토부스 대여', url: '/rental' },
-    { name: '충주 포토부스', url: '/chungju' },
+    { name: '포토부스 대여', url: '/rental/' },
+    { name: '충주 포토부스', url: '/chungju/' },
   ]} />
   <ServiceSchema services={[
     {
       name: '충주 포토부스 대여 — 충주 전 지역 출장 설치',
       description: '심플큐브의 충주 포토부스 대여 서비스. 충주시청, 중앙탑공원, 탄금대, 한국교통대 등 충주 전 지역 출장 설치. 웨딩, 기업행사, 팝업스토어, 페스티벌 맞춤 포토부스 렌탈. 대전 지점에서 출장.',
-      url: '/chungju',
+      url: '/chungju/',
     },
   ]} />
-  {faqItems.length > 0 && <FAQSchema faqs={faqItems} />}
 
   <!-- Hero -->
   <section class="pt-20 lg:pt-22">
@@ -109,25 +100,25 @@ const faqItems = (
         <div class="mt-4 h-[2px] w-8 bg-olive"></div>
       </div>
       <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <a href="/wedding" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
+        <a href="/wedding/" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
           <h3 class="text-lg font-bold text-primary group-hover:text-olive transition-colors">웨딩 포토부스</h3>
           <p class="mt-1 text-xs text-olive font-medium">연수동 · 호암동</p>
           <p class="mt-2 text-sm text-secondary leading-relaxed">충주 주요 웨딩홀, 컨벤션 웨딩홀, 연수동·호암동 예식장에서 가장 많이 찾는 포토부스. 하객 포토 서비스로 결혼식의 추억을 선물합니다.</p>
           <span class="mt-3 inline-block text-xs text-olive font-medium">자세히 보기 →</span>
         </a>
-        <a href="/corporate" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
+        <a href="/corporate/" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
           <h3 class="text-lg font-bold text-primary group-hover:text-olive transition-colors">기업행사 포토부스</h3>
           <p class="mt-1 text-xs text-olive font-medium">충주산단 · 한국교통대</p>
           <p class="mt-2 text-sm text-secondary leading-relaxed">충주첨단산업단지, 한국교통대학교, 충주시청, 충주상공회의소 등 충주 비즈니스·공공행사를 위한 포토부스 렌탈.</p>
           <span class="mt-3 inline-block text-xs text-olive font-medium">자세히 보기 →</span>
         </a>
-        <a href="/popup" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
+        <a href="/popup/" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
           <h3 class="text-lg font-bold text-primary group-hover:text-olive transition-colors">팝업스토어 포토부스</h3>
           <p class="mt-1 text-xs text-olive font-medium">성내동 · 연수동</p>
           <p class="mt-2 text-sm text-secondary leading-relaxed">성내동 원도심, 연수동 상권, 충주 핫플레이스 팝업스토어를 위한 커스텀 포토부스. 브랜드 맞춤 디자인.</p>
           <span class="mt-3 inline-block text-xs text-olive font-medium">자세히 보기 →</span>
         </a>
-        <a href="/popup" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
+        <a href="/popup/" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
           <h3 class="text-lg font-bold text-primary group-hover:text-olive transition-colors">페스티벌 포토부스</h3>
           <p class="mt-1 text-xs text-olive font-medium">탄금대 · 중앙탑공원</p>
           <p class="mt-2 text-sm text-secondary leading-relaxed">충주세계무술축제, 탄금대 야외행사, 중앙탑공원, 충주호 등 충주 대표 야외 행사장에서의 페스티벌·축제 포토부스 렌탈.</p>
@@ -172,6 +163,8 @@ const faqItems = (
   </section>
 
   <RegionUniqueInfo
+    cityFaqs={cityFaqs}
+    phone="010-8838-8122"
     city="충주"
     cityEn="CHUNGJU"
     branchOrigin="심플큐브 대전 지점"
@@ -181,7 +174,7 @@ const faqItems = (
       { label: 'RESPONSE', value: '평일 일과시간 내 30분 내 견적 회신' },
     ]}
     localStory={`<strong>충주</strong>는 중앙탑·탄금대로 대표되는 중부내륙권의 관광 도시이자, 충주호·수안보 온천·중원문화재 일대의 야외 결혼식과 가족 모임 행사가 활발한 지역입니다. 심플큐브는 대전 지점에서 90분 내 도착하며, 호암동·연수·문화 신도심 신축 웨딩홀과 충주세계무술축제 등 지역 축제 포토부스를 함께 진행합니다.`}
-    serviceTrend={`최근에는 충주기업도시·충주에코폴리스의 기업 입주가 늘면서 임직원 행사·창립기념일 <a href="/corporate" class="text-olive underline">기업행사 포토부스</a> 수요가 빠르게 증가했습니다. 또한 사과축제·우륵문화제 등 시민 야외 축제 포토부스 운영도 매년 진행하고 있습니다.`}
+    serviceTrend={`최근에는 충주기업도시·충주에코폴리스의 기업 입주가 늘면서 임직원 행사·창립기념일 <a href="/corporate/" class="text-olive underline">기업행사 포토부스</a> 수요가 빠르게 증가했습니다. 또한 사과축제·우륵문화제 등 시민 야외 축제 포토부스 운영도 매년 진행하고 있습니다.`}
     priceRows={[
       { type: '충주 시내', detail: '호암·연수·문화·중앙탑·탄금 — 별도 문의' },
       { type: '인근 권역', detail: '제천·단양·음성·괴산·원주·여주 — 별도 문의' },
@@ -189,8 +182,8 @@ const faqItems = (
       { type: '운영 시간 (팝업·기업·축제)', detail: '최소 2시간부터 예약 가능', note: '일·주·월 단위 장기 예약 가능' },
     ]}
     nearbyAreas={[
-      { name: '대전 포토부스', url: '/daejeon', note: '본 지점' },
-      { name: '청주 포토부스', url: '/cheongju', note: '70분' },
+      { name: '대전 포토부스', url: '/daejeon/', note: '본 지점' },
+      { name: '청주 포토부스', url: '/cheongju/', note: '70분' },
       { name: '제천', note: '협의 출장' },
       { name: '단양', note: '협의 출장' },
       { name: '음성', note: '협의 출장' },
@@ -216,24 +209,6 @@ const faqItems = (
   <!-- Client Showcase -->
   <ClientShowcase />
 
-  <!-- FAQ -->
-  {faqItems.length > 0 && (
-    <Fragment>
-    <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
-    <section id="qna" class="bg-white py-12 lg:py-16">
-      <div class="mx-auto max-w-3xl px-6 lg:px-8">
-        <div class="mb-10">
-          <div class="inline-flex items-center justify-center w-9 h-9 rounded-full border-[1.5px] border-olive text-olive text-[13px] font-bold mb-4">06</div>
-          <span class="block text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">FAQ</span>
-          <h2 class="mt-3 text-2xl font-bold text-primary md:text-3xl">충주 포토부스 자주 묻는 질문</h2>
-          <div class="mt-4 h-[2px] w-8 bg-olive"></div>
-        </div>
-        <AccordionList items={faqItems} />
-      </div>
-    </section>
-    </Fragment>
-  )}
-
   <!-- CTA -->
   <section class="bg-[#6B5B4D] py-12 lg:py-16">
     <div class="mx-auto max-w-3xl px-6 lg:px-8 text-center">
@@ -242,7 +217,7 @@ const faqItems = (
         충주 행사 일정과 장소를 알려주시면, 대전 지점에서 빠르게 출장 견적을 안내해드립니다.
       </p>
       <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-        <a href="/contact" class="inline-flex items-center gap-2 rounded-lg bg-olive px-8 py-3 text-sm font-semibold text-white hover:bg-olive/90 transition-colors">
+        <a href="/contact/" class="inline-flex items-center gap-2 rounded-lg bg-olive px-8 py-3 text-sm font-semibold text-white hover:bg-olive/90 transition-colors">
           문의하기
         </a>
         <a href="tel:01088388122" class="inline-flex items-center gap-2 text-sm text-[#FFFAF4]/80 hover:text-[#FFFAF4] transition-colors">

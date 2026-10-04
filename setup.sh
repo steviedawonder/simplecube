@@ -38,11 +38,13 @@ if ! command -v vercel &> /dev/null; then
     npm install -g vercel
 fi
 
-if [ ! -d ".vercel" ]; then
-    echo "⏳ Vercel 프로젝트 연결 중..."
-    vercel link --yes
+# 운영 프로젝트는 'determined-goldstine' (simplecube.net). 'simplecube' 프로젝트는 일시정지된 옛 프로젝트이니 연결하지 말 것.
+VERCEL_PROJECT="determined-goldstine"
+if [ ! -f ".vercel/project.json" ] || ! grep -q "\"projectName\":\"$VERCEL_PROJECT\"" .vercel/project.json; then
+    echo "⏳ Vercel 프로젝트($VERCEL_PROJECT) 연결 중..."
+    vercel link --yes --project "$VERCEL_PROJECT"
 else
-    echo "✅ Vercel 이미 연결됨"
+    echo "✅ Vercel 이미 연결됨 ($VERCEL_PROJECT)"
 fi
 
 # 4. 환경변수 (.env)
@@ -54,12 +56,12 @@ if [ -f ".env" ]; then
         echo "✅ .env 파일 이미 존재 (Turso 설정 확인됨)"
     else
         echo "⏳ .env에 Turso 설정이 없습니다. Vercel에서 가져오는 중..."
-        vercel env pull --yes 2>/dev/null || vercel env pull
+        vercel env pull .env --yes --environment=production
         echo "✅ 환경변수 업데이트 완료"
     fi
 else
     echo "⏳ Vercel에서 환경변수 가져오는 중..."
-    vercel env pull --yes 2>/dev/null || vercel env pull
+    vercel env pull .env --yes --environment=production
     echo "✅ .env 파일 생성 완료"
 fi
 

@@ -343,7 +343,12 @@ export async function seedOwnerAccount() {
   const existing = await client.execute("SELECT COUNT(*) as count FROM users WHERE username = 'admin'");
   if ((existing.rows[0] as any).count > 0) return;
 
-  const adminPassword = (import.meta.env.ADMIN_PASSWORD || 'admin1234').trim();
+  // 기본 비밀번호 폴백 없음 — ADMIN_PASSWORD 가 없으면 계정을 만들지 않는다
+  const adminPassword = (import.meta.env.ADMIN_PASSWORD || '').trim();
+  if (!adminPassword) {
+    console.error('[SECURITY] ADMIN_PASSWORD 환경변수가 없어 관리자 계정 시드를 건너뜁니다.');
+    return;
+  }
   const passwordHash = await bcrypt.hash(adminPassword, 10);
 
   await client.execute({

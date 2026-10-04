@@ -1,17 +1,19 @@
 import { defineMiddleware } from 'astro:middleware';
-import { verifyToken, getTokenFromCookies } from './lib/auth';
+import { getActiveUser, getTokenFromCookies } from './lib/auth';
 import { initDB, seedSEORules, seedOwnerAccount, seedFaqs, seedPackageItems, seedPageContents, seedCustomContents, migratePortfolioColumns, seedPhotostripCategories, migrateUsersEmailToUsername, migrateFaqsPageConstraint, migrateBadSlugs } from './lib/db';
 
 let dbInitialized = false;
 
 // 이전 워드프레스 URL → 현재 페이지 301 리다이렉트
 const wpRedirects: Record<string, string> = {
-  '/wedding-components': '/wedding',
-  '/wedding-venues': '/wedding',
+  '/wedding-components': '/wedding/',
+  '/wedding-venues': '/wedding/',
 };
 const wpPrefixRedirects: [string, string][] = [
-  ['/portfolio-category/', '/popup'],
-  ['/portfolio/', '/popup'],
+  ['/wedding-components/', '/wedding/'],
+  ['/wedding-venues/', '/wedding/'],
+  ['/portfolio-category/', '/popup/'],
+  ['/portfolio/', '/popup/'],
   ['/category/', '/'],
   ['/wp-content/', '/'],
   ['/wp-admin/', '/'],
@@ -25,6 +27,12 @@ const wpPrefixRedirects: [string, string][] = [
 // the soft-noise pool). Naver's site diagnostic showed 144 stale /tag/* URLs
 // from the WordPress era still flagged as noindex.
 const wpGonePrefixes = ['/tag/'];
+
+// 비로그인 GET 을 허용하는 API — 공개 페이지(포트폴리오 갤러리, 사이트 팝업)와 자체 인증하는 크론만
+function isPublicGetApi(pathname: string): boolean {
+  const p = pathname.replace(/\/+$/, '');
+  return p === '/api/portfolio' || p === '/api/popups' || p.startsWith('/api/cron/');
+}
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const { pathname } = context.url;
@@ -52,8 +60,13 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return context.redirect('/', 301);
   }
 
+  // SSR 블로그 경로는 슬래시로 끝나는 형태로 통일 (정적 페이지는 vercel.json 리다이렉트가 처리)
+  if ((context.request.method === 'GET' || context.request.method === 'HEAD') && /^\/blog(\/[^/.]+)?$/.test(pathname)) {
+    return context.redirect(`${pathname}/${context.url.search}`, 301);
+  }
+
   // 정적 페이지는 DB 초기화 불필요 — admin/api/blog 경로만 DB 사용
-  const needsDB = pathname.startsWith('/admin') || pathname.startsWith('/api/') || pathname.startsWith('/blog') || pathname.startsWith('/inquiry') || pathname === '/popup' || pathname === '/wedding' || pathname === '/rental' || pathname === '/corporate' || pathname === '/pricing' || pathname === '/';
+  const needsDB = pathname.startsWith('/admin') || pathname.startsWith('/api/') || pathname.startsWith('/blog') || pathname.startsWith('/inquiry') || /^\/(popup|wedding|rental|corporate|pricing)?\/?$/.test(pathname);
 
   if (needsDB && !dbInitialized) {
     try {
@@ -75,10 +88,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
     }
   }
 
-  // Protect admin routes (except login page)
-  if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
-    const token = getTokenFromCookies(context.request.headers.get('cookie'));
-    const user = token ? await verifyToken(token) : null;
+  // Protect admin routes (except login page) + 미발행 초안 미리보기
+  if ((pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) || pathname.startsWith('/blog-preview')) {
+    const user = await getActiveUser(getTokenFromCookies(context.request.headers.get('cookie')));
     if (!user) {
       return context.redirect('/admin/login');
     }
@@ -91,8 +103,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     if (pathname === '/api/auth/login' || pathname === '/api/inquiry') {
       return next();
     }
-    const token = getTokenFromCookies(context.request.headers.get('cookie'));
-    const user = token ? await verifyToken(token) : null;
+    const user = await getActiveUser(getTokenFromCookies(context.request.headers.get('cookie')));
     if (!user) {
       return new Response(JSON.stringify({ error: '인증이 필요합니다.' }), {
         status: 401,
@@ -102,12 +113,16 @@ export const onRequest = defineMiddleware(async (context, next) => {
     context.locals.user = user;
   }
 
-  // For GET API requests that need user context
+  // GET API: 공개 페이지가 쓰는 엔드포인트만 열고 나머지(글 전문·초안·휴지통·미디어·계정·og-image 프록시)는 인증 필요
   if (pathname.startsWith('/api/') && context.request.method === 'GET') {
-    const token = getTokenFromCookies(context.request.headers.get('cookie'));
-    const user = token ? await verifyToken(token) : null;
+    const user = await getActiveUser(getTokenFromCookies(context.request.headers.get('cookie')));
     if (user) {
       context.locals.user = user;
+    } else if (!isPublicGetApi(pathname)) {
+      return new Response(JSON.stringify({ error: '인증이 필요합니다.' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
   }
 
@@ -115,7 +130,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   // CDN cache for public SSR pages — first request hits DB, subsequent served from Vercel edge
   if (!pathname.startsWith('/admin') && !pathname.startsWith('/api/') && !pathname.startsWith('/inquiry')) {
-    if (/^\/(wedding|popup|rental|corporate|pricing|faq|qna|brand|contact)$/.test(pathname)) {
+    if (/^\/(wedding|popup|rental|corporate|pricing|brand|contact)\/?$/.test(pathname)) {
       response.headers.set('Cache-Control', 's-maxage=300, stale-while-revalidate=30');
     } else if (pathname.startsWith('/blog')) {
       // Blog content may be updated more frequently

@@ -3,10 +3,11 @@ export const prerender = false;
 
 import BaseLayout from '@layouts/BaseLayout.astro';
 import db from '@lib/db';
+import { cdnImage } from '@utils/image';
 
 // Single query with GROUP_CONCAT to avoid N+1 tag queries
 const result = await db.execute(`
-  SELECT p.*, c.name as category_name,
+  SELECT p.id, p.title, p.slug, p.description, p.image, p.external_url, p.created_at, c.name as category_name,
     GROUP_CONCAT(t.name, ',') as tags_list
   FROM posts p
   LEFT JOIN categories c ON p.category_id = c.id
@@ -67,12 +68,12 @@ const categories = [...new Set(posts.map((p) => p.category_name).filter(Boolean)
   <section class="bg-white py-12 lg:py-16">
     <div class="mx-auto max-w-5xl px-6 lg:px-8">
       <div id="post-list" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {posts.map((post) => (
+        {posts.map((post, i) => (
           <article class="blog-card group" data-title={post.title.toLowerCase()} data-description={(post.description || '').toLowerCase()} data-tags={post.tags?.join(' ').toLowerCase() || ''} data-category={post.category_name || ''}>
-            <a href={post.external_url || `/blog/${post.slug}`} target={post.external_url ? '_blank' : undefined} rel={post.external_url ? 'noopener noreferrer' : undefined} class="block overflow-hidden rounded-xl border border-border-light bg-white transition-all duration-300 hover:border-olive/40 hover:shadow-md">
+            <a href={post.external_url || `/blog/${post.slug}/`} target={post.external_url ? '_blank' : undefined} rel={post.external_url ? 'noopener noreferrer' : undefined} class="block overflow-hidden rounded-xl border border-border-light bg-white transition-all duration-300 hover:border-olive/40 hover:shadow-md">
               {post.image && (
                 <div class="overflow-hidden">
-                  <img src={post.image} alt={post.title} class="aspect-[16/10] w-full object-cover transition-all duration-500 group-hover:scale-105" loading="lazy" />
+                  <img src={cdnImage(post.image, 640)} alt={post.title} width="640" height="400" class="aspect-[16/10] w-full object-cover transition-all duration-500 group-hover:scale-105" loading={i < 3 ? 'eager' : 'lazy'} fetchpriority={i === 0 ? 'high' : undefined} decoding="async" />
                 </div>
               )}
               <div class="p-5">

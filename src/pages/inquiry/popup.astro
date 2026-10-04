@@ -41,6 +41,11 @@ const boothModels = [
       </div>
 
       <form id="inquiry-form" class="space-y-10">
+        <!-- 스팸 방지 허니팟: 사람에게는 보이지 않음 -->
+        <div aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;">
+          <label for="website">웹사이트</label>
+          <input type="text" id="website" name="website" tabindex="-1" autocomplete="off" />
+        </div>
         <!-- 행사 정보 -->
         <div>
           <h2 class="text-base font-bold text-primary mb-6 flex items-center gap-2">
@@ -224,7 +229,7 @@ const boothModels = [
     border: 1px solid var(--color-border-light, #e5e5e5);
     background: var(--color-bg-light, #f9f8f6);
     padding: 0.75rem 1rem;
-    font-size: 0.875rem;
+    font-size: 1rem; /* 16px 미만이면 iOS 가 입력 시 화면을 확대함 */
     color: var(--color-primary, #1d1d1f);
     transition: border-color 0.2s, background 0.2s;
   }
@@ -294,6 +299,7 @@ const boothModels = [
       phone: formData.get('phone'),
       email: formData.get('email'),
       referral,
+      website: formData.get('website') || '',
     };
 
     try {
@@ -325,7 +331,7 @@ const boothModels = [
         throw new Error('전송 실패');
       }
     } catch {
-      alert('문의 전송에 실패했습니다. 잠시 후 다시 시도해주세요.');
+      alert('문의 전송에 실패했습니다. 잠시 후 다시 시도하시거나 02-338-9180 으로 전화 주세요.');
       submitBtn.disabled = false;
       submitBtn.textContent = '작성 완료';
     }

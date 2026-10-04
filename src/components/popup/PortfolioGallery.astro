@@ -108,6 +108,7 @@ import { POPUP_DEFAULT_TAGS, POPUP_CUSTOM_TAGS } from '@lib/defaultTags';
 </script>
 
 <script>
+  import { cdnImage } from '@utils/image';
   const defaultTags: string[] = (window as any).__popupDefaultTags || [];
   const hardcodedCustomTags: string[] = (window as any).__popupCustomTags || [];
 
@@ -349,7 +350,7 @@ import { POPUP_DEFAULT_TAGS, POPUP_CUSTOM_TAGS } from '@lib/defaultTags';
     function showLbImage() {
       const item = visibleItems[currentIdx];
       if (!item) return;
-      lbImg.src = item.src;
+      lbImg.src = cdnImage(item.src, 1600);
       lbImg.alt = item.alt;
       lbCaption.textContent = item.alt;
     }

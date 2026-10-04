@@ -1,15 +1,11 @@
 ---
-import { getCollection, render } from 'astro:content';
+// 미발행 마크다운 초안 미리보기 — 관리자 전용 (미들웨어에서 로그인 확인)
+export const prerender = false;
 
-export async function getStaticPaths() {
-  const posts = await getCollection('blog');
-  return posts.map((post) => ({
-    params: { id: post.id },
-    props: { post },
-  }));
-}
+import { getEntry, render } from 'astro:content';
 
-const { post } = Astro.props;
+const post = await getEntry('blog', Astro.params.id ?? '');
+if (!post) return Astro.rewrite('/404/');
 const { Content } = await render(post);
 ---
 

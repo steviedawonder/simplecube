@@ -1,4 +1,7 @@
 ---
+// 미발행 마크다운 초안 목록 — 관리자 전용 (미들웨어에서 로그인 확인)
+export const prerender = false;
+
 import { getCollection } from 'astro:content';
 
 const posts = await getCollection('blog');

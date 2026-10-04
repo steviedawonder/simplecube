@@ -2,24 +2,16 @@
 export const prerender = true;
 import BaseLayout from '@layouts/BaseLayout.astro';
 import BreadcrumbSchema from '@components/seo/BreadcrumbSchema.astro';
-import FAQSchema from '@components/seo/FAQSchema.astro';
 import ServiceSchema from '@components/seo/ServiceSchema.astro';
 import MachineShowcase from '@components/popup/MachineShowcase.astro';
 import ClientShowcase from '@components/popup/ClientShowcase.astro';
-import AccordionList from '@components/faq/AccordionList.astro';
 import RegionUniqueInfo from '@components/region/RegionUniqueInfo.astro';
 import db from '@lib/db';
 
-const [ulsanFaqResult, rentalFaqResult, popupFaqResult] = await Promise.all([
-  db.execute({ sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC', args: ['ulsan'] }),
-  db.execute({ sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC', args: ['rental'] }),
-  db.execute({ sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC', args: ['popup'] }),
-]);
-const faqItems = (
-  ulsanFaqResult.rows.length > 0 ? ulsanFaqResult.rows
-  : rentalFaqResult.rows.length > 0 ? rentalFaqResult.rows
-  : popupFaqResult.rows
-) as { question: string; answer: string }[];
+// 지역 전용 FAQ(관리자 등록분)만 사용 — 렌탈/팝업 FAQ 를 지역 페이지마다 복제하지 않는다.
+// 나머지 FAQ 는 RegionUniqueInfo 가 이 페이지의 출장 범위·운영 시간·담당 지점 정보로 만든다.
+const cityFaqResult = await db.execute({ sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC', args: ['ulsan'] });
+const cityFaqs = cityFaqResult.rows as unknown as { question: string; answer: string }[];
 ---
 
 <BaseLayout
@@ -30,17 +22,16 @@ const faqItems = (
   transparentNav={false}
 >
   <BreadcrumbSchema items={[
-    { name: '포토부스 대여', url: '/rental' },
-    { name: '울산 포토부스', url: '/ulsan' },
+    { name: '포토부스 대여', url: '/rental/' },
+    { name: '울산 포토부스', url: '/ulsan/' },
   ]} />
   <ServiceSchema services={[
     {
       name: '울산 포토부스 대여 — 울산 전 지역 출장 설치',
       description: '심플큐브의 울산 포토부스 대여 서비스. 삼산동, 성남동, 울산대공원, 울주 등 울산 전 지역 출장 설치. 웨딩, 기업행사, 팝업스토어, 페스티벌 맞춤 포토부스 렌탈. 부산 지점에서 출장.',
-      url: '/ulsan',
+      url: '/ulsan/',
     },
   ]} />
-  {faqItems.length > 0 && <FAQSchema faqs={faqItems} />}
 
   <!-- Hero -->
   <section class="pt-20 lg:pt-22">
@@ -109,25 +100,25 @@ const faqItems = (
         <div class="mt-4 h-[2px] w-8 bg-olive"></div>
       </div>
       <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <a href="/wedding" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
+        <a href="/wedding/" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
           <h3 class="text-lg font-bold text-primary group-hover:text-olive transition-colors">웨딩 포토부스</h3>
           <p class="mt-1 text-xs text-olive font-medium">남구 · 중구</p>
           <p class="mt-2 text-sm text-secondary leading-relaxed">롯데호텔 울산, 현대호텔, 울산 주요 웨딩홀에서 가장 많이 찾는 포토부스. 하객 포토 서비스로 결혼식의 추억을 선물합니다.</p>
           <span class="mt-3 inline-block text-xs text-olive font-medium">자세히 보기 →</span>
         </a>
-        <a href="/corporate" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
+        <a href="/corporate/" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
           <h3 class="text-lg font-bold text-primary group-hover:text-olive transition-colors">기업행사 포토부스</h3>
           <p class="mt-1 text-xs text-olive font-medium">UECO · 산업단지</p>
           <p class="mt-2 text-sm text-secondary leading-relaxed">울산전시컨벤션센터(UECO), 현대중공업·SK·HD현대 등 울산 산업단지 기업행사를 위한 포토부스 렌탈.</p>
           <span class="mt-3 inline-block text-xs text-olive font-medium">자세히 보기 →</span>
         </a>
-        <a href="/popup" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
+        <a href="/popup/" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
           <h3 class="text-lg font-bold text-primary group-hover:text-olive transition-colors">팝업스토어 포토부스</h3>
           <p class="mt-1 text-xs text-olive font-medium">삼산동 · 성남동</p>
           <p class="mt-2 text-sm text-secondary leading-relaxed">삼산동 메인 상권, 성남동 원도심, 울산 주요 백화점 팝업스토어를 위한 커스텀 포토부스. 브랜드 맞춤 디자인.</p>
           <span class="mt-3 inline-block text-xs text-olive font-medium">자세히 보기 →</span>
         </a>
-        <a href="/popup" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
+        <a href="/popup/" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
           <h3 class="text-lg font-bold text-primary group-hover:text-olive transition-colors">페스티벌 포토부스</h3>
           <p class="mt-1 text-xs text-olive font-medium">태화강 · 일산해수욕장</p>
           <p class="mt-2 text-sm text-secondary leading-relaxed">태화강 국가정원, 일산해수욕장, 울산고래축제, 처용문화제 등 울산 대표 야외 행사장에서의 페스티벌 포토부스.</p>
@@ -172,6 +163,8 @@ const faqItems = (
   </section>
 
   <RegionUniqueInfo
+    cityFaqs={cityFaqs}
+    phone="010-3122-4746"
     city="울산"
     cityEn="ULSAN"
     branchOrigin="심플큐브 부산 지점"
@@ -181,7 +174,7 @@ const faqItems = (
       { label: 'RESPONSE', value: '평일 일과시간 내 30분 내 견적 회신' },
     ]}
     localStory={`<strong>울산</strong>은 현대자동차·HD현대중공업·SK에너지로 대표되는 한국 최대의 중공업 도시로, 임직원 가족 체육대회·창립기념일·신년회 등 대규모 기업행사 포토부스 수요가 가장 큰 도시 중 하나입니다. 심플큐브 부산 지점에서 60분 내 도착하며, 울산 시내·울주군·경주까지 같은 출장 권역으로 운영합니다.`}
-    serviceTrend={`또한 태화강 국가정원 야외 페스티벌, 간절곶·일산해수욕장 가족 행사, 남구 신정·달동의 신축 웨딩홀 등 산업도시 특유의 다양한 수요가 있습니다. <a href="/corporate" class="text-olive underline">기업행사 포토부스</a> 운영 경험이 풍부하여, 임직원 명찰 연동, 가족 동반 무제한 인화, 대규모 동시 운영 노하우를 보유하고 있습니다.`}
+    serviceTrend={`또한 태화강 국가정원 야외 페스티벌, 간절곶·일산해수욕장 가족 행사, 남구 신정·달동의 신축 웨딩홀 등 산업도시 특유의 다양한 수요가 있습니다. <a href="/corporate/" class="text-olive underline">기업행사 포토부스</a> 운영 경험이 풍부하여, 임직원 명찰 연동, 가족 동반 무제한 인화, 대규모 동시 운영 노하우를 보유하고 있습니다.`}
     priceRows={[
       { type: '울산 시내', detail: '남·북·동·중·울주 — 별도 문의' },
       { type: '인근 권역', detail: '울주·언양·경주·포항·양산 — 별도 문의' },
@@ -189,8 +182,8 @@ const faqItems = (
       { type: '운영 시간 (팝업·기업·임직원 행사)', detail: '최소 2시간부터 예약 가능', note: '일·주·월 단위 장기 예약 가능' },
     ]}
     nearbyAreas={[
-      { name: '부산 포토부스', url: '/busan', note: '본 지점' },
-      { name: '대구 포토부스', url: '/daegu', note: '90분' },
+      { name: '부산 포토부스', url: '/busan/', note: '본 지점' },
+      { name: '대구 포토부스', url: '/daegu/', note: '90분' },
       { name: '경주', note: '울산 권역' },
       { name: '양산', note: '부산 권역' },
       { name: '포항', note: '협의 출장' },
@@ -216,24 +209,6 @@ const faqItems = (
   <!-- Client Showcase -->
   <ClientShowcase />
 
-  <!-- FAQ -->
-  {faqItems.length > 0 && (
-    <Fragment>
-    <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
-    <section id="qna" class="bg-white py-12 lg:py-16">
-      <div class="mx-auto max-w-3xl px-6 lg:px-8">
-        <div class="mb-10">
-          <div class="inline-flex items-center justify-center w-9 h-9 rounded-full border-[1.5px] border-olive text-olive text-[13px] font-bold mb-4">06</div>
-          <span class="block text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">FAQ</span>
-          <h2 class="mt-3 text-2xl font-bold text-primary md:text-3xl">울산 포토부스 자주 묻는 질문</h2>
-          <div class="mt-4 h-[2px] w-8 bg-olive"></div>
-        </div>
-        <AccordionList items={faqItems} />
-      </div>
-    </section>
-    </Fragment>
-  )}
-
   <!-- CTA -->
   <section class="bg-[#6B5B4D] py-12 lg:py-16">
     <div class="mx-auto max-w-3xl px-6 lg:px-8 text-center">
@@ -242,7 +217,7 @@ const faqItems = (
         울산 행사 일정과 장소를 알려주시면, 부산 지점에서 빠르게 출장 견적을 안내해드립니다.
       </p>
       <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-        <a href="/contact" class="inline-flex items-center gap-2 rounded-lg bg-olive px-8 py-3 text-sm font-semibold text-white hover:bg-olive/90 transition-colors">
+        <a href="/contact/" class="inline-flex items-center gap-2 rounded-lg bg-olive px-8 py-3 text-sm font-semibold text-white hover:bg-olive/90 transition-colors">
           문의하기
         </a>
         <a href="tel:01031224746" class="inline-flex items-center gap-2 text-sm text-[#FFFAF4]/80 hover:text-[#FFFAF4] transition-colors">

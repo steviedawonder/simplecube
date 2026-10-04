@@ -2,8 +2,11 @@ User-agent: *
 Allow: /
 
 # Block admin and API routes
+# (포트폴리오 갤러리는 /api/portfolio 를 클라이언트에서 불러오므로 렌더링용으로 허용)
 Disallow: /admin/
+Disallow: /blog-preview
 Disallow: /api/
+Allow: /api/portfolio
 
 # Sitemaps (master index chains static pages + blog posts + images)
 Sitemap: https://simplecube.net/sitemap.xml

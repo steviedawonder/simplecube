@@ -17,12 +17,13 @@ import EventPopup from '@components/common/EventPopup.astro';
   transparentNav={true}
 >
   <OrganizationSchema />
-  <EventPopup />
   <HeroSection />
   <ServicesSection />
   <WhySimpleCube />
   <ClientShowcase />
   <BrandStory />
+  <!-- 고정 위치 배너라 본문 뒤에 둠 — 검색엔진이 팝업 문구를 페이지 첫 문장으로 읽지 않도록 -->
+  <EventPopup />
 </BaseLayout>
 
 <script>

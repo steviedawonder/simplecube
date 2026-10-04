@@ -5,13 +5,14 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 import Button from '@components/common/Button.astro';
 import db from '@lib/db';
 import { sanitizeSlug, isCleanSlug } from '@utils/slug';
+import { cdnImage } from '@utils/image';
 
 const { slug } = Astro.params;
 
 // 301 redirect: URL에 공백·마침표 등 불량 문자가 있으면 정리된 슬러그로 리다이렉트
 if (slug && !isCleanSlug(decodeURIComponent(slug))) {
   const cleanSlug = sanitizeSlug(decodeURIComponent(slug));
-  return Astro.redirect(`/blog/${cleanSlug}`, 301);
+  return Astro.redirect(`/blog/${cleanSlug}/`, 301);
 }
 
 const decodedSlug = decodeURIComponent(slug ?? '');
@@ -23,8 +24,9 @@ const result = await db.execute({
   args: [decodedSlug],
 });
 
+// 없는 글·초안은 /blog 로 302 하지 않고 404 (soft 404 방지)
 if (result.rows.length === 0) {
-  return Astro.redirect('/blog');
+  return Astro.rewrite('/404/');
 }
 
 const post = result.rows[0] as any;
@@ -33,8 +35,8 @@ if (post.external_url) {
   return Astro.redirect(post.external_url);
 }
 
-if (post.draft) {
-  return Astro.redirect('/blog');
+if (post.draft || (post.scheduled_at && new Date(post.scheduled_at) > new Date())) {
+  return Astro.rewrite('/404/');
 }
 
 // Tags
@@ -51,6 +53,7 @@ const relatedResult = await db.execute({
         LEFT JOIN categories c ON p.category_id = c.id
         WHERE p.draft = 0 AND p.deleted_at IS NULL AND p.id != ?
           AND (scheduled_at IS NULL OR scheduled_at <= datetime('now'))
+          AND (p.external_url IS NULL OR p.external_url = '')
           AND (
             p.category_id = ?
             OR EXISTS (
@@ -95,17 +98,47 @@ function injectIds(html: string, toc: ToCItem[]): string {
   );
 }
 
+function escapeAttr(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+// 줄바꿈·제로폭 문자 제거 (meta description, JSON-LD 용)
+function cleanText(s: string): string {
+  return s.replace(/[\u200B-\u200D\uFEFF]/g, '').replace(/\s+/g, ' ').trim();
+}
+
+// 붙여넣기(네이버 에디터 등) 잔재 정리: 빈 헤딩 제거, 본문 h1 → h2(페이지 h1 은 제목 하나),
+// 의미 없는 alt 는 글 제목으로, Cloudinary 이미지는 자동 포맷·폭 제한 + 지연 로딩
+function normalizeContent(html: string, title: string): string {
+  const alt = escapeAttr(title);
+  return html
+    .replace(/<h([1-6])[^>]*>(?:\s|&nbsp;|<br\s*\/?>)*<\/h\1>/gi, '')
+    .replace(/<h1(\s[^>]*)?>/gi, (_m, attrs = '') => `<h2${attrs}>`)
+    .replace(/<\/h1>/gi, '</h2>')
+    .replace(/<img\b([^>]*)>/gi, (_m, attrs: string) => {
+      let a = attrs.replace(/\s\/$/, '');
+      a = a.replace(/\salt=(["'])(?:\s*|붙여넣기 이미지|image|이미지)\1/i, '');
+      if (!/\salt=/i.test(a)) a += ` alt="${alt}"`;
+      a = a.replace(/\ssrc=(["'])(https:\/\/res\.cloudinary\.com\/[^"']+)\1/i, (_s, q, url) => ` src=${q}${cdnImage(url, 1200)}${q}`);
+      if (!/\sloading=/i.test(a)) a += ' loading="lazy"';
+      if (!/\sdecoding=/i.test(a)) a += ' decoding="async"';
+      return `<img${a}>`;
+    });
+}
+
 // ── Derived data ─────────────────────────────────────────────────────────────
 
-const readingTime = calcReadingTime(post.content);
-const toc = extractToC(post.content);
-const processedContent = injectIds(post.content, toc);
+const content = normalizeContent(String(post.content || ''), String(post.title));
+const metaDescription = cleanText(String(post.seo_description || post.description || ''));
+const readingTime = calcReadingTime(content);
+const toc = extractToC(content);
+const processedContent = injectIds(content, toc);
 const hasToc = toc.length >= 3;
 
-const pageUrl = `https://simplecube.net/blog/${post.slug}`;
+const pageUrl = `https://simplecube.net/blog/${post.slug}/`;
 const publishedISO = new Date(post.created_at).toISOString();
 const modifiedISO  = new Date(post.updated_at).toISOString();
-const wordCount = (post.content.replace(/<[^>]*>/g, '').match(/\S+/g) || []).length;
+const wordCount = (content.replace(/<[^>]*>/g, '').match(/\S+/g) || []).length;
 
 // ── JSON-LD ───────────────────────────────────────────────────────────────────
 
@@ -116,7 +149,7 @@ const blogPostingLd = {
   mainEntityOfPage: { '@type': 'WebPage', '@id': pageUrl },
   inLanguage: 'ko-KR',
   headline: post.seo_title || post.title,
-  description: post.seo_description || post.description,
+  description: metaDescription,
   datePublished: publishedISO,
   dateModified: modifiedISO,
   wordCount,
@@ -136,14 +169,14 @@ const blogPostingLd = {
     url: 'https://simplecube.net',
     logo: {
       '@type': 'ImageObject',
-      url: 'https://simplecube.net/images/common/og-image.jpg',
+      url: 'https://simplecube.net/images/common/logo.png',
     },
   },
 };
 
 const breadcrumbItems = [
   { '@type': 'ListItem', position: 1, name: '홈', item: 'https://simplecube.net' },
-  { '@type': 'ListItem', position: 2, name: '블로그', item: 'https://simplecube.net/blog' },
+  { '@type': 'ListItem', position: 2, name: '블로그', item: 'https://simplecube.net/blog/' },
   { '@type': 'ListItem', position: 3, name: post.seo_title || post.title, item: pageUrl },
 ];
 
@@ -160,8 +193,8 @@ const formattedDate = new Date(post.created_at).toLocaleDateString('ko-KR', {
 
 <BaseLayout
   title={`${post.seo_title || post.title} | 심플큐브`}
-  description={post.seo_description || post.description}
-  ogImage={post.image}
+  description={metaDescription}
+  ogImage={post.image || undefined}
   ogType="article"
   articleMeta={{
     publishedTime: publishedISO,
@@ -180,7 +213,7 @@ const formattedDate = new Date(post.created_at).toLocaleDateString('ko-KR', {
       <nav aria-label="breadcrumb" class="mb-6 flex items-center gap-1.5 text-xs text-secondary-light">
         <a href="/" class="hover:text-primary transition-colors">홈</a>
         <span aria-hidden="true">/</span>
-        <a href="/blog" class="hover:text-primary transition-colors">블로그</a>
+        <a href="/blog/" class="hover:text-primary transition-colors">블로그</a>
         {post.category_name && (
           <>
             <span aria-hidden="true">/</span>
@@ -275,7 +308,7 @@ const formattedDate = new Date(post.created_at).toLocaleDateString('ko-KR', {
             16,000건 이상의 행사를 운영한 포토부스 전문 기업. 웨딩·팝업·기업행사 등 모든 규모의 이벤트에 전국 출장 서비스를 제공합니다.
           </p>
           <a
-            href="/brand"
+            href="/brand/"
             class="mt-2 inline-block text-xs text-olive hover:underline"
             aria-label="심플큐브 브랜드 소개 페이지로 이동"
           >
@@ -286,7 +319,7 @@ const formattedDate = new Date(post.created_at).toLocaleDateString('ko-KR', {
 
       <!-- Back button -->
       <div class="mt-10">
-        <Button href="/blog" variant="outline" size="sm">← 목록으로 돌아가기</Button>
+        <Button href="/blog/" variant="outline" size="sm">← 목록으로 돌아가기</Button>
       </div>
     </div>
 
@@ -298,7 +331,7 @@ const formattedDate = new Date(post.created_at).toLocaleDateString('ko-KR', {
           <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {relatedPosts.map((rp: any) => (
               <a
-                href={`/blog/${rp.slug}`}
+                href={`/blog/${rp.slug}/`}
                 class="group rounded-2xl border border-border-light bg-white overflow-hidden hover:shadow-md transition-shadow"
               >
                 {rp.image && (

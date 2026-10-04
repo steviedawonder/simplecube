@@ -1,7 +1,35 @@
 ---
 // Catch-all 404 페이지 — 미들웨어에서 워드프레스 리다이렉트 처리 후
-// 매칭되지 않는 경로는 여기서 404 반환
+// 매칭되지 않는 경로는 여기서 404 반환 (사용자에게는 핵심 페이지로 가는 링크 제공)
 export const prerender = false;
 
-return new Response('Not Found', { status: 404 });
+import BaseLayout from '@layouts/BaseLayout.astro';
+
+Astro.response.status = 404;
+Astro.response.headers.set('X-Robots-Tag', 'noindex');
+
+const links = [
+  { href: '/rental/', label: '포토부스 대여' },
+  { href: '/wedding/', label: '웨딩 포토부스' },
+  { href: '/popup/', label: '팝업·행사 포토부스' },
+  { href: '/pricing/', label: '가격 안내' },
+  { href: '/blog/', label: '블로그' },
+  { href: '/contact/', label: '예약 문의' },
+];
 ---
+
+<BaseLayout title="페이지를 찾을 수 없습니다 | 심플큐브" description="요청하신 페이지를 찾을 수 없습니다." noindex>
+  <section class="mx-auto max-w-3xl px-6 py-32 text-center lg:py-40">
+    <p class="text-sm font-semibold tracking-[0.3em] text-olive">404</p>
+    <h1 class="mt-4 text-2xl font-bold text-primary lg:text-3xl">페이지를 찾을 수 없습니다</h1>
+    <p class="mt-4 text-secondary">주소가 바뀌었거나 삭제된 페이지입니다. 아래에서 원하시는 서비스를 찾아보세요.</p>
+    <ul class="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3">
+      {links.map((l) => (
+        <li>
+          <a href={l.href} class="block rounded-lg border border-border-light px-4 py-3 text-sm font-medium text-primary hover:border-olive">{l.label}</a>
+        </li>
+      ))}
+    </ul>
+    <a href="/" class="mt-10 inline-block text-sm text-secondary underline underline-offset-4">홈으로 가기</a>
+  </section>
+</BaseLayout>

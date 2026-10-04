@@ -4,9 +4,47 @@ import type { APIRoute } from 'astro';
 import db from '@lib/db';
 import nodemailer from 'nodemailer';
 
+const FIELD_LIMITS: Record<string, number> = {
+  booth_type: 200, wrapping: 50, region: 100, event_name: 200, venue: 200,
+  event_schedule: 200, setup_schedule: 200, detail: 5000, company: 200,
+  contact_name: 100, phone: 40, email: 200, referral: 300,
+};
+
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
+
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const data = await request.json();
+    let raw: any;
+    try {
+      raw = await request.json();
+    } catch {
+      return json({ success: false, error: '잘못된 요청입니다.' }, 400);
+    }
+    if (!raw || typeof raw !== 'object') return json({ success: false, error: '잘못된 요청입니다.' }, 400);
+
+    // 허니팟: 사람에게는 보이지 않는 필드가 채워졌으면 봇 — 저장·메일 없이 성공처럼 응답
+    if (typeof raw.website === 'string' && raw.website.trim() !== '') {
+      return json({ success: true, id: 0, emailSent: 0 });
+    }
+
+    // 문자열로 정규화 + 길이 제한 (배열은 쉼표로 합침)
+    const data: Record<string, string> = {};
+    for (const [key, limit] of Object.entries(FIELD_LIMITS)) {
+      const v = raw[key];
+      const str = Array.isArray(v) ? v.join(', ') : v == null ? '' : String(v);
+      data[key] = str.trim().slice(0, limit);
+    }
+
+    if (!data.phone) {
+      return json({ success: false, error: '연락처는 필수입니다.' }, 400);
+    }
+    if (data.phone.replace(/\D/g, '').length < 9) {
+      return json({ success: false, error: '연락처를 정확히 입력해주세요.' }, 400);
+    }
+    if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+      return json({ success: false, error: '이메일 형식을 확인해주세요.' }, 400);
+    }
 
     // Save to DB first (always succeeds regardless of email)
     const result = await db.execute({
@@ -96,9 +134,7 @@ export const POST: APIRoute = async ({ request }) => {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (err: any) {
-    return new Response(JSON.stringify({ success: false, error: err.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    console.error('[inquiry] 저장 실패:', err);
+    return json({ success: false, error: '문의 접수 중 오류가 발생했습니다.' }, 500);
   }
 };

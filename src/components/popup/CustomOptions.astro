@@ -381,6 +381,7 @@ const menus = [
 </div>
 
 <script>
+  import { cdnImage } from '@utils/image';
 {
   const menuBtns = document.querySelectorAll<HTMLButtonElement>('.custom-menu-btn');
   const panels = document.querySelectorAll<HTMLDivElement>('.custom-panel');
@@ -501,7 +502,7 @@ const menus = [
       grid.innerHTML = items.map((item: any) => `
         <div class="custom-pf-thumb group cursor-pointer overflow-hidden rounded-lg relative shrink-0" style="width:${itemW}px;height:${itemH}px" data-url="${item.image_url}" data-title="${item.title || ''}">
           <img
-            src="${item.image_url}"
+            src="${cdnImage(item.image_url, 600)}"
             alt="${item.title || ''}"
             class="w-full h-full ${fitClass} rounded-lg transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
@@ -580,7 +581,7 @@ const menus = [
   function showLb() {
     const item = lbImages[lbIdx];
     if (!item) return;
-    lbImg.src = item.url;
+    lbImg.src = cdnImage(item.url, 1600);
     lbImg.alt = item.title;
   }
 

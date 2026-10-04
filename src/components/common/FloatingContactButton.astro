@@ -1,10 +1,12 @@
 ---
+// 문의 폼 페이지에서는 모바일에서 플로팅 버튼이 입력란을 가리지 않도록 숨김
+const hideOnForm = Astro.url.pathname.startsWith('/inquiry');
 ---
 
 <!-- Floating Quick Buttons - 항상 3개 표시 -->
-<div id="floating-quick" class="fixed bottom-8 right-8 z-40 flex flex-col items-end gap-3">
+<div id="floating-quick" class={`fixed bottom-8 right-8 z-40 flex-col items-end gap-3 ${hideOnForm ? 'hidden md:flex' : 'flex'}`}>
   <a
-    href="/contact?type=wedding"
+    href="/contact/?type=wedding"
     class="quick-btn flex items-center gap-3 rounded-full bg-[#C4B5A6] shadow-lg shadow-[#C4B5A6]/20 transition-all duration-300 hover:bg-[#b8a999] hover:-translate-y-0.5 hover:shadow-xl"
   >
     <!-- 하트 아이콘 (웨딩) -->
@@ -14,7 +16,7 @@
     <span>웨딩문의</span>
   </a>
   <a
-    href="/inquiry/popup"
+    href="/inquiry/popup/"
     class="quick-btn flex items-center gap-3 rounded-full bg-[#505050] shadow-lg shadow-black/15 transition-all duration-300 hover:bg-[#424242] hover:-translate-y-0.5 hover:shadow-xl"
   >
     <!-- 스파클 아이콘 (행사) -->

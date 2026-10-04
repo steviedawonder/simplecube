@@ -53,7 +53,7 @@ export const GET: APIRoute = async ({ url }) => {
 
   const result = await db.execute({ sql, args });
   return new Response(JSON.stringify(result.rows), {
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' },
   });
 };
 

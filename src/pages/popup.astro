@@ -30,14 +30,14 @@ const backgrounds: any[] = bgResult.status === 'fulfilled' ? bgResult.value.rows
   transparentNav={false}
 >
   <BreadcrumbSchema items={[
-    { name: '포토부스 대여', url: '/rental' },
-    { name: '팝업 포토부스', url: '/popup' },
+    { name: '포토부스 대여', url: '/rental/' },
+    { name: '팝업 포토부스', url: '/popup/' },
   ]} />
   <ServiceSchema services={[
     {
       name: '팝업 포토부스 대여 — 브랜드 팝업스토어·기업행사·페스티벌',
       description: '심플큐브의 팝업 포토부스 대여 서비스. 브랜드 팝업스토어, 기업행사, 페스티벌, 박람회에 맞춤형 커스텀 포토부스를 제공합니다. CI/BI 맞춤 디자인, 즉석 인화, QR 디지털 공유까지 원스톱 운영. 전국 4개 지점에서 직영 출장 설치.',
-      url: '/popup',
+      url: '/popup/',
     },
   ]} />
   {faqItems.length > 0 && <FAQSchema faqs={faqItems} />}
@@ -49,7 +49,7 @@ const backgrounds: any[] = bgResult.status === 'fulfilled' ? bgResult.value.rows
         <div class="w-[3px] h-12 bg-olive rounded-full shrink-0 mt-0.5"></div>
         <div>
           <div class="flex items-baseline gap-3">
-            <h1 class="text-2xl font-bold text-primary">행사 포토부스</h1>
+            <h1 class="text-2xl font-bold text-primary">팝업·행사 포토부스</h1>
             <span class="text-[11px] font-medium tracking-[0.12em] text-secondary/40">POP-UP</span>
           </div>
           <p class="text-[12px] text-secondary/50 mt-1">브랜드 팝업스토어 · 기업 행사 · 페스티벌</p>
@@ -122,22 +122,22 @@ const backgrounds: any[] = bgResult.status === 'fulfilled' ? bgResult.value.rows
     <div class="mx-auto max-w-7xl px-6 lg:px-8">
       <h2 class="text-lg font-bold text-primary mb-6">다른 서비스 보기</h2>
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <a href="/wedding" class="group rounded-lg border border-border-light bg-white p-5 hover:border-olive/40 transition-colors">
+        <a href="/wedding/" class="group rounded-lg border border-border-light bg-white p-5 hover:border-olive/40 transition-colors">
           <h3 class="text-base font-semibold text-primary group-hover:text-olive transition-colors">웨딩 포토부스</h3>
           <p class="mt-2 text-sm text-secondary leading-relaxed">결혼식 맞춤 포토부스 패키지</p>
           <span class="mt-2 inline-block text-xs text-olive font-medium">자세히 보기 →</span>
         </a>
-        <a href="/rental" class="group rounded-lg border border-border-light bg-white p-5 hover:border-olive/40 transition-colors">
+        <a href="/rental/" class="group rounded-lg border border-border-light bg-white p-5 hover:border-olive/40 transition-colors">
           <h3 class="text-base font-semibold text-primary group-hover:text-olive transition-colors">포토부스 대여</h3>
           <p class="mt-2 text-sm text-secondary leading-relaxed">전국 출장 가능한 포토부스 렌탈 서비스</p>
           <span class="mt-2 inline-block text-xs text-olive font-medium">자세히 보기 →</span>
         </a>
-        <a href="/corporate" class="group rounded-lg border border-border-light bg-white p-5 hover:border-olive/40 transition-colors">
+        <a href="/corporate/" class="group rounded-lg border border-border-light bg-white p-5 hover:border-olive/40 transition-colors">
           <h3 class="text-base font-semibold text-primary group-hover:text-olive transition-colors">기업행사 포토부스</h3>
           <p class="mt-2 text-sm text-secondary leading-relaxed">기업 이벤트·컨퍼런스·전시회 포토부스</p>
           <span class="mt-2 inline-block text-xs text-olive font-medium">자세히 보기 →</span>
         </a>
-        <a href="/pricing" class="group rounded-lg border border-border-light bg-white p-5 hover:border-olive/40 transition-colors">
+        <a href="/pricing/" class="group rounded-lg border border-border-light bg-white p-5 hover:border-olive/40 transition-colors">
           <h3 class="text-base font-semibold text-primary group-hover:text-olive transition-colors">가격 안내</h3>
           <p class="mt-2 text-sm text-secondary leading-relaxed">포토부스 대여 가격 및 견적 안내</p>
           <span class="mt-2 inline-block text-xs text-olive font-medium">자세히 보기 →</span>

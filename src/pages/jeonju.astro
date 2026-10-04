@@ -2,24 +2,16 @@
 export const prerender = true;
 import BaseLayout from '@layouts/BaseLayout.astro';
 import BreadcrumbSchema from '@components/seo/BreadcrumbSchema.astro';
-import FAQSchema from '@components/seo/FAQSchema.astro';
 import ServiceSchema from '@components/seo/ServiceSchema.astro';
 import MachineShowcase from '@components/popup/MachineShowcase.astro';
 import ClientShowcase from '@components/popup/ClientShowcase.astro';
-import AccordionList from '@components/faq/AccordionList.astro';
 import RegionUniqueInfo from '@components/region/RegionUniqueInfo.astro';
 import db from '@lib/db';
 
-const [jeonjuFaqResult, rentalFaqResult, popupFaqResult] = await Promise.all([
-  db.execute({ sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC', args: ['jeonju'] }),
-  db.execute({ sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC', args: ['rental'] }),
-  db.execute({ sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC', args: ['popup'] }),
-]);
-const faqItems = (
-  jeonjuFaqResult.rows.length > 0 ? jeonjuFaqResult.rows
-  : rentalFaqResult.rows.length > 0 ? rentalFaqResult.rows
-  : popupFaqResult.rows
-) as { question: string; answer: string }[];
+// 지역 전용 FAQ(관리자 등록분)만 사용 — 렌탈/팝업 FAQ 를 지역 페이지마다 복제하지 않는다.
+// 나머지 FAQ 는 RegionUniqueInfo 가 이 페이지의 출장 범위·운영 시간·담당 지점 정보로 만든다.
+const cityFaqResult = await db.execute({ sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC', args: ['jeonju'] });
+const cityFaqs = cityFaqResult.rows as unknown as { question: string; answer: string }[];
 ---
 
 <BaseLayout
@@ -30,17 +22,16 @@ const faqItems = (
   transparentNav={false}
 >
   <BreadcrumbSchema items={[
-    { name: '포토부스 대여', url: '/rental' },
-    { name: '전주 포토부스', url: '/jeonju' },
+    { name: '포토부스 대여', url: '/rental/' },
+    { name: '전주 포토부스', url: '/jeonju/' },
   ]} />
   <ServiceSchema services={[
     {
       name: '전주 포토부스 대여 — 전주 전 지역 출장 설치',
       description: '심플큐브의 전주 포토부스 대여 서비스. 전주한옥마을, 서신동, 완산구, 덕진구 등 전주 전 지역 출장 설치. 웨딩, 기업행사, 팝업스토어, 페스티벌 맞춤 포토부스 렌탈. 전주 지점 직접 운영.',
-      url: '/jeonju',
+      url: '/jeonju/',
     },
   ]} />
-  {faqItems.length > 0 && <FAQSchema faqs={faqItems} />}
 
   <!-- Hero -->
   <section class="pt-20 lg:pt-22">
@@ -109,25 +100,25 @@ const faqItems = (
         <div class="mt-4 h-[2px] w-8 bg-olive"></div>
       </div>
       <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <a href="/wedding" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
+        <a href="/wedding/" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
           <h3 class="text-lg font-bold text-primary group-hover:text-olive transition-colors">웨딩 포토부스</h3>
           <p class="mt-1 text-xs text-olive font-medium">서신동 · 효자동</p>
           <p class="mt-2 text-sm text-secondary leading-relaxed">베스트웨스턴 전주, 르윈호텔, 라한호텔, 서신동·효자동 주요 웨딩홀에서 가장 많이 찾는 포토부스. 하객 포토 서비스로 결혼식의 추억을 선물합니다.</p>
           <span class="mt-3 inline-block text-xs text-olive font-medium">자세히 보기 →</span>
         </a>
-        <a href="/corporate" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
+        <a href="/corporate/" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
           <h3 class="text-lg font-bold text-primary group-hover:text-olive transition-colors">기업행사 포토부스</h3>
           <p class="mt-1 text-xs text-olive font-medium">완산구 · 덕진구</p>
           <p class="mt-2 text-sm text-secondary leading-relaxed">전북도청, 전주시청, 농촌진흥청, 전주첨단벤처단지 등 전주·전북 기업·공공행사를 위한 포토부스 렌탈.</p>
           <span class="mt-3 inline-block text-xs text-olive font-medium">자세히 보기 →</span>
         </a>
-        <a href="/popup" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
+        <a href="/popup/" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
           <h3 class="text-lg font-bold text-primary group-hover:text-olive transition-colors">팝업스토어 포토부스</h3>
           <p class="mt-1 text-xs text-olive font-medium">한옥마을 · 객리단길</p>
           <p class="mt-2 text-sm text-secondary leading-relaxed">전주한옥마을, 객리단길, 풍남문 인근, 전주 핫플레이스 팝업스토어를 위한 커스텀 포토부스. 한옥 감성 맞춤 디자인.</p>
           <span class="mt-3 inline-block text-xs text-olive font-medium">자세히 보기 →</span>
         </a>
-        <a href="/popup" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
+        <a href="/popup/" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
           <h3 class="text-lg font-bold text-primary group-hover:text-olive transition-colors">페스티벌 포토부스</h3>
           <p class="mt-1 text-xs text-olive font-medium">덕진공원 · 한옥마을</p>
           <p class="mt-2 text-sm text-secondary leading-relaxed">전주국제영화제, 전주비빔밥축제, 한옥마을 야간 행사 등 전주 대표 야외 행사장에서의 페스티벌·축제 포토부스 렌탈.</p>
@@ -172,6 +163,8 @@ const faqItems = (
   </section>
 
   <RegionUniqueInfo
+    cityFaqs={cityFaqs}
+    phone="010-5743-8122"
     city="전주"
     cityEn="JEONJU"
     branchOrigin="심플큐브 전주 지점"
@@ -181,7 +174,7 @@ const faqItems = (
       { label: 'RESPONSE', value: '평일 일과시간 내 30분 내 견적 회신' },
     ]}
     localStory={`<strong>전주</strong>는 한옥마을 관광 상권과 서신·완산구 신축 웨딩홀, 전주국제영화제(JIFF)·전주비빔밥축제 등 연중 끊이지 않는 도시 축제가 어우러진 호남의 대표 도시입니다. 심플큐브 전주 지점은 한옥마을·서신동·완산구를 30분 내 커버하며, 한옥마을 분위기에 어울리는 원목 부스 디자인과 한식 콘셉트 옵션을 따로 운영합니다.`}
-    serviceTrend={`또한 전주 본점은 호남권 hub 역할을 겸해 광주·군산·익산·정읍을 같은 권역으로 출장합니다. 전주 한옥마을 브랜드 <a href="/popup" class="text-olive underline">팝업스토어 포토부스</a>와 영화제 야외 부스 운영 사례가 매년 늘고 있으며, 한복 대여점·한식당과의 협업 포토 옵션도 인기입니다.`}
+    serviceTrend={`또한 전주 본점은 호남권 hub 역할을 겸해 광주·군산·익산·정읍을 같은 권역으로 출장합니다. 전주 한옥마을 브랜드 <a href="/popup/" class="text-olive underline">팝업스토어 포토부스</a>와 영화제 야외 부스 운영 사례가 매년 늘고 있으며, 한복 대여점·한식당과의 협업 포토 옵션도 인기입니다.`}
     priceRows={[
       { type: '전주 시내', detail: '완산·덕진·한옥마을·서신·송천 등 — 별도 문의' },
       { type: '전북·호남 권역', detail: '군산·익산·정읍·남원·김제·광주 — 별도 문의' },
@@ -189,7 +182,7 @@ const faqItems = (
       { type: '운영 시간 (팝업·기업·영화제·축제)', detail: '최소 2시간부터 예약 가능', note: '일·주·월 단위 장기 예약 가능' },
     ]}
     nearbyAreas={[
-      { name: '광주 포토부스', url: '/gwangju', note: '70분' },
+      { name: '광주 포토부스', url: '/gwangju/', note: '70분' },
       { name: '군산', note: '전주 권역' },
       { name: '익산', note: '전주 권역' },
       { name: '정읍', note: '전주 권역' },
@@ -217,24 +210,6 @@ const faqItems = (
   <!-- Client Showcase -->
   <ClientShowcase />
 
-  <!-- FAQ -->
-  {faqItems.length > 0 && (
-    <Fragment>
-    <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
-    <section id="qna" class="bg-white py-12 lg:py-16">
-      <div class="mx-auto max-w-3xl px-6 lg:px-8">
-        <div class="mb-10">
-          <div class="inline-flex items-center justify-center w-9 h-9 rounded-full border-[1.5px] border-olive text-olive text-[13px] font-bold mb-4">06</div>
-          <span class="block text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">FAQ</span>
-          <h2 class="mt-3 text-2xl font-bold text-primary md:text-3xl">전주 포토부스 자주 묻는 질문</h2>
-          <div class="mt-4 h-[2px] w-8 bg-olive"></div>
-        </div>
-        <AccordionList items={faqItems} />
-      </div>
-    </section>
-    </Fragment>
-  )}
-
   <!-- CTA -->
   <section class="bg-[#6B5B4D] py-12 lg:py-16">
     <div class="mx-auto max-w-3xl px-6 lg:px-8 text-center">
@@ -243,7 +218,7 @@ const faqItems = (
         전주 지점이 직접 응대합니다. 행사 일정과 장소를 알려주시면 맞춤 견적을 빠르게 안내해드립니다.
       </p>
       <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-        <a href="/contact" class="inline-flex items-center gap-2 rounded-lg bg-olive px-8 py-3 text-sm font-semibold text-white hover:bg-olive/90 transition-colors">
+        <a href="/contact/" class="inline-flex items-center gap-2 rounded-lg bg-olive px-8 py-3 text-sm font-semibold text-white hover:bg-olive/90 transition-colors">
           문의하기
         </a>
         <a href="tel:01057438122" class="inline-flex items-center gap-2 text-sm text-[#FFFAF4]/80 hover:text-[#FFFAF4] transition-colors">

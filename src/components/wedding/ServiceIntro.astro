@@ -19,12 +19,14 @@
     </div>
 
     <!-- Hero image -->
-    <div class="gs-scale-in mt-6 md:mt-10 overflow-hidden rounded-2xl">
+    <!-- LCP 이미지: 지연 로딩·등장 애니메이션 없이 바로 표시 -->
+    <div class="mt-6 md:mt-10 overflow-hidden rounded-2xl">
       <img
         src="/images/wedding/hero.webp"
         alt="심플큐브 웨딩 포토부스"
         class="h-[260px] w-full object-cover md:h-[400px] lg:h-[520px]"
-        loading="lazy"
+        fetchpriority="high"
+        decoding="async"
       />
     </div>
 

@@ -24,12 +24,12 @@ const faqItems = (pricingFaqResult.rows.length > 0 ? pricingFaqResult.rows : ren
   ogImage="/images/photobooth-rental-simplecube.jpg"
   transparentNav={false}
 >
-  <BreadcrumbSchema items={[{ name: '포토부스 대여 가격', url: '/pricing' }]} />
+  <BreadcrumbSchema items={[{ name: '포토부스 대여 가격', url: '/pricing/' }]} />
   <ServiceSchema services={[
     {
       name: '포토부스 대여 가격 안내',
       description: '심플큐브 포토부스 대여 가격 안내. 웨딩, 기업행사, 팝업스토어, 페스티벌 등 행사 유형별 맞춤 견적을 제공합니다. 전국 출장 설치 및 전문 운영 스태프 포함.',
-      url: '/pricing',
+      url: '/pricing/',
       price: '500000',
     },
   ]} />
@@ -114,8 +114,8 @@ const faqItems = (pricingFaqResult.rows.length > 0 ? pricingFaqResult.rows : ren
             <li class="flex items-start gap-2"><span class="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-olive"></span>디지털 원본 제공</li>
           </ul>
           <div class="mt-8 flex flex-col gap-3">
-            <a href="/wedding" class="inline-flex items-center justify-center w-full rounded-lg bg-olive text-white text-sm font-semibold py-3 hover:bg-olive/90 transition-colors">자세히 알아보기 &rarr;</a>
-            <a href="/contact" class="inline-flex items-center justify-center w-full rounded-lg border border-olive text-olive text-sm font-semibold py-3 hover:bg-olive hover:text-white transition-colors">예약 문의 &rarr;</a>
+            <a href="/wedding/" class="inline-flex items-center justify-center w-full rounded-lg bg-olive text-white text-sm font-semibold py-3 hover:bg-olive/90 transition-colors">자세히 알아보기 &rarr;</a>
+            <a href="/contact/" class="inline-flex items-center justify-center w-full rounded-lg border border-olive text-olive text-sm font-semibold py-3 hover:bg-olive hover:text-white transition-colors">예약 문의 &rarr;</a>
           </div>
         </div>
 
@@ -136,8 +136,8 @@ const faqItems = (pricingFaqResult.rows.length > 0 ? pricingFaqResult.rows : ren
             <li class="flex items-start gap-2"><span class="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-olive"></span>QR 디지털 다운로드</li>
           </ul>
           <div class="mt-8 flex flex-col gap-3">
-            <a href="/corporate" class="inline-flex items-center justify-center w-full rounded-lg bg-olive text-white text-sm font-semibold py-3 hover:bg-olive/90 transition-colors">자세히 알아보기 &rarr;</a>
-            <a href="/inquiry/popup" class="inline-flex items-center justify-center w-full rounded-lg border border-olive text-olive text-sm font-semibold py-3 hover:bg-olive hover:text-white transition-colors">예약 문의 &rarr;</a>
+            <a href="/corporate/" class="inline-flex items-center justify-center w-full rounded-lg bg-olive text-white text-sm font-semibold py-3 hover:bg-olive/90 transition-colors">자세히 알아보기 &rarr;</a>
+            <a href="/inquiry/popup/" class="inline-flex items-center justify-center w-full rounded-lg border border-olive text-olive text-sm font-semibold py-3 hover:bg-olive hover:text-white transition-colors">예약 문의 &rarr;</a>
           </div>
         </div>
       </div>
@@ -283,7 +283,7 @@ const faqItems = (pricingFaqResult.rows.length > 0 ? pricingFaqResult.rows : ren
             </tr>
             <tr>
               <td class="py-3 px-4 text-sm text-primary font-medium">경험</td>
-              <td class="py-3 px-4 text-center text-olive font-semibold text-sm">8년<span class="font-normal text-xs text-secondary ml-1">(15,000건 이상의 행사 노하우)</span></td>
+              <td class="py-3 px-4 text-center text-olive font-semibold text-sm">8년<span class="font-normal text-xs text-secondary ml-1">(16,000건 이상의 행사 노하우)</span></td>
               <td class="py-3 px-4 text-center text-secondary/50 text-sm">비공개</td>
             </tr>
           </tbody>
@@ -351,10 +351,10 @@ const faqItems = (pricingFaqResult.rows.length > 0 ? pricingFaqResult.rows : ren
         행사 일정과 규모를 알려주시면, 합리적인 맞춤 견적을 빠르게 안내해드립니다.
       </p>
       <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-        <a href="/contact" class="inline-flex items-center gap-2 rounded-lg bg-olive px-8 py-3 text-sm font-semibold text-white hover:bg-olive/90 transition-colors">
+        <a href="/contact/" class="inline-flex items-center gap-2 rounded-lg bg-olive px-8 py-3 text-sm font-semibold text-white hover:bg-olive/90 transition-colors">
           견적 문의하기
         </a>
-        <a href="https://pf.kakao.com/_simplecube" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-lg bg-[#FEE500] px-8 py-3 text-sm font-semibold text-[#191919] hover:bg-[#FEE500]/90 transition-colors">
+        <a href="https://pf.kakao.com/_vxhEfj/chat" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-lg bg-[#FEE500] px-8 py-3 text-sm font-semibold text-[#191919] hover:bg-[#FEE500]/90 transition-colors">
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C6.477 3 2 6.463 2 10.691c0 2.72 1.8 5.108 4.514 6.467-.162.58-.586 2.108-.672 2.438-.108.413.151.407.318.296.131-.087 2.09-1.42 2.934-1.994.917.13 1.863.198 2.826.198 5.523 0 10-3.463 10-7.405C22 6.463 17.523 3 12 3z"/></svg>
           카카오톡 상담
         </a>

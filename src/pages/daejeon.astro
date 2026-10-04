@@ -2,24 +2,16 @@
 export const prerender = true;
 import BaseLayout from '@layouts/BaseLayout.astro';
 import BreadcrumbSchema from '@components/seo/BreadcrumbSchema.astro';
-import FAQSchema from '@components/seo/FAQSchema.astro';
 import ServiceSchema from '@components/seo/ServiceSchema.astro';
 import MachineShowcase from '@components/popup/MachineShowcase.astro';
 import ClientShowcase from '@components/popup/ClientShowcase.astro';
-import AccordionList from '@components/faq/AccordionList.astro';
 import RegionUniqueInfo from '@components/region/RegionUniqueInfo.astro';
 import db from '@lib/db';
 
-const [daejeonFaqResult, rentalFaqResult, popupFaqResult] = await Promise.all([
-  db.execute({ sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC', args: ['daejeon'] }),
-  db.execute({ sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC', args: ['rental'] }),
-  db.execute({ sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC', args: ['popup'] }),
-]);
-const faqItems = (
-  daejeonFaqResult.rows.length > 0 ? daejeonFaqResult.rows
-  : rentalFaqResult.rows.length > 0 ? rentalFaqResult.rows
-  : popupFaqResult.rows
-) as { question: string; answer: string }[];
+// 지역 전용 FAQ(관리자 등록분)만 사용 — 렌탈/팝업 FAQ 를 지역 페이지마다 복제하지 않는다.
+// 나머지 FAQ 는 RegionUniqueInfo 가 이 페이지의 출장 범위·운영 시간·담당 지점 정보로 만든다.
+const cityFaqResult = await db.execute({ sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC', args: ['daejeon'] });
+const cityFaqs = cityFaqResult.rows as unknown as { question: string; answer: string }[];
 ---
 
 <BaseLayout
@@ -30,17 +22,16 @@ const faqItems = (
   transparentNav={false}
 >
   <BreadcrumbSchema items={[
-    { name: '포토부스 대여', url: '/rental' },
-    { name: '대전 포토부스', url: '/daejeon' },
+    { name: '포토부스 대여', url: '/rental/' },
+    { name: '대전 포토부스', url: '/daejeon/' },
   ]} />
   <ServiceSchema services={[
     {
       name: '대전 포토부스 대여 — 대전 전 지역 출장 설치',
       description: '심플큐브의 대전 포토부스 대여 서비스. 둔산동, 유성, 대전컨벤션센터(DCC), 대덕연구단지 등 대전 전 지역 출장 설치. 웨딩, 기업행사, 팝업스토어, 페스티벌 맞춤 포토부스 렌탈. 대전 지점 직접 운영.',
-      url: '/daejeon',
+      url: '/daejeon/',
     },
   ]} />
-  {faqItems.length > 0 && <FAQSchema faqs={faqItems} />}
 
   <!-- Hero -->
   <section class="pt-20 lg:pt-22">
@@ -109,25 +100,25 @@ const faqItems = (
         <div class="mt-4 h-[2px] w-8 bg-olive"></div>
       </div>
       <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <a href="/wedding" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
+        <a href="/wedding/" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
           <h3 class="text-lg font-bold text-primary group-hover:text-olive transition-colors">웨딩 포토부스</h3>
           <p class="mt-1 text-xs text-olive font-medium">둔산동 · 유성</p>
           <p class="mt-2 text-sm text-secondary leading-relaxed">롯데시티호텔 대전, 인터시티호텔, 호텔ICC, 유성호텔 등 대전 주요 웨딩홀에서 가장 많이 찾는 포토부스. 하객 포토 서비스로 결혼식의 추억을 선물합니다.</p>
           <span class="mt-3 inline-block text-xs text-olive font-medium">자세히 보기 →</span>
         </a>
-        <a href="/corporate" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
+        <a href="/corporate/" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
           <h3 class="text-lg font-bold text-primary group-hover:text-olive transition-colors">기업행사 포토부스</h3>
           <p class="mt-1 text-xs text-olive font-medium">DCC · 대덕연구단지</p>
           <p class="mt-2 text-sm text-secondary leading-relaxed">대전컨벤션센터(DCC) 전시회, 대덕연구단지 R&D 행사, KAIST·정부청사 컨퍼런스 등 대전 비즈니스 행사를 위한 포토부스 렌탈.</p>
           <span class="mt-3 inline-block text-xs text-olive font-medium">자세히 보기 →</span>
         </a>
-        <a href="/popup" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
+        <a href="/popup/" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
           <h3 class="text-lg font-bold text-primary group-hover:text-olive transition-colors">팝업스토어 포토부스</h3>
           <p class="mt-1 text-xs text-olive font-medium">둔산동 · 은행동</p>
           <p class="mt-2 text-sm text-secondary leading-relaxed">둔산동 갤러리아타임월드, 은행동 으능정이 거리, 대전 핫플레이스 팝업스토어를 위한 커스텀 포토부스. 브랜드 맞춤 디자인.</p>
           <span class="mt-3 inline-block text-xs text-olive font-medium">자세히 보기 →</span>
         </a>
-        <a href="/popup" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
+        <a href="/popup/" class="group rounded-lg border border-border-light p-6 hover:border-olive/40 transition-colors">
           <h3 class="text-lg font-bold text-primary group-hover:text-olive transition-colors">페스티벌 포토부스</h3>
           <p class="mt-1 text-xs text-olive font-medium">엑스포공원 · 한밭수목원</p>
           <p class="mt-2 text-sm text-secondary leading-relaxed">엑스포시민광장, 한밭수목원, 대전사이언스페스티벌, 대전0시축제 등 대전 대표 야외 행사장에서의 페스티벌 포토부스.</p>
@@ -172,6 +163,8 @@ const faqItems = (
   </section>
 
   <RegionUniqueInfo
+    cityFaqs={cityFaqs}
+    phone="010-8838-8122"
     city="대전"
     cityEn="DAEJEON"
     branchOrigin="심플큐브 대전 지점"
@@ -181,7 +174,7 @@ const faqItems = (
       { label: 'RESPONSE', value: '평일 일과시간 내 30분 내 견적 회신' },
     ]}
     localStory={`<strong>대전</strong>은 둔산·도룡·노은으로 이어지는 신도심 웨딩 벨트와, KAIST·UST·정부청사를 중심으로 한 컨퍼런스/연구기관 행사가 동시에 활발합니다. 심플큐브 대전 지점은 둔산·유성·DCC 컨벤션 권역을 30분 내 커버하며, 매주 평균 3~4건의 결혼식과 1~2건의 정부청사·연구기관 컨퍼런스 포토부스를 운영합니다.`}
-    serviceTrend={`<a href="/corporate" class="text-olive underline">기업행사 포토부스</a> 수요가 큰 지역 특성상, 컨퍼런스 명찰 연동 ID 출력, 보안 요청에 따른 사진 자동 삭제 옵션 등 정부·연구기관 행사에 특화된 운영을 갖추고 있습니다. 또한 대전 본점은 충청권 hub 역할을 겸하며, 천안·청주·충주·세종은 모두 대전 지점에서 출장합니다.`}
+    serviceTrend={`<a href="/corporate/" class="text-olive underline">기업행사 포토부스</a> 수요가 큰 지역 특성상, 컨퍼런스 명찰 연동 ID 출력, 보안 요청에 따른 사진 자동 삭제 옵션 등 정부·연구기관 행사에 특화된 운영을 갖추고 있습니다. 또한 대전 본점은 충청권 hub 역할을 겸하며, 천안·청주·충주·세종은 모두 대전 지점에서 출장합니다.`}
     priceRows={[
       { type: '대전·세종 시내', detail: '서·중·동·유성·대덕 + 세종 신도심·조치원 — 별도 문의' },
       { type: '충남·충북 인접', detail: '천안·아산·청주·공주·충주·제천 — 별도 문의' },
@@ -189,9 +182,9 @@ const faqItems = (
       { type: '운영 시간 (팝업·기업·컨퍼런스)', detail: '최소 2시간부터 예약 가능', note: '일·주·월 단위 장기 예약 가능' },
     ]}
     nearbyAreas={[
-      { name: '천안 포토부스', url: '/cheonan', note: '50분' },
-      { name: '청주 포토부스', url: '/cheongju', note: '50분' },
-      { name: '충주 포토부스', url: '/chungju', note: '90분' },
+      { name: '천안 포토부스', url: '/cheonan/', note: '50분' },
+      { name: '청주 포토부스', url: '/cheongju/', note: '50분' },
+      { name: '충주 포토부스', url: '/chungju/', note: '90분' },
       { name: '세종', note: '대전 권역' },
       { name: '공주', note: '대전 권역' },
       { name: '계룡', note: '대전 권역' },
@@ -216,24 +209,6 @@ const faqItems = (
   <!-- Client Showcase -->
   <ClientShowcase />
 
-  <!-- FAQ -->
-  {faqItems.length > 0 && (
-    <Fragment>
-    <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
-    <section id="qna" class="bg-white py-12 lg:py-16">
-      <div class="mx-auto max-w-3xl px-6 lg:px-8">
-        <div class="mb-10">
-          <div class="inline-flex items-center justify-center w-9 h-9 rounded-full border-[1.5px] border-olive text-olive text-[13px] font-bold mb-4">06</div>
-          <span class="block text-[11px] font-semibold tracking-[0.5em] text-olive uppercase">FAQ</span>
-          <h2 class="mt-3 text-2xl font-bold text-primary md:text-3xl">대전 포토부스 자주 묻는 질문</h2>
-          <div class="mt-4 h-[2px] w-8 bg-olive"></div>
-        </div>
-        <AccordionList items={faqItems} />
-      </div>
-    </section>
-    </Fragment>
-  )}
-
   <!-- CTA -->
   <section class="bg-[#6B5B4D] py-12 lg:py-16">
     <div class="mx-auto max-w-3xl px-6 lg:px-8 text-center">
@@ -242,7 +217,7 @@ const faqItems = (
         대전 지점이 직접 응대합니다. 행사 일정과 장소를 알려주시면 맞춤 견적을 빠르게 안내해드립니다.
       </p>
       <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-        <a href="/contact" class="inline-flex items-center gap-2 rounded-lg bg-olive px-8 py-3 text-sm font-semibold text-white hover:bg-olive/90 transition-colors">
+        <a href="/contact/" class="inline-flex items-center gap-2 rounded-lg bg-olive px-8 py-3 text-sm font-semibold text-white hover:bg-olive/90 transition-colors">
           문의하기
         </a>
         <a href="tel:01088388122" class="inline-flex items-center gap-2 text-sm text-[#FFFAF4]/80 hover:text-[#FFFAF4] transition-colors">

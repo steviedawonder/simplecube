@@ -2,11 +2,13 @@ import { SignJWT, jwtVerify } from 'jose';
 import bcrypt from 'bcryptjs';
 import db from './db';
 
-const jwtSecretStr = import.meta.env.JWT_SECRET || 'dev-secret-change-in-production-32ch';
-if (!import.meta.env.JWT_SECRET && import.meta.env.PROD) {
-  console.error('[SECURITY] JWT_SECRET 환경변수가 설정되지 않았습니다! 프로덕션에서 기본값 사용은 매우 위험합니다.');
+// 프로덕션에서는 기본 시크릿으로 절대 폴백하지 않는다 (공개 리포라 기본값으로 토큰 위조 가능).
+// JWT_SECRET 이 없으면 로그인·토큰 검증을 모두 거부(fail closed)한다.
+const jwtSecretStr = import.meta.env.JWT_SECRET || (import.meta.env.PROD ? '' : 'dev-secret-change-in-production-32ch');
+if (!jwtSecretStr) {
+  console.error('[SECURITY] JWT_SECRET 환경변수가 없어 관리자 인증을 비활성화합니다.');
 }
-const JWT_SECRET = new TextEncoder().encode(jwtSecretStr);
+const JWT_SECRET = jwtSecretStr ? new TextEncoder().encode(jwtSecretStr) : null;
 
 const COOKIE_NAME = 'sc_admin_session';
 const EXPIRY_HOURS = 24;
@@ -41,6 +43,7 @@ export async function authenticateUser(username: string, password: string): Prom
 }
 
 export async function createToken(payload: UserPayload): Promise<string> {
+  if (!JWT_SECRET) throw new Error('JWT_SECRET 미설정 — 관리자 인증을 사용할 수 없습니다.');
   return new SignJWT({ ...payload })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
@@ -49,6 +52,7 @@ export async function createToken(payload: UserPayload): Promise<string> {
 }
 
 export async function verifyToken(token: string): Promise<UserPayload | null> {
+  if (!JWT_SECRET) return null;
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
     return {
@@ -57,6 +61,24 @@ export async function verifyToken(token: string): Promise<UserPayload | null> {
       role: payload.role as 'owner' | 'editor',
       name: payload.name as string,
     };
+  } catch {
+    return null;
+  }
+}
+
+// 서명 검증 + DB 재조회: 비활성화·삭제·권한 변경된 계정의 토큰은 즉시 무효
+export async function getActiveUser(token: string | null): Promise<UserPayload | null> {
+  if (!token) return null;
+  const payload = await verifyToken(token);
+  if (!payload) return null;
+  try {
+    const result = await db.execute({
+      sql: 'SELECT id, name, username, role, active FROM users WHERE id = ?',
+      args: [payload.userId],
+    });
+    const user = result.rows[0] as any;
+    if (!user || !user.active) return null;
+    return { userId: Number(user.id), username: user.username, role: user.role, name: user.name };
   } catch {
     return null;
   }
