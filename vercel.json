@@ -1,24 +1,114 @@
 {
-  "regions": ["hnd1"],
+  "regions": [
+    "hnd1"
+  ],
   "redirects": [
-    { "source": "/:path*", "has": [{ "type": "host", "value": "www.simplecube.net" }], "destination": "https://simplecube.net/:path*", "statusCode": 301 },
-    { "source": "/:page(brand|busan|cheonan|cheongju|chungju|contact|corporate|daegu|daejeon|graduation|gwangju|jeonju|popup|pricing|rental|seoul|ulsan|wedding)", "destination": "/:page/", "statusCode": 301 },
-    { "source": "/inquiry/popup", "destination": "/inquiry/popup/", "statusCode": 301 },
-    { "source": "/faq/:rest*", "destination": "/wedding/#qna", "statusCode": 301 },
-    { "source": "/qna/:rest*", "destination": "/wedding/#qna", "statusCode": 301 },
-    { "source": "/faq", "destination": "/wedding/#qna", "statusCode": 301 },
-    { "source": "/qna", "destination": "/wedding/#qna", "statusCode": 301 },
-    { "source": "/wedding-components/:path*", "destination": "/wedding/", "statusCode": 301 },
-    { "source": "/wedding-venues/:path*", "destination": "/wedding/", "statusCode": 301 },
-    { "source": "/portfolio-category/:path*", "destination": "/popup/", "statusCode": 301 },
-    { "source": "/portfolio/:path*", "destination": "/popup/", "statusCode": 301 },
-    { "source": "/category/:path*", "destination": "/", "statusCode": 301 },
-    { "source": "/wp-content/:path*", "destination": "/", "statusCode": 301 },
-    { "source": "/wp-admin/:path*", "destination": "/", "statusCode": 301 },
-    { "source": "/wp-includes/:path*", "destination": "/", "statusCode": 301 },
-    { "source": "/wp-login.php", "destination": "/", "statusCode": 301 },
-    { "source": "/feed/:path*", "destination": "/", "statusCode": 301 },
-    { "source": "/author/:path*", "destination": "/", "statusCode": 301 }
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.simplecube.net"
+        }
+      ],
+      "destination": "https://simplecube.net/$1",
+      "statusCode": 301
+    },
+    {
+      "source": "/:page(brand|busan|cheonan|cheongju|chungju|contact|corporate|daegu|daejeon|graduation|gwangju|jeonju|popup|pricing|rental|seoul|ulsan|wedding)",
+      "destination": "/:page/",
+      "statusCode": 301
+    },
+    {
+      "source": "/inquiry/popup",
+      "destination": "/inquiry/popup/",
+      "statusCode": 301
+    },
+    {
+      "source": "/faq",
+      "destination": "/wedding/#qna",
+      "statusCode": 301
+    },
+    {
+      "source": "/faq/",
+      "destination": "/wedding/#qna",
+      "statusCode": 301
+    },
+    {
+      "source": "/faq/(.*)",
+      "destination": "/wedding/#qna",
+      "statusCode": 301
+    },
+    {
+      "source": "/qna",
+      "destination": "/wedding/#qna",
+      "statusCode": 301
+    },
+    {
+      "source": "/qna/",
+      "destination": "/wedding/#qna",
+      "statusCode": 301
+    },
+    {
+      "source": "/qna/(.*)",
+      "destination": "/wedding/#qna",
+      "statusCode": 301
+    },
+    {
+      "source": "/wedding-components/:path*",
+      "destination": "/wedding/",
+      "statusCode": 301
+    },
+    {
+      "source": "/wedding-venues/:path*",
+      "destination": "/wedding/",
+      "statusCode": 301
+    },
+    {
+      "source": "/portfolio-category/:path*",
+      "destination": "/popup/",
+      "statusCode": 301
+    },
+    {
+      "source": "/portfolio/:path*",
+      "destination": "/popup/",
+      "statusCode": 301
+    },
+    {
+      "source": "/category/:path*",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/wp-content/:path*",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/wp-admin/:path*",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/wp-includes/:path*",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/wp-login.php",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/feed/:path*",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/author/:path*",
+      "destination": "/",
+      "statusCode": 301
+    }
   ],
   "crons": [
     {
@@ -30,34 +120,58 @@
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        }
       ]
     },
     {
       "source": "/_astro/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
       ]
     },
     {
       "source": "/fonts/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=2592000, stale-while-revalidate=86400" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=2592000, stale-while-revalidate=86400"
+        }
       ]
     },
     {
       "source": "/images/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=604800, stale-while-revalidate=86400" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=604800, stale-while-revalidate=86400"
+        }
       ]
     },
     {
       "source": "/admin/(.*)",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     }
   ]
