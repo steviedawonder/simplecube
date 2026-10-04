@@ -315,6 +315,9 @@ const boothModels = [
         try {
           const w = window as any;
           w.dataLayer = w.dataLayer || [];
+          // GTM 컨테이너의 문의 전환 태그(GA4 rental_inquiry_submit_page + 네이버 광고 lead 전환)는
+          // 'form_submit' 이벤트로 실행된다 — 이 이벤트가 없으면 두 전환 모두 집계되지 않음
+          w.dataLayer.push({ event: 'form_submit', form_id: 'event_inquiry' });
           w.dataLayer.push({
             event: 'generate_lead',
             form_id: 'event_inquiry',
