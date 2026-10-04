@@ -172,12 +172,19 @@ VIEW 영역 노출이 0건. 자체 블로그 콘텐츠 또는 협업 후기 필�
 
 ## 2026-10 외부 작업 (코드로 못 하는 것, 효과 큰 순)
 
+### 2026-10-04 처리 완료
+- GitHub Pages 복제본 비활성화, 고아 Vercel 프로젝트 'simplecube' 일시정지
+- 카카오맵 서울 매장: 상세주소 '풍림테크원 205, 206호', 매일 24시간, 한줄소개, 태그(포토부스대여·웨딩포토부스·팝업포토부스) — 카카오 검수 후 반영. 대전·부산 카카오 채널에는 지도 매장이 연결돼 있지 않음(지점장이 '매장주 인증'으로 기존 장소를 가져와야 함)
+- 구글 서치콘솔: simplecube2019@gmail.com 을 https://simplecube.net/ 소유자로 추가(HTML 파일 인증 — public/google5058387aec84b78b.html 삭제 금지). sitemap.xml·sitemap-blog.xml 재제출, /·/rental/·/wedding/·/popup/·/cheonan/·/brand/ 색인 요청
+- GTM 전환: 컨테이너(대행사 소유, 접근 불가)가 'form_submit' 이벤트로 GA4·네이버 광고 lead 전환을 보내도록 돼 있어 사이트에서 form_submit 을 보내도록 수정(4번 항목 해결)
+- 서치콘솔 현황(10/4): 색인 20 / 미색인 119. 블로그 글 대부분·지역 페이지 일부가 '발견됨-색인 안 됨'(아직 크롤링 안 됨)
+
 코드 쪽 수정(중복 URL 정리, 404, RSS·사이트맵, 지역 FAQ, 홈 H1, 폰트·이미지 최적화, 보안)은 2026-10-04 커밋으로 반영됨.
 
 1. **GitHub Pages 끄기** — `steviedawonder.github.io/simplecube/` 에 2026-03 옛 빌드가 살아 있고 canonical 이 자기 자신이라 중복 콘텐츠. GitHub 리포 Settings → Pages → Unpublish. 리포 루트의 추적 안 된 `.github/workflows/deploy.yml`(Pages 배포)은 커밋하지 말고 삭제.
 2. **네이버 플레이스 정보 통일** — 상호에 '포토부스' 포함(예: 심플큐브 포토부스 서울 성수점), 업종 4곳 통일, 서울 주소 호수(네이버 205·206호 vs 카카오 6층 602호)·전화·영업시간 통일, 홈페이지 링크를 `https://simplecube.net` (www 없이)로. 부산·전주 플레이스에 홈페이지 링크 추가. 소개글 오타 'Basic Hapniness' 수정.
 3. **카카오맵 정보 통일** — 업종 '즉석사진' → 행사·이벤트 계열, 부산 지점 등록, 전화·영업시간을 네이버와 동일하게.
-4. **GTM 전환 트리거** — 사이트는 문의 완료 시 `generate_lead` 이벤트를 보내는데 GTM 트리거는 `form_submit` 만 듣는다. GTM 에 맞춤 이벤트 트리거 `generate_lead` 추가, 전화(tel:)·카카오 링크 클릭 트리거도 추가.
+4. **GTM (대행사 요청)** — 폼 전환은 사이트 수정으로 해결됨. 남은 것: 카카오 상담 클릭 트리거가 버튼 1개(텍스트 TALK + 노란 배경)에만 걸려 있어 다른 카카오 버튼·전화(tel:) 클릭은 미집계 → 대행사에 'pf.kakao.com/*/chat 링크 전체 + tel: 링크 클릭' 트리거 추가와 simplecube2019@gmail.com 에 GTM·GA4 권한 공유 요청.
 5. **네이버 검색광고 랜딩 URL** — 브랜드 파워링크 표시/연결 URL 을 `https://simplecube.net/` 으로 (www 제거).
 6. **서치콘솔·서치어드바이저** — 사이트맵은 `https://simplecube.net/sitemap.xml` 하나만 제출(블로그·이미지 포함). RSS `https://simplecube.net/rss.xml` 재제출. 배포 후 `/`, `/rental/`, `/wedding/`, `/popup/` 수집 요청. Bing 웨브마스터(서치콘솔 가져오기)·다음 웹마스터도구 등록.
 7. **리뷰·블로그 연결** — 네이버 블로그 글 하단에 사이트 해당 서비스 페이지 링크 넣기, 행사 후 플레이스 리뷰 요청. 사이트 블로그 글은 네이버 원문 복붙 대신 사이트용으로 따로 작성.
