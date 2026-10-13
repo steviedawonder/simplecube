@@ -73,6 +73,15 @@ try {
 
 const maxMonthly = Math.max(1, ...monthly.map((m) => m.cnt));
 
+// 알림 메일 전송 실패 건 (오래된 순으로 재전송)
+const failedMail = inquiries
+  .filter((i) => Number(i.email_sent) === 0 && i.email_error)
+  .sort((a, b) => Number(a.id) - Number(b.id));
+const lastMailError = failedMail.length ? String(failedMail[failedMail.length - 1].email_error) : '';
+const mailErrorHint = /535|BadCredentials|Invalid login/i.test(lastMailError)
+  ? 'Gmail 앱 비밀번호가 거부되었습니다. Google 계정(simplecube2019)에서 앱 비밀번호를 새로 발급해 Vercel 환경변수 GMAIL_APP_PASSWORD 를 바꾼 뒤 재배포하세요.'
+  : '';
+
 function fmtDate(utc: string): string {
   if (!utc) return '-';
   const d = new Date(utc.replace(' ', 'T') + 'Z');
@@ -84,6 +93,17 @@ function fmtDate(utc: string): string {
 <AdminLayout title="문의 관리">
   <h2 class="page-title">문의 관리</h2>
   <p class="page-desc">홈페이지 행사 문의 접수 현황과 통계입니다.</p>
+
+  {failedMail.length > 0 && (
+    <div class="mail-fail-banner">
+      <div>
+        <strong>알림 메일 전송 실패 {failedMail.length}건</strong> — 이 문의들은 simple_cube@naver.com 으로 메일이 가지 않았습니다.
+        {mailErrorHint && <p class="mail-fail-hint">{mailErrorHint}</p>}
+        <p class="mail-fail-raw">최근 오류: {lastMailError.split('\n')[0]}</p>
+      </div>
+      <button id="resend-all-btn" class="mail-fail-btn" data-ids={failedMail.map((i) => i.id).join(',')}>실패 메일 모두 재전송</button>
+    </div>
+  )}
 
   <!-- 요약 카드 -->
   <div class="inq-stats-grid">
@@ -224,6 +244,9 @@ function fmtDate(utc: string): string {
                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" /></svg>
                     메일 전송 실패
                   </span>
+                )}
+                {item.email_sent === 0 && item.email_error && (
+                  <button class="inq-resend-btn px-2 py-0.5 rounded-full border border-red-300 text-red-600 text-[10px] font-bold hover:bg-red-50" data-id={item.id}>재전송</button>
                 )}
                 {item.email_sent === 1 && (
                   <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-600 text-[10px] font-bold">
@@ -450,6 +473,46 @@ function fmtDate(utc: string): string {
       padding: 1rem 0;
     }
 
+    /* 메일 전송 실패 배너 */
+    .mail-fail-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      background-color: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+      font-size: 0.875rem;
+      color: #991b1b;
+    }
+    .mail-fail-hint {
+      margin-top: 0.375rem;
+      color: #7f1d1d;
+    }
+    .mail-fail-raw {
+      margin-top: 0.25rem;
+      font-size: 0.75rem;
+      color: #b91c1c;
+      opacity: 0.8;
+      word-break: break-all;
+    }
+    .mail-fail-btn {
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      background-color: #dc2626;
+      color: #ffffff;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .mail-fail-btn:hover { background-color: #b91c1c; }
+    .mail-fail-btn:disabled { opacity: 0.6; cursor: default; }
+
     /* 상태 필터 탭 */
     .filter-tabs {
       display: flex;
@@ -492,6 +555,54 @@ function fmtDate(utc: string): string {
       });
       if (res.ok) window.location.reload();
     });
+  });
+
+  // 알림 메일 재전송 — 한 건씩 순서대로 보내고, 실패하면 거기서 멈춘다 (비밀번호 오류면 나머지도 같은 이유로 실패하므로)
+  async function resendMail(id: string): Promise<{ ok: boolean; error?: string }> {
+    try {
+      const res = await fetch('/api/inquiry/resend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      const data = await res.json().catch(() => ({}));
+      return { ok: res.ok && data.success, error: data.error };
+    } catch (e: any) {
+      return { ok: false, error: e?.message };
+    }
+  }
+
+  document.querySelectorAll<HTMLButtonElement>('.inq-resend-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      btn.textContent = '전송 중…';
+      const r = await resendMail(btn.dataset.id!);
+      if (r.ok) window.location.reload();
+      else {
+        alert(`재전송 실패: ${r.error || '알 수 없는 오류'}`);
+        btn.disabled = false;
+        btn.textContent = '재전송';
+      }
+    });
+  });
+
+  const resendAllBtn = document.getElementById('resend-all-btn') as HTMLButtonElement | null;
+  resendAllBtn?.addEventListener('click', async () => {
+    const ids = (resendAllBtn.dataset.ids || '').split(',').filter(Boolean);
+    if (!ids.length || !confirm(`메일 전송에 실패한 ${ids.length}건을 simple_cube@naver.com 으로 다시 보낼까요?`)) return;
+    resendAllBtn.disabled = true;
+    let done = 0;
+    for (const id of ids) {
+      resendAllBtn.textContent = `전송 중… (${done}/${ids.length})`;
+      const r = await resendMail(id);
+      if (!r.ok) {
+        alert(`${done}건 재전송 후 #${id} 에서 실패했습니다: ${r.error || '알 수 없는 오류'}`);
+        break;
+      }
+      done++;
+    }
+    if (done === ids.length) alert(`${done}건 모두 재전송했습니다.`);
+    window.location.reload();
   });
 
   // 상태 필터
