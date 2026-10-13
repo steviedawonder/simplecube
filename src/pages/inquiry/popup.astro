@@ -270,6 +270,20 @@ const boothModels = [
       return;
     }
 
+    // 서버(/api/inquiry)와 같은 기준으로 미리 확인 — 브라우저 기본 검사는 'a@b' 같은 주소도 통과시킨다
+    const phoneInput = form.elements.namedItem('phone') as HTMLInputElement;
+    if (phoneInput.value.replace(/\D/g, '').length < 9) {
+      alert('연락처를 정확히 입력해주세요. (예: 010-1234-5678)');
+      phoneInput.focus();
+      return;
+    }
+    const emailInput = form.elements.namedItem('email') as HTMLInputElement;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value.trim())) {
+      alert('이메일 주소를 정확히 입력해주세요. (예: name@company.com)');
+      emailInput.focus();
+      return;
+    }
+
     submitBtn.disabled = true;
     submitBtn.textContent = '전송 중...';
 
@@ -331,10 +345,14 @@ const boothModels = [
         successMsg.classList.remove('hidden');
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
-        throw new Error('전송 실패');
+        // 입력값 문제(400)는 서버가 알려준 이유를 그대로 보여준다
+        const body = await res.json().catch(() => null);
+        throw new Error(res.status === 400 && body?.error ? body.error : '');
       }
-    } catch {
-      alert('문의 전송에 실패했습니다. 잠시 후 다시 시도하시거나 02-338-9180 으로 전화 주세요.');
+    } catch (err) {
+      // 네트워크 오류(fetch 의 TypeError)는 일반 안내, 그 외는 위에서 넣은 사유
+      const reason = err instanceof Error && !(err instanceof TypeError) ? err.message : '';
+      alert(reason || '문의 전송에 실패했습니다. 잠시 후 다시 시도하시거나 02-338-9180 으로 전화 주세요.');
       submitBtn.disabled = false;
       submitBtn.textContent = '작성 완료';
     }
