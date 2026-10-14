@@ -106,11 +106,11 @@ const faqItems = (rentalFaqResult.rows.length > 0 ? rentalFaqResult.rows : popup
             <h3 class="text-sm font-semibold text-primary mb-2">포토부스 대여 포함 사항</h3>
             <ul class="space-y-1.5 text-sm text-secondary">
               <li class="flex items-start gap-2"><span class="text-olive mt-0.5">✓</span> 포토부스 장비 설치 및 철거</li>
-              <li class="flex items-start gap-2"><span class="text-olive mt-0.5">✓</span> 전문 운영 스태프 배치</li>
               <li class="flex items-start gap-2"><span class="text-olive mt-0.5">✓</span> 맞춤 포토스트립 디자인</li>
               <li class="flex items-start gap-2"><span class="text-olive mt-0.5">✓</span> 즉석 인화 (무제한)</li>
               <li class="flex items-start gap-2"><span class="text-olive mt-0.5">✓</span> 디지털 원본 전달</li>
               <li class="flex items-start gap-2"><span class="text-olive mt-0.5">✓</span> 전국 출장 가능 (서울·부산·대전·전주)</li>
+              <li class="flex items-start gap-2"><span class="text-olive mt-0.5">✓</span> 전문 운영 스태프 배치 (옵션)</li>
             </ul>
           </div>
         </div>
@@ -172,7 +172,7 @@ const faqItems = (rentalFaqResult.rows.length > 0 ? rentalFaqResult.rows : popup
         {[
           { step: '01', title: '문의 및 상담', desc: '행사 일정, 장소, 규모를 알려주시면 맞춤 견적을 안내해드립니다.' },
           { step: '02', title: '디자인 확정', desc: '포토스트립 디자인, 배경, 소품 등 행사에 맞는 옵션을 함께 결정합니다.' },
-          { step: '03', title: '현장 설치', desc: '행사 당일 전문 스태프가 현장에 도착하여 장비를 설치하고 운영합니다.' },
+          { step: '03', title: '현장 설치', desc: '행사 당일 전문 스태프가 현장에 도착하여 장비를 설치합니다. 현장 운영 스태프는 옵션으로 배정 가능합니다.' },
           { step: '04', title: '촬영 및 인화', desc: '행사 중 무제한 촬영과 즉석 인화. 행사 후 디지털 원본을 전달합니다.' },
         ].map(item => (
           <div class="relative rounded-lg border border-border-light p-6">
@@ -287,8 +287,8 @@ const faqItems = (rentalFaqResult.rows.length > 0 ? rentalFaqResult.rows : popup
           <ul class="mt-6 space-y-3 text-sm text-secondary flex-1">
             <li class="flex items-start gap-2"><span class="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-olive"></span>CI/BI 맞춤 디자인</li>
             <li class="flex items-start gap-2"><span class="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-olive"></span>무제한 즉석 인화</li>
-            <li class="flex items-start gap-2"><span class="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-olive"></span>전문 스태프 운영</li>
             <li class="flex items-start gap-2"><span class="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-olive"></span>QR 디지털 다운로드</li>
+            <li class="flex items-start gap-2"><span class="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-olive"></span>전문 스태프 운영 (옵션)</li>
           </ul>
           <div class="mt-8 flex flex-col gap-3">
             <a href="/corporate/" class="inline-flex items-center justify-center w-full rounded-lg bg-olive text-white text-sm font-semibold py-3 hover:bg-olive/90 transition-colors">자세히 알아보기 &rarr;</a>
