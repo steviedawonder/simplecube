@@ -65,8 +65,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return context.redirect(`${pathname}/${context.url.search}`, 301);
   }
 
-  // 정적 페이지는 DB 초기화 불필요 — admin/api/blog 경로만 DB 사용
-  const needsDB = pathname.startsWith('/admin') || pathname.startsWith('/api/') || pathname.startsWith('/blog') || pathname.startsWith('/inquiry') || /^\/(popup|wedding|rental|corporate|pricing)?\/?$/.test(pathname);
+  // 테이블 생성·시드·마이그레이션은 관리자·API 요청에서만 (운영 DB 에는 이미 있음).
+  // 공개 페이지마다 콜드 스타트 때 DB 호출 21번(쓰기 9번)이 응답 앞에 붙던 것을 없앤다.
+  // 로컬 개발은 빈 local.db 로도 공개 페이지가 그려지도록 기존처럼 공개 DB 페이지에서도 초기화.
+  const needsDB = pathname.startsWith('/admin') || pathname.startsWith('/api/') || (import.meta.env.DEV && (pathname.startsWith('/blog') || pathname.startsWith('/inquiry') || /^\/(popup|wedding|rental|corporate|pricing|graduation|seoul|busan|daegu|daejeon|gwangju|ulsan|jeonju|cheonan|cheongju|chungju)?\/?$/.test(pathname)));
 
   if (needsDB && !dbInitialized) {
     try {
@@ -134,6 +136,12 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const isHtml = (response.headers.get('Content-Type') || '').includes('text/html');
   if (context.request.method === 'GET' && isPublicPage && isHtml && response.status === 200 && !response.headers.has('Cache-Control')) {
     response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=86400');
+  }
+
+  // SSR HTML 은 Content-Type 에 charset 이 빠져 있다 (정적 페이지는 Vercel 이 utf-8 을 붙임).
+  // charset 없는 text/html 을 ISO-8859-1 로 읽는 수집기(RAG·에이전트 도구)에서 한글이 깨지지 않도록 명시.
+  if (isHtml && !/charset=/i.test(response.headers.get('Content-Type') || '')) {
+    response.headers.set('Content-Type', 'text/html; charset=utf-8');
   }
 
   return response;

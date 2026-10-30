@@ -46,6 +46,9 @@ const ogImageURL = new URL(ogImage, Astro.site).href;
 <!doctype html>
 <html lang="ko">
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <!-- Google Tag Manager -->
     <script is:inline>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
     new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -54,8 +57,6 @@ const ogImageURL = new URL(ogImage, Astro.site).href;
     })(window,document,'script','dataLayer','GTM-5JG6SWNF');</script>
     <!-- End Google Tag Manager -->
 
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
     {noindex && <meta name="robots" content="noindex, follow" />}
     {keywords && <meta name="keywords" content={keywords} />}
@@ -146,130 +147,65 @@ const ogImageURL = new URL(ogImage, Astro.site).href;
 
     <FloatingContactButton />
 
-    <!-- GSAP Initialization -->
+    <!-- 스크롤 등장 애니메이션 (.gs-*)
+         첫 화면에 보이는 내용은 처음부터 보이게 둔다 — 검색엔진 렌더러는 스크롤하지 않으므로 opacity 0 으로 시작하면
+         본문이 빈 화면으로 찍힌다(홈 본문 83% 가 투명했음). 첫 입력(스크롤·터치·키) 뒤에 화면 아래쪽 요소에만 적용하고,
+         GSAP 은 이 클래스가 있는 페이지에서만 페이지 로드 후 한가할 때 받는다. -->
     <script>
-      import { gsap } from 'gsap';
-      import { ScrollTrigger } from 'gsap/ScrollTrigger';
+      type Vars = Record<string, number>;
 
-      gsap.registerPlugin(ScrollTrigger);
+      const SELECTOR = '.gs-fade-up, .gs-fade-in, .gs-slide-left, .gs-slide-right, .gs-scale-in, .gs-stagger';
+      const slideOffset = window.innerWidth < 768 ? 40 : 80;
+      // [선택자, 시작 상태, 끝 상태, 길이(초), 이징]
+      const PRESETS: [string, Vars, Vars, number, string][] = [
+        ['.gs-fade-up', { opacity: 0, y: 60 }, { opacity: 1, y: 0 }, 1, 'power3.out'],
+        ['.gs-fade-in', { opacity: 0 }, { opacity: 1 }, 1.2, 'power2.out'],
+        ['.gs-slide-left', { opacity: 0, x: -slideOffset }, { opacity: 1, x: 0 }, 1, 'power3.out'],
+        ['.gs-slide-right', { opacity: 0, x: slideOffset }, { opacity: 1, x: 0 }, 1, 'power3.out'],
+        ['.gs-scale-in', { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1 }, 1.2, 'power2.out'],
+      ];
 
-      // Global scroll reveal
-      document.addEventListener('DOMContentLoaded', () => {
-        // Fade up animations
-        gsap.utils.toArray<HTMLElement>('.gs-fade-up').forEach((el) => {
-          gsap.fromTo(
-            el,
-            { opacity: 0, y: 60 },
-            {
-              opacity: 1,
-              y: 0,
-              duration: 1,
-              ease: 'power3.out',
-              scrollTrigger: {
-                trigger: el,
-                start: 'top 85%',
-                toggleActions: 'play none none none',
-              },
-            }
-          );
+      let gsapReady: Promise<typeof import('gsap').gsap> | null = null;
+      function loadGsap() {
+        gsapReady ??= Promise.all([import('gsap'), import('gsap/ScrollTrigger')]).then(([{ gsap }, { ScrollTrigger }]) => {
+          gsap.registerPlugin(ScrollTrigger);
+          return gsap;
         });
+        return gsapReady;
+      }
 
-        // Fade in animations
-        gsap.utils.toArray<HTMLElement>('.gs-fade-in').forEach((el) => {
-          gsap.fromTo(
-            el,
-            { opacity: 0 },
-            {
-              opacity: 1,
-              duration: 1.2,
-              ease: 'power2.out',
-              scrollTrigger: {
-                trigger: el,
-                start: 'top 85%',
-                toggleActions: 'play none none none',
-              },
-            }
-          );
-        });
+      let armed = false;
+      async function arm() {
+        if (armed) return;
+        armed = true;
+        if (!document.querySelector(SELECTOR) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-        // Slide from left
-        const slideOffset = window.innerWidth < 768 ? 40 : 80;
-        gsap.utils.toArray<HTMLElement>('.gs-slide-left').forEach((el) => {
-          gsap.fromTo(
-            el,
-            { opacity: 0, x: -slideOffset },
-            {
-              opacity: 1,
-              x: 0,
-              duration: 1,
-              ease: 'power3.out',
-              scrollTrigger: {
-                trigger: el,
-                start: 'top 85%',
-                toggleActions: 'play none none none',
-              },
-            }
-          );
-        });
+        const gsap = await loadGsap();
+        // GSAP 을 받는 사이 이미 화면에 들어온 요소는 건드리지 않는다 (보이던 내용이 깜빡이지 않도록)
+        const belowFold = (el: Element) => el.getBoundingClientRect().top > window.innerHeight;
+        const scrollTrigger = (trigger: Element) => ({ trigger, start: 'top 85%', once: true });
 
-        // Slide from right
-        gsap.utils.toArray<HTMLElement>('.gs-slide-right').forEach((el) => {
+        for (const [selector, from, to, duration, ease] of PRESETS) {
+          gsap.utils.toArray<HTMLElement>(selector).filter(belowFold).forEach((el) => {
+            gsap.fromTo(el, from, { ...to, duration, ease, scrollTrigger: scrollTrigger(el) });
+          });
+        }
+        gsap.utils.toArray<HTMLElement>('.gs-stagger').filter(belowFold).forEach((container) => {
           gsap.fromTo(
-            el,
-            { opacity: 0, x: slideOffset },
-            {
-              opacity: 1,
-              x: 0,
-              duration: 1,
-              ease: 'power3.out',
-              scrollTrigger: {
-                trigger: el,
-                start: 'top 85%',
-                toggleActions: 'play none none none',
-              },
-            }
-          );
-        });
-
-        // Scale in
-        gsap.utils.toArray<HTMLElement>('.gs-scale-in').forEach((el) => {
-          gsap.fromTo(
-            el,
-            { opacity: 0, scale: 0.9 },
-            {
-              opacity: 1,
-              scale: 1,
-              duration: 1.2,
-              ease: 'power2.out',
-              scrollTrigger: {
-                trigger: el,
-                start: 'top 85%',
-                toggleActions: 'play none none none',
-              },
-            }
-          );
-        });
-
-        // Stagger children
-        gsap.utils.toArray<HTMLElement>('.gs-stagger').forEach((container) => {
-          const children = container.children;
-          gsap.fromTo(
-            children,
+            container.children,
             { opacity: 0, y: 40 },
-            {
-              opacity: 1,
-              y: 0,
-              duration: 0.8,
-              ease: 'power3.out',
-              stagger: 0.1,
-              scrollTrigger: {
-                trigger: container,
-                start: 'top 85%',
-                toggleActions: 'play none none none',
-              },
-            }
+            { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', stagger: 0.1, scrollTrigger: scrollTrigger(container) }
           );
         });
+      }
+
+      for (const type of ['scroll', 'wheel', 'touchstart', 'keydown', 'pointerdown']) {
+        window.addEventListener(type, arm, { once: true, passive: true });
+      }
+      window.addEventListener('load', () => {
+        if (!document.querySelector(SELECTOR)) return;
+        const idle = window.requestIdleCallback ?? ((cb: () => void) => setTimeout(cb, 200));
+        idle(() => loadGsap());
       });
     </script>
   </body>

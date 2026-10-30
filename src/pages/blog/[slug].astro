@@ -3,7 +3,7 @@ export const prerender = false;
 
 import BaseLayout from '@layouts/BaseLayout.astro';
 import Button from '@components/common/Button.astro';
-import db from '@lib/db';
+import { safeRows } from '@lib/db';
 import { sanitizeSlug, isCleanSlug } from '@utils/slug';
 import { cdnImage, cdnCrop } from '@utils/image';
 import { ORG_NAME, ORG_REF, absUrl } from '@data/business';
@@ -18,19 +18,27 @@ if (slug && !isCleanSlug(decodeURIComponent(slug))) {
 
 const decodedSlug = decodeURIComponent(slug ?? '');
 
-const result = await db.execute({
+const result = await safeRows<any>({
   sql: `SELECT p.*, c.name as category_name, c.slug as category_slug
         FROM posts p LEFT JOIN categories c ON p.category_id = c.id
         WHERE p.slug = ? AND p.deleted_at IS NULL`,
   args: [decodedSlug],
 });
 
+// DB 일시 오류: 500 이나 404 대신 503 + 재시도 안내 (검색엔진이 글을 지우지 않고 나중에 다시 온다)
+if (!result.ok) {
+  return new Response('일시적인 오류입니다. 잠시 후 다시 시도해 주세요.', {
+    status: 503,
+    headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Retry-After': '120', 'Cache-Control': 'no-store' },
+  });
+}
+
 // 없는 글·초안은 /blog 로 302 하지 않고 404 (soft 404 방지)
 if (result.rows.length === 0) {
   return Astro.rewrite('/404/');
 }
 
-const post = result.rows[0] as any;
+const post = result.rows[0];
 
 if (post.external_url) {
   return Astro.redirect(post.external_url);
@@ -41,14 +49,14 @@ if (post.draft || (post.scheduled_at && new Date(post.scheduled_at) > new Date()
 }
 
 // Tags
-const tagsResult = await db.execute({
+const tagsResult = await safeRows<{ name: string; slug: string }>({
   sql: 'SELECT t.name, t.slug FROM tags t JOIN post_tags pt ON t.id = pt.tag_id WHERE pt.post_id = ?',
   args: [post.id],
 });
-const tags = tagsResult.rows.map((t: any) => t.name);
+const tags = tagsResult.rows.map((t) => t.name);
 
 // Related posts (same category or shared tags, max 3)
-const relatedResult = await db.execute({
+const relatedResult = await safeRows<any>({
   sql: `SELECT DISTINCT p.id, p.title, p.slug, p.description, p.image, p.created_at, c.name as category_name
         FROM posts p
         LEFT JOIN categories c ON p.category_id = c.id
@@ -67,7 +75,23 @@ const relatedResult = await db.execute({
         LIMIT 3`,
   args: [post.id, post.category_id || -1, post.id],
 });
-const relatedPosts = relatedResult.rows as any[];
+let relatedPosts = relatedResult.rows;
+// 같은 주제 글이 3개 미만이면 최신 글로 채운다 — 모든 글이 다른 글에서 링크되도록 (목록 페이지 외 유입 링크가 없던 글 7편)
+if (relatedPosts.length < 3) {
+  const latest = await safeRows<any>({
+    sql: `SELECT p.id, p.title, p.slug, p.description, p.image, p.created_at, c.name as category_name
+          FROM posts p
+          LEFT JOIN categories c ON p.category_id = c.id
+          WHERE p.draft = 0 AND p.deleted_at IS NULL AND p.id != ?
+            AND (p.scheduled_at IS NULL OR p.scheduled_at <= datetime('now'))
+            AND (p.external_url IS NULL OR p.external_url = '')
+          ORDER BY p.created_at DESC
+          LIMIT 6`,
+    args: [post.id],
+  });
+  const seen = new Set(relatedPosts.map((p) => p.id));
+  relatedPosts = [...relatedPosts, ...latest.rows.filter((p) => !seen.has(p.id))].slice(0, 3);
+}
 
 // ── Utilities ────────────────────────────────────────────────────────────────
 

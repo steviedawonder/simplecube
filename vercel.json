@@ -15,6 +15,22 @@
       "statusCode": 301
     },
     {
+      "source": "/((?!api/).*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "determined-goldstine-iota.vercel.app"
+        }
+      ],
+      "destination": "https://simplecube.net/$1",
+      "statusCode": 301
+    },
+    {
+      "source": "/index.html",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
       "source": "/:page(brand|busan|cheonan|cheongju|chungju|contact|corporate|daegu|daejeon|graduation|gwangju|jeonju|popup|pricing|rental|seoul|ulsan|wedding)",
       "destination": "/:page/",
       "statusCode": 301

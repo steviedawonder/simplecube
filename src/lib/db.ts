@@ -29,6 +29,25 @@ const db: Client = new Proxy({} as Client, {
 
 export default db;
 
+type Statement = string | { sql: string; args: any[] };
+
+/**
+ * 공개(SSR) 페이지용 조회 — Turso 일시 오류(socket hang up 등)로 페이지가 500 이 되지 않도록
+ * 한 번 재시도하고, 그래도 실패하면 fallback 을 돌려준다(ok: false).
+ * ok 가 false 면 호출한 페이지는 Cache-Control: no-store 로 내용이 빠진 응답이 CDN 에 남지 않게 한다.
+ */
+export async function safeRows<T = Record<string, unknown>>(statement: Statement, fallback: T[] = []): Promise<{ rows: T[]; ok: boolean }> {
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const result = await db.execute(statement as any);
+      return { rows: result.rows as unknown as T[], ok: true };
+    } catch (e) {
+      if (attempt === 2) console.error('[db] public page query failed — rendering fallback:', e);
+    }
+  }
+  return { rows: fallback, ok: false };
+}
+
 export async function initDB() {
   const client = getClient();
   await client.executeMultiple(`
