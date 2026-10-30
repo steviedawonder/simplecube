@@ -3,6 +3,7 @@ import '../styles/global.css';
 import Navbar from '@components/common/Navbar.astro';
 import Footer from '@components/common/Footer.astro';
 import FloatingContactButton from '@components/common/FloatingContactButton.astro';
+import WebPageSchema from '@components/seo/WebPageSchema.astro';
 
 
 interface ArticleMeta {
@@ -21,6 +22,7 @@ interface Props {
   articleMeta?: ArticleMeta;
   transparentNav?: boolean;
   noindex?: boolean;
+  pageType?: 'WebPage' | 'AboutPage' | 'ContactPage' | 'CollectionPage';
 }
 
 const {
@@ -32,6 +34,7 @@ const {
   articleMeta,
   transparentNav = false,
   noindex = false,
+  pageType,
 } = Astro.props;
 
 // canonical 은 항상 슬래시로 끝나는 형태로 통일 (사이트맵·내부 링크와 동일)
@@ -102,6 +105,9 @@ const ogImageURL = new URL(ogImage, Astro.site).href;
 
     <!-- Canonical URL -->
     <link rel="canonical" href={canonicalURL} />
+
+    <!-- 구조화 데이터: 페이지 노드 (WebSite·회사·이동 경로와 @id 로 연결) -->
+    {!noindex && <WebPageSchema url={canonicalURL.href} name={title} description={description} type={pageType} />}
 
 
     <!-- 홈 히어로 키워드 전용 Noto Sans KR 900 — 실제 쓰는 글자만 받는 초소형 서브셋, 렌더 차단 없음 -->

@@ -32,9 +32,14 @@ const faqItems = (rentalFaqResult.rows.length > 0 ? rentalFaqResult.rows : popup
       name: '포토부스 대여 — 행사용 포토부스 렌탈',
       description: '심플큐브의 포토부스 대여 서비스. 결혼식, 기업행사 등 행사 유형에 맞는 맞춤형 포토부스를 렌탈해드립니다. 전국 출장 설치 및 전문 운영 스태프 지원.',
       url: '/rental/',
+      offers: [
+        { name: '웨딩 포토부스', description: '결혼식 · 웨딩홀 맞춤 세팅 (최대 할인가 42만원)', minPrice: 500000, url: '/wedding/' },
+        { name: '행사 포토부스', description: '브랜드 행사 · 기업 이벤트', minPrice: 550000, url: '/corporate/' },
+      ],
     },
   ]} />
-  {faqItems.length > 0 && <FAQSchema faqs={faqItems} />}
+  {/* 팝업 FAQ 로 대체 표시될 때는 마크업하지 않음 — 같은 문답은 /popup/ 한 곳에만 */}
+  {rentalFaqResult.rows.length > 0 && <FAQSchema faqs={faqItems} />}
 
   <!-- Hero -->
   <section class="pt-20 lg:pt-22">

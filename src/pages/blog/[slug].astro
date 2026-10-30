@@ -5,7 +5,8 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 import Button from '@components/common/Button.astro';
 import db from '@lib/db';
 import { sanitizeSlug, isCleanSlug } from '@utils/slug';
-import { cdnImage } from '@utils/image';
+import { cdnImage, cdnCrop } from '@utils/image';
+import { ORG_NAME, ORG_REF, absUrl } from '@data/business';
 
 const { slug } = Astro.params;
 
@@ -135,54 +136,54 @@ const toc = extractToC(content);
 const processedContent = injectIds(content, toc);
 const hasToc = toc.length >= 3;
 
-const pageUrl = `https://simplecube.net/blog/${post.slug}/`;
+// canonical 과 같은 퍼센트 인코딩 형태 (JSON-LD @id 가 WebPage 노드와 정확히 일치하도록)
+const pageUrl = absUrl(`/blog/${post.slug}/`);
 const publishedISO = new Date(post.created_at).toISOString();
 const modifiedISO  = new Date(post.updated_at).toISOString();
 const wordCount = (content.replace(/<[^>]*>/g, '').match(/\S+/g) || []).length;
 
 // ── JSON-LD ───────────────────────────────────────────────────────────────────
 
+// 대표 이미지: Google 권장 16:9·4:3·1:1 을 Cloudinary 로 정확한 크기로 잘라 실제 크기와 일치시킨다
+// (Cloudinary 가 아닌 이미지는 크기를 적지 않고 URL 만)
+const articleImages = post.image
+  ? ([[1200, 675], [1200, 900], [1200, 1200]] as const)
+      .map(([width, height]) => {
+        const url = cdnCrop(post.image, width, height);
+        return url && { '@type': 'ImageObject', url, width, height };
+      })
+      .filter(Boolean)
+  : [];
+
 const blogPostingLd = {
   '@context': 'https://schema.org',
   '@type': 'BlogPosting',
+  '@id': `${pageUrl}#article`,
   url: pageUrl,
-  mainEntityOfPage: { '@type': 'WebPage', '@id': pageUrl },
+  mainEntityOfPage: { '@id': pageUrl },
   inLanguage: 'ko-KR',
-  headline: post.seo_title || post.title,
+  headline: post.title,
   description: metaDescription,
   datePublished: publishedISO,
   dateModified: modifiedISO,
   wordCount,
   keywords: tags.join(', '),
   articleSection: post.category_name || '포토부스',
-  ...(post.image && {
-    image: { '@type': 'ImageObject', url: post.image, width: 1200, height: 630 },
-  }),
-  author: {
-    '@type': 'Organization',
-    name: '심플큐브',
-    url: 'https://simplecube.net',
-  },
-  publisher: {
-    '@type': 'Organization',
-    name: '심플큐브',
-    url: 'https://simplecube.net',
-    logo: {
-      '@type': 'ImageObject',
-      url: 'https://simplecube.net/images/common/logo.png',
-    },
-  },
+  ...(post.image && { image: articleImages.length > 0 ? articleImages : [post.image] }),
+  author: ORG_REF,
+  publisher: ORG_REF,
 };
 
 const breadcrumbItems = [
-  { '@type': 'ListItem', position: 1, name: '홈', item: 'https://simplecube.net' },
-  { '@type': 'ListItem', position: 2, name: '블로그', item: 'https://simplecube.net/blog/' },
-  { '@type': 'ListItem', position: 3, name: post.seo_title || post.title, item: pageUrl },
+  { '@type': 'ListItem', position: 1, name: ORG_NAME, item: absUrl('/') },
+  { '@type': 'ListItem', position: 2, name: '블로그', item: absUrl('/blog/') },
+  { '@type': 'ListItem', position: 3, name: post.title, item: pageUrl },
 ];
 
 const breadcrumbLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
+  '@id': `${pageUrl}#breadcrumb`,
   itemListElement: breadcrumbItems,
 };
 
@@ -211,7 +212,7 @@ const formattedDate = new Date(post.created_at).toLocaleDateString('ko-KR', {
 
       <!-- Breadcrumb -->
       <nav aria-label="breadcrumb" class="mb-6 flex items-center gap-1.5 text-xs text-secondary-light">
-        <a href="/" class="hover:text-primary transition-colors">홈</a>
+        <a href="/" class="hover:text-primary transition-colors">심플큐브</a>
         <span aria-hidden="true">/</span>
         <a href="/blog/" class="hover:text-primary transition-colors">블로그</a>
         {post.category_name && (

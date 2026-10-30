@@ -31,7 +31,8 @@ const faqItems = (graduationFaqResult.rows.length > 0 ? graduationFaqResult.rows
       url: '/graduation/',
     },
   ]} />
-  {faqItems.length > 0 && <FAQSchema faqs={faqItems} />}
+  {/* 팝업 FAQ 로 대체 표시될 때는 마크업하지 않음 — 같은 문답은 /popup/ 한 곳에만 */}
+  {graduationFaqResult.rows.length > 0 && <FAQSchema faqs={faqItems} />}
 
   <!-- Hero -->
   <section class="pt-20 lg:pt-22">

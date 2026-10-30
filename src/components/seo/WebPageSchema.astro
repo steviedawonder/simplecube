@@ -1,0 +1,31 @@
+---
+// 모든 색인 페이지의 WebPage 노드 (@id = canonical URL).
+// WebSite(#website)·회사(#org)·이동 경로(#breadcrumb)와 연결되고, 페이지의 주요 엔티티(Service·BlogPosting)는
+// 각 스키마의 mainEntityOfPage 가 이 노드를 가리킨다.
+import { ORG_REF, WEBSITE_REF } from '@data/business';
+
+interface Props {
+  url: string;            // canonical URL
+  name: string;
+  description: string;
+  type?: 'WebPage' | 'AboutPage' | 'ContactPage' | 'CollectionPage';
+}
+
+const { url, name, description, type = 'WebPage' } = Astro.props;
+const isHome = new URL(url).pathname === '/';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': type,
+  '@id': url,
+  url,
+  name,
+  description,
+  inLanguage: 'ko-KR',
+  isPartOf: WEBSITE_REF,
+  ...((isHome || type === 'AboutPage' || type === 'ContactPage') && { about: ORG_REF }),
+  ...(!isHome && { breadcrumb: { '@id': `${url}#breadcrumb` } }),
+};
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
