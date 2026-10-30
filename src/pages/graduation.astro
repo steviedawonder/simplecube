@@ -8,14 +8,18 @@ import ServiceSchema from '@components/seo/ServiceSchema.astro';
 import MachineShowcase from '@components/popup/MachineShowcase.astro';
 import ClientShowcase from '@components/popup/ClientShowcase.astro';
 import AccordionList from '@components/faq/AccordionList.astro';
-import db from '@lib/db';
+import { safeRows } from '@lib/db';
 
 // Fetch graduation-specific FAQs, falling back to popup FAQs
+type Faq = { question: string; answer: string };
+const FAQ_SQL = 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC';
 const [graduationFaqResult, popupFaqResult] = await Promise.all([
-  db.execute({ sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC', args: ['graduation'] }),
-  db.execute({ sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC', args: ['popup'] }),
+  safeRows<Faq>({ sql: FAQ_SQL, args: ['graduation'] }),
+  safeRows<Faq>({ sql: FAQ_SQL, args: ['popup'] }),
 ]);
-const faqItems = (graduationFaqResult.rows.length > 0 ? graduationFaqResult.rows : popupFaqResult.rows) as { question: string; answer: string }[];
+// DB 일시 오류면 FAQ 없이 200 으로 그리고, 내용이 빠진 응답은 CDN 에 캐시하지 않는다
+if (!graduationFaqResult.ok || !popupFaqResult.ok) Astro.response.headers.set('Cache-Control', 'no-store');
+const faqItems = graduationFaqResult.rows.length > 0 ? graduationFaqResult.rows : popupFaqResult.rows;
 ---
 
 <BaseLayout

@@ -7,12 +7,14 @@ import ServiceSchema from '@components/seo/ServiceSchema.astro';
 import MachineShowcase from '@components/popup/MachineShowcase.astro';
 import ClientShowcase from '@components/popup/ClientShowcase.astro';
 import RegionUniqueInfo from '@components/region/RegionUniqueInfo.astro';
-import db from '@lib/db';
+import { safeRows } from '@lib/db';
 
 // 지역 전용 FAQ(관리자 등록분)만 사용 — 렌탈/팝업 FAQ 를 지역 페이지마다 복제하지 않는다.
 // 나머지 FAQ 는 RegionUniqueInfo 가 이 페이지의 출장 범위·운영 시간·담당 지점 정보로 만든다.
-const cityFaqResult = await db.execute({ sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC', args: ['jeonju'] });
-const cityFaqs = cityFaqResult.rows as unknown as { question: string; answer: string }[];
+const cityFaqResult = await safeRows<{ question: string; answer: string }>({ sql: 'SELECT question, answer FROM faqs WHERE page = ? AND active = 1 ORDER BY sort_order ASC, id ASC', args: ['jeonju'] });
+// DB 일시 오류면 지역 FAQ 없이 200 으로 그리고, 내용이 빠진 응답은 CDN 에 캐시하지 않는다
+if (!cityFaqResult.ok) Astro.response.headers.set('Cache-Control', 'no-store');
+const cityFaqs = cityFaqResult.rows;
 ---
 
 <BaseLayout

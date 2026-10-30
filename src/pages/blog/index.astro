@@ -2,12 +2,13 @@
 export const prerender = false;
 
 import BaseLayout from '@layouts/BaseLayout.astro';
-import db from '@lib/db';
+import { safeRows } from '@lib/db';
 import { cdnImage } from '@utils/image';
 import BreadcrumbSchema from '@components/seo/BreadcrumbSchema.astro';
 
 // Single query with GROUP_CONCAT to avoid N+1 tag queries
-const result = await db.execute(`
+// 사이트에서 직접 읽히는 글을 먼저, 외부(네이버 블로그) 후기 링크는 그 뒤에 — 목록 첫 화면을 사이트 글이 차지하도록
+const result = await safeRows<any>(`
   SELECT p.id, p.title, p.slug, p.description, p.image, p.external_url, p.created_at, c.name as category_name,
     GROUP_CONCAT(t.name, ',') as tags_list
   FROM posts p
@@ -17,9 +18,16 @@ const result = await db.execute(`
   WHERE p.draft = 0 AND p.deleted_at IS NULL
   AND (p.scheduled_at IS NULL OR p.scheduled_at <= datetime('now'))
   GROUP BY p.id
-  ORDER BY p.created_at DESC
+  ORDER BY (p.external_url IS NOT NULL AND p.external_url != '') ASC, p.created_at DESC
 `);
-const posts = (result.rows as any[]).map((post) => ({
+// DB 일시 오류: 빈 목록을 200 으로 내보내면 검색엔진이 글 목록이 사라진 것으로 보므로 503 + 재시도 안내
+if (!result.ok) {
+  return new Response('일시적인 오류입니다. 잠시 후 다시 시도해 주세요.', {
+    status: 503,
+    headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Retry-After': '120', 'Cache-Control': 'no-store' },
+  });
+}
+const posts = result.rows.map((post) => ({
   ...post,
   tags: post.tags_list ? post.tags_list.split(',') : [],
 }));
