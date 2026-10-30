@@ -8,27 +8,27 @@
     <img src="/images/hero/wedding.webp" alt="심플큐브 웨딩 포토부스 — 결혼식 하객 포토 서비스" fetchpriority="high" class="h-full w-full object-cover md:object-center object-[85%_center]" />
   </div>
   <div class="hero-bg-layer" data-bg="brand">
-    <img src="/images/popup/simplecube-module-photobooth-honda.webp" alt="브랜드 팝업스토어 포토부스 설치 사례" class="h-full w-full object-cover" loading="lazy" />
+    <img data-src="/images/popup/simplecube-module-photobooth-honda.webp" alt="브랜드 팝업스토어 포토부스 설치 사례" class="h-full w-full object-cover" decoding="async" />
   </div>
   <div class="hero-bg-layer" data-bg="corporate">
-    <img src="/images/popup/simplecube-module-photobooth-shinsegae.webp" alt="기업행사 포토부스 설치 사례" class="h-full w-full object-cover" loading="lazy" />
+    <img data-src="/images/popup/simplecube-module-photobooth-shinsegae.webp" alt="기업행사 포토부스 설치 사례" class="h-full w-full object-cover" decoding="async" />
   </div>
   <div class="hero-bg-layer" data-bg="festival">
-    <img src="/images/hero/festival.webp" alt="페스티벌 야외 포토부스 설치 사례" class="h-full w-full object-cover" loading="lazy" />
+    <img data-src="/images/hero/festival.webp" alt="페스티벌 야외 포토부스 설치 사례" class="h-full w-full object-cover" decoding="async" />
   </div>
   <!-- "모든 순간" - 빠르게 바뀌는 이미지들 -->
   <div class="hero-bg-layer" data-bg="all">
     <div class="rapid-slideshow absolute inset-0">
-      <img src="/images/moments/simplecube-photobooth-moment-1.webp" alt="" class="rapid-slide absolute inset-0 h-full w-full object-cover" />
-      <img src="/images/moments/simplecube-photobooth-moment-2.webp" alt="" class="rapid-slide absolute inset-0 h-full w-full object-cover" loading="lazy" />
-      <img src="/images/moments/simplecube-photobooth-moment-3.webp" alt="" class="rapid-slide absolute inset-0 h-full w-full object-cover" loading="lazy" />
-      <img src="/images/moments/simplecube-photobooth-moment-4.webp" alt="" class="rapid-slide absolute inset-0 h-full w-full object-cover" loading="lazy" />
-      <img src="/images/moments/simplecube-photobooth-moment-5.webp" alt="" class="rapid-slide absolute inset-0 h-full w-full object-cover" loading="lazy" />
-      <img src="/images/moments/simplecube-photobooth-moment-6.webp" alt="" class="rapid-slide absolute inset-0 h-full w-full object-cover" loading="lazy" />
-      <img src="/images/moments/simplecube-photobooth-moment-7.webp" alt="" class="rapid-slide absolute inset-0 h-full w-full object-cover" loading="lazy" />
-      <img src="/images/moments/simplecube-photobooth-moment-8.webp" alt="" class="rapid-slide absolute inset-0 h-full w-full object-cover" loading="lazy" />
-      <img src="/images/moments/simplecube-photobooth-moment-9.webp" alt="" class="rapid-slide absolute inset-0 h-full w-full object-cover" loading="lazy" />
-      <img src="/images/moments/simplecube-photobooth-moment-10.webp" alt="" class="rapid-slide absolute inset-0 h-full w-full object-cover" loading="lazy" />
+      <img data-src="/images/moments/simplecube-photobooth-moment-1.webp" alt="" class="rapid-slide absolute inset-0 h-full w-full object-cover" decoding="async" />
+      <img data-src="/images/moments/simplecube-photobooth-moment-2.webp" alt="" class="rapid-slide absolute inset-0 h-full w-full object-cover" decoding="async" />
+      <img data-src="/images/moments/simplecube-photobooth-moment-3.webp" alt="" class="rapid-slide absolute inset-0 h-full w-full object-cover" decoding="async" />
+      <img data-src="/images/moments/simplecube-photobooth-moment-4.webp" alt="" class="rapid-slide absolute inset-0 h-full w-full object-cover" decoding="async" />
+      <img data-src="/images/moments/simplecube-photobooth-moment-5.webp" alt="" class="rapid-slide absolute inset-0 h-full w-full object-cover" decoding="async" />
+      <img data-src="/images/moments/simplecube-photobooth-moment-6.webp" alt="" class="rapid-slide absolute inset-0 h-full w-full object-cover" decoding="async" />
+      <img data-src="/images/moments/simplecube-photobooth-moment-7.webp" alt="" class="rapid-slide absolute inset-0 h-full w-full object-cover" decoding="async" />
+      <img data-src="/images/moments/simplecube-photobooth-moment-8.webp" alt="" class="rapid-slide absolute inset-0 h-full w-full object-cover" decoding="async" />
+      <img data-src="/images/moments/simplecube-photobooth-moment-9.webp" alt="" class="rapid-slide absolute inset-0 h-full w-full object-cover" decoding="async" />
+      <img data-src="/images/moments/simplecube-photobooth-moment-10.webp" alt="" class="rapid-slide absolute inset-0 h-full w-full object-cover" decoding="async" />
     </div>
   </div>
 
@@ -203,6 +203,15 @@
     // 각 키워드별 표시 시간 (ms)
     const durations = [1700, 1700, 1700, 1700, 4000];
 
+    // 숨겨진 레이어 이미지는 data-src 로 두고, 회전 순서보다 한 단계 앞서 받는다 (첫 화면에서 3MB+ 동시 다운로드 방지)
+    function loadLayer(index: number) {
+      const layer = document.querySelector(`[data-bg="${keywords[index % keywords.length]}"]`);
+      layer?.querySelectorAll<HTMLImageElement>('img[data-src]').forEach((img) => {
+        img.src = img.dataset.src!;
+        img.removeAttribute('data-src');
+      });
+    }
+
     function switchTo(index: number) {
       const prevIndex = currentIndex;
       currentIndex = index;
@@ -215,6 +224,8 @@
 
       keywordEls[currentIndex]?.classList.add('active');
 
+      loadLayer(currentIndex);
+      loadLayer(currentIndex + 1);
       bgLayers.forEach(layer => layer.classList.remove('active'));
       const targetBg = document.querySelector(`[data-bg="${keywords[currentIndex]}"]`);
       targetBg?.classList.add('active');

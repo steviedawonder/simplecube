@@ -1,6 +1,10 @@
 ---
 import db from '@lib/db';
 
+interface Props { priority?: boolean }
+// 페이지 첫 화면에 오는 경우(/popup/)만 true — 첫 두 장이 LCP 후보라 지연 로딩하면 안 된다
+const { priority = false } = Astro.props;
+
 // Model ID mapping: component id → DB model_id
 const modelIdMap: Record<string, string> = {
   'popup-booth': 'popup',
@@ -157,7 +161,7 @@ import { cdnImage } from '@utils/image';
 
     <!-- ===== Model Grid: 모바일 2x2, 데스크탑 4열 ===== -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-5">
-      {models.map((model) => (
+      {models.map((model, i) => (
         <button
           class="model-card group relative flex flex-col rounded-xl lg:rounded-2xl border border-border-light bg-white overflow-hidden transition-all duration-300 hover:border-olive/40 hover:shadow-lg text-left"
           data-model-id={model.id}
@@ -178,7 +182,9 @@ import { cdnImage } from '@utils/image';
               src={cdnImage(model.image, 600)}
               alt={model.name}
               class="max-h-full max-w-full object-contain transition-transform duration-700 group-hover:scale-105"
-              loading="lazy"
+              loading={priority && i < 2 ? 'eager' : 'lazy'}
+              fetchpriority={priority && i === 0 ? 'high' : undefined}
+              decoding="async"
             />
           </div>
 
