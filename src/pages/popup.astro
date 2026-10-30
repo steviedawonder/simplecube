@@ -2,6 +2,8 @@
 // 관리자 수정(FAQ·패키지·포트폴리오 등)이 바로 반영되도록 요청 시 렌더링 — CDN 캐시는 미들웨어에서 60초
 export const prerender = false;
 import BaseLayout from '@layouts/BaseLayout.astro';
+import QuickFacts from '@components/common/QuickFacts.astro';
+import { PRICE_LABELS } from '@data/business';
 import ServiceIntro from '@components/popup/ServiceIntro.astro';
 import PortfolioGallery from '@components/popup/PortfolioGallery.astro';
 import ClientShowcase from '@components/popup/ClientShowcase.astro';
@@ -58,6 +60,15 @@ const backgrounds: any[] = bgResult.status === 'fulfilled' ? bgResult.value.rows
       </div>
     </div>
   </section>
+  <QuickFacts
+    summary="심플큐브 행사 포토부스는 브랜드 팝업스토어·페스티벌·기업 행사 현장에 맞춤 포토부스를 설치하고 운영하는 서비스입니다. 부스 외관 랩핑부터 촬영 화면·인화지·백드롭까지 브랜드에 맞게 만들고, 즉석 인화와 QR 디지털 공유를 제공합니다."
+    facts={[
+      { label: '가격', value: `행사 포토부스 ${PRICE_LABELS.event}~ (운영 시간·커스텀 범위·지역에 따라 견적)` },
+      { label: '커스텀', value: '부스 랩핑 · 촬영 화면 · 인화지 · 백드롭' },
+      { label: '운영', value: '최소 2시간부터 · 일·주·월 단위 장기 렌탈 · 현장 상주 또는 원격 대응(옵션)' },
+      { label: '예약', value: '견적 문의 폼이나 카카오톡으로 일정·장소·규모 전달 → 시안 확정 → 설치·운영' },
+    ]}
+  />
   <MachineShowcase priority />
   <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
   <PortfolioGallery />

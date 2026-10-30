@@ -1,6 +1,7 @@
 ---
 import AccordionList from '@components/faq/AccordionList.astro';
 import FAQSchema from '@components/seo/FAQSchema.astro';
+import { PRICE_LABELS } from '@data/business';
 
 interface Highlight {
   label: string;
@@ -53,6 +54,11 @@ const coverageRows = priceRows.filter((r) => !r.type.includes('운영 시간'));
 const hoursRows = priceRows.filter((r) => r.type.includes('운영 시간'));
 const rowText = (r: PriceRow) => `${r.type}: ${r.detail}${r.note ? ` (${r.note})` : ''}`;
 const generatedFaqs = [
+  // 가장 많이 묻는 질문 — 지역 페이지에 가격이 없어 AI 답변이 다른 페이지 값을 끌어와 잘못 인용했다
+  {
+    question: `${city} 포토부스 대여 가격은 얼마인가요?`,
+    answer: `웨딩 포토부스 ${PRICE_LABELS.wedding}~(최대 할인가 ${PRICE_LABELS.weddingMaxDiscount}), 팝업·기업행사 등 행사 포토부스 ${PRICE_LABELS.event}~입니다. 출장비는 지역에 따라 다르며, 정확한 금액은 날짜·장소·운영 시간을 알려주시면 견적으로 안내해드립니다.`,
+  },
   coverageRows.length > 0 && {
     question: `${city} 어느 지역까지 출장 설치가 되나요? 출장비가 있나요?`,
     answer: `${coverageRows.map(rowText).join(' / ')}. 정확한 비용은 행사 장소와 일정을 알려주시면 견적으로 안내해드립니다.`,

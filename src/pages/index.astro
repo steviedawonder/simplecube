@@ -8,6 +8,8 @@ import ClientShowcase from '@components/popup/ClientShowcase.astro';
 import BrandStory from '@components/brand/BrandStory.astro';
 import OrganizationSchema from '@components/seo/OrganizationSchema.astro';
 import EventPopup from '@components/common/EventPopup.astro';
+import QuickFacts from '@components/common/QuickFacts.astro';
+import { PRICE_LABELS } from '@data/business';
 ---
 
 <BaseLayout
@@ -18,6 +20,17 @@ import EventPopup from '@components/common/EventPopup.astro';
 >
   <OrganizationSchema />
   <HeroSection />
+  <QuickFacts
+    summary="심플큐브(SIMPLE CUBE)는 웨딩·브랜드 팝업·기업행사·졸업식 현장에 포토부스를 설치하고 운영까지 맡는 포토부스 대여 브랜드입니다. 2019년부터 16,000건 이상의 행사를 운영했고, 서울 본점과 부산·대전·전주 지점에서 전국으로 출장합니다."
+    facts={[
+      { label: '서비스', value: '웨딩 포토부스 · 브랜드 팝업 · 기업행사 · 졸업식·학교 행사 · 페스티벌' },
+      { label: '가격', value: `웨딩 ${PRICE_LABELS.wedding}~ (최대 할인가 ${PRICE_LABELS.weddingMaxDiscount}) · 행사 ${PRICE_LABELS.event}~` },
+      { label: '포함', value: '맞춤 프레임 디자인 · 무제한 즉석 인화(장당 약 15초) · 설치·철거 · 디지털 파일 제공' },
+      { label: '지역', value: '전국 출장 · 서울 본점과 부산·대전·전주 지점이 직접 운영' },
+      { label: '예약', value: '카카오톡 또는 전화(02-338-9180)로 날짜·장소 전달 → 견적 → 디자인 확정 → 당일 설치·운영' },
+      { label: '상담', value: '평일 10:00–18:00 (주말·공휴일 휴무)' },
+    ]}
+  />
   <ServicesSection />
   <WhySimpleCube />
   <ClientShowcase />

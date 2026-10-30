@@ -2,6 +2,8 @@
 // 관리자 수정(FAQ·패키지·포트폴리오 등)이 바로 반영되도록 요청 시 렌더링 — CDN 캐시는 미들웨어에서 60초
 export const prerender = false;
 import BaseLayout from '@layouts/BaseLayout.astro';
+import QuickFacts from '@components/common/QuickFacts.astro';
+import { PRICE_LABELS } from '@data/business';
 import ServiceIntro from '@components/wedding/ServiceIntro.astro';
 import PackageDetails from '@components/wedding/PackageDetails.astro';
 import BookingInquiry from '@components/wedding/BookingInquiry.astro';
@@ -58,6 +60,15 @@ const backdrops: any[] = bdResult.status === 'fulfilled' ? bdResult.value.rows a
       </div>
     </div>
   </section>
+  <QuickFacts
+    summary="심플큐브 웨딩 포토부스는 결혼식 하객 포토 서비스입니다. 전담 스텝 2인이 본식 90분 전에 설치해 예식 시작 후 30분까지 운영하고, 사진은 2장씩 인화되어 한 장은 하객에게, 한 장은 축하 메시지와 함께 포토 방명록으로 신랑·신부님께 전달됩니다."
+    facts={[
+      { label: '가격', value: `${PRICE_LABELS.wedding}~ (최대 할인가 ${PRICE_LABELS.weddingMaxDiscount})` },
+      { label: '포함', value: '포토 방명록 · 원목 액자 · 원본 USB · 동봉카드 100매 · 백드롭 6종 중 택1 · 무제한 인화' },
+      { label: '운영', value: '본식 90분 전 설치 → 예식 시작 후 30분까지 (식장 상황에 따라 조정)' },
+      { label: '예약', value: '예식 날짜·예식장·예식 시간을 카카오톡으로 보내 주시면 가능 여부를 안내합니다' },
+    ]}
+  />
   <ServiceIntro />
   <hr class="border-0 h-px bg-gradient-to-r from-transparent via-[#d4aa4580] to-transparent" />
   <PackageDetails />
