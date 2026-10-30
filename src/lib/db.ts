@@ -152,7 +152,7 @@ export async function initDB() {
 
     CREATE TABLE IF NOT EXISTS faqs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      page TEXT NOT NULL CHECK(page IN ('wedding', 'popup', 'rental', 'corporate', 'general', 'pricing')),
+      page TEXT NOT NULL, -- 허용 값: src/data/faqPages.ts (API 에서 검증)
       question TEXT NOT NULL,
       answer TEXT NOT NULL,
       sort_order INTEGER DEFAULT 0,
@@ -403,33 +403,33 @@ export async function seedFaqs() {
   }
 }
 
+// faqs.page 의 CHECK 제약(옛 6개 페이지만 허용)을 없앤다 — 졸업식·지역 페이지 FAQ 를 저장할 수 없던 원인.
+// 허용 페이지는 src/data/faqPages.ts 로 API 가 검증한다. 테이블 정의를 읽어 판단하므로 시험 행을 쓰지 않고,
+// 옮기기는 한 트랜잭션(batch)이라 중간에 실패해도 원래 테이블이 그대로 남는다.
 export async function migrateFaqsPageConstraint() {
   const client = getClient();
-  try {
-    // Test if new page values are accepted — if CHECK constraint blocks, migrate the table
-    await client.execute({ sql: "INSERT INTO faqs (page, question, answer, sort_order, active) VALUES (?, ?, ?, ?, ?)", args: ['rental', '__migration_test__', '__test__', -1, 0] });
-    // Clean up test row
-    await client.execute("DELETE FROM faqs WHERE question = '__migration_test__'");
-  } catch {
-    // CHECK constraint blocks new values — recreate table with expanded constraint
-    console.log('Migrating faqs table to support new page values...');
-    await client.execute(`
-      CREATE TABLE IF NOT EXISTS faqs_new (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        page TEXT NOT NULL CHECK(page IN ('wedding', 'popup', 'rental', 'corporate', 'general', 'pricing')),
-        question TEXT NOT NULL,
-        answer TEXT NOT NULL,
-        sort_order INTEGER DEFAULT 0,
-        active INTEGER DEFAULT 1,
-        created_at TEXT DEFAULT (datetime('now')),
-        updated_at TEXT DEFAULT (datetime('now'))
-      )
-    `);
-    await client.execute('INSERT INTO faqs_new (id, page, question, answer, sort_order, active, created_at, updated_at) SELECT id, page, question, answer, sort_order, active, created_at, updated_at FROM faqs');
-    await client.execute('DROP TABLE faqs');
-    await client.execute('ALTER TABLE faqs_new RENAME TO faqs');
-    console.log('faqs table migrated successfully');
-  }
+  const def = await client.execute("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'faqs'");
+  const tableSql = String((def.rows[0] as any)?.sql ?? '');
+  if (!/CHECK\s*\(\s*page\s+IN/i.test(tableSql)) return;
+
+  console.log('Migrating faqs table: removing page CHECK constraint...');
+  await client.batch([
+    'DROP TABLE IF EXISTS faqs_new',
+    `CREATE TABLE faqs_new (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      page TEXT NOT NULL,
+      question TEXT NOT NULL,
+      answer TEXT NOT NULL,
+      sort_order INTEGER DEFAULT 0,
+      active INTEGER DEFAULT 1,
+      created_at TEXT DEFAULT (datetime('now')),
+      updated_at TEXT DEFAULT (datetime('now'))
+    )`,
+    'INSERT INTO faqs_new (id, page, question, answer, sort_order, active, created_at, updated_at) SELECT id, page, question, answer, sort_order, active, created_at, updated_at FROM faqs',
+    'DROP TABLE faqs',
+    'ALTER TABLE faqs_new RENAME TO faqs',
+  ], 'write');
+  console.log('faqs table migrated successfully');
 }
 
 export async function migratePortfolioColumns() {

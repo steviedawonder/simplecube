@@ -1,6 +1,7 @@
 ---
 export const prerender = false;
 import AdminLayout from '@layouts/AdminLayout.astro';
+import { FAQ_PAGES } from '@data/faqPages';
 ---
 
 <AdminLayout title="FAQ 관리">
@@ -12,14 +13,12 @@ import AdminLayout from '@layouts/AdminLayout.astro';
   </div>
 
   <!-- Tabs -->
-  <div class="flex gap-1 mb-6 bg-gray-100 rounded-lg p-1 w-fit">
-    <button class="tab-btn active px-4 py-2 text-sm font-medium rounded-md transition-colors" data-tab="popup">행사</button>
-    <button class="tab-btn px-4 py-2 text-sm font-medium rounded-md transition-colors" data-tab="wedding">웨딩</button>
-    <button class="tab-btn px-4 py-2 text-sm font-medium rounded-md transition-colors" data-tab="rental">렌탈</button>
-    <button class="tab-btn px-4 py-2 text-sm font-medium rounded-md transition-colors" data-tab="corporate">기업행사</button>
-    <button class="tab-btn px-4 py-2 text-sm font-medium rounded-md transition-colors" data-tab="pricing">가격</button>
-    <button class="tab-btn px-4 py-2 text-sm font-medium rounded-md transition-colors" data-tab="general">공통</button>
+  <div class="flex flex-wrap gap-1 mb-2 bg-gray-100 rounded-lg p-1 w-fit max-w-full">
+    {FAQ_PAGES.map((p, i) => (
+      <button class:list={['tab-btn px-4 py-2 text-sm font-medium rounded-md transition-colors', { active: i === 0 }]} data-tab={p.key}>{p.label}</button>
+    ))}
   </div>
+  <p class="mb-6 text-xs text-gray-500">렌탈·기업행사·졸업식 FAQ 가 없으면 행사 FAQ, 가격 FAQ 가 없으면 렌탈 FAQ 가 대신 보입니다. 지역 FAQ 는 각 지역 페이지의 자동 안내(출장비·운영 시간·담당 지점) 위에 함께 표시됩니다.</p>
 
   <!-- FAQ Table -->
   <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -47,12 +46,7 @@ import AdminLayout from '@layouts/AdminLayout.astro';
         <div class="mb-4">
           <label class="block text-sm font-medium text-gray-700 mb-1">페이지</label>
           <select id="faq-page" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#D4AA45] focus:outline-none">
-            <option value="popup">행사</option>
-            <option value="wedding">웨딩</option>
-            <option value="rental">렌탈</option>
-            <option value="corporate">기업행사</option>
-            <option value="pricing">가격</option>
-            <option value="general">공통</option>
+            {FAQ_PAGES.map((p) => <option value={p.key}>{p.label}</option>)}
           </select>
         </div>
         <div class="mb-4">

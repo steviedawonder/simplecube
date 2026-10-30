@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import db from '@lib/db';
+import { isFaqPage } from '@data/faqPages';
 
 export const prerender = false;
 
@@ -13,7 +14,7 @@ export const PUT: APIRoute = async ({ request, params }) => {
     const args: any[] = [];
 
     if (page) {
-      if (!['wedding', 'popup'].includes(page)) {
+      if (!isFaqPage(page)) {
         return new Response(JSON.stringify({ error: '유효하지 않은 페이지입니다.' }), {
           status: 400,
           headers: { 'Content-Type': 'application/json' },
