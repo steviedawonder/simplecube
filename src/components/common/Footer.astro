@@ -44,7 +44,7 @@ const branches = [
         {branches.map((branch, i) => (
           <>
             {i > 0 && ' · '}
-            {branch.name.replace(/ 지점$/, '')} <a href={branch.phone} class="transition-colors hover:text-olive">{branch.phone.replace('tel:', '')}</a>
+            {`${branch.name.replace(/ 지점$/, '')} `}<a href={branch.phone} class="transition-colors hover:text-olive">{branch.phone.replace('tel:', '')}</a>
           </>
         ))}
       </p>
