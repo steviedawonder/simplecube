@@ -57,6 +57,56 @@ const ogImageURL = new URL(ogImage, Astro.site).href;
     })(window,document,'script','dataLayer','GTM-5JG6SWNF');</script>
     <!-- End Google Tag Manager -->
 
+    <!-- 문의 경로 클릭 측정 — 카카오톡·전화·인스타그램·문의 버튼 클릭을 사이트가 직접 기록
+         (대행사 GTM 의 카카오 트리거는 /contact/ 서울 TALK 버튼 1개에만 걸려 있어 나머지 클릭이 집계되지 않음) -->
+    <script is:inline>
+      (function () {
+        // 지점 구분: 카카오 채널 ID · 전화번호(숫자만) · 인스타그램 계정 → 지점 코드
+        var BRANCH = {
+          _vxhEfj: 'seoul', _RxgxkPb: 'busan', _xgqgyb: 'daejeon', _TPxjxoG: 'jeonju',
+          '023389180': 'seoul', '01031224746': 'busan', '01088388122': 'daejeon', '01057438122': 'jeonju',
+          simplecube_photobooth: 'seoul', simplecube_wedding: 'seoul',
+          simplecube_busan: 'busan', simplecube_daejeon: 'daejeon', simplecube_jeonju: 'jeonju'
+        };
+        // GTM 이 설치한 GA4 (측정 ID). 페이지에서 보내는 gtag 이벤트는 send_to 를 지정해야 GA4 로 전송된다
+        var GA4_ID = 'G-1ZLPBMQXNH';
+        function gtag() { window.dataLayer.push(arguments); }
+        function classify(a) {
+          var href = a.getAttribute('href') || '';
+          if (/^tel:/i.test(href)) return { method: 'phone', branch: BRANCH[href.replace(/\D/g, '')] };
+          if (/^mailto:/i.test(href)) return { method: 'email' };
+          var u;
+          try { u = new URL(href, location.href); } catch (e) { return null; }
+          var first = u.pathname.split('/')[1] || '';
+          if (u.hostname === 'pf.kakao.com') return { method: 'kakao', branch: BRANCH[first] };
+          if (/(^|\.)instagram\.com$/.test(u.hostname)) return { method: 'instagram', branch: BRANCH[first.toLowerCase()] };
+          if (u.origin === location.origin && (first === 'contact' || first === 'inquiry')) return { method: 'inquiry_cta' };
+          return null;
+        }
+        // 캡처 단계에서 듣는다 — 다른 스크립트가 클릭 전파를 막아도 기록되고, 이동(새 탭·전화 앱)은 막지 않는다
+        document.addEventListener('click', function (e) {
+          var a = e.target instanceof Element ? e.target.closest('a[href]') : null;
+          var info = a && classify(a);
+          if (!info) return;
+          var params = {
+            method: info.method,
+            branch: info.branch || 'none',
+            link_url: a.href,
+            link_text: (a.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 40) || a.getAttribute('aria-label') || '',
+            link_area: a.closest('footer') ? 'footer' : a.closest('#floating-quick') ? 'floating' : a.closest('header') ? 'header' : 'main',
+            page_path: location.pathname
+          };
+          try {
+            window.dataLayer = window.dataLayer || [];
+            // GTM 트리거용 맞춤 이벤트 — 네이버 광고 전환 등은 GTM 에서 이 이벤트(contact_click)에 연결
+            window.dataLayer.push(Object.assign({ event: 'contact_click' }, params));
+            // GA4 로 직접 전송 (GTM 이 설치한 Google 태그가 처리) — GTM 에 contact_click 용 GA4 태그를 또 만들면 중복
+            gtag('event', 'contact_click', Object.assign({ send_to: GA4_ID }, params));
+          } catch (err) { /* 측정 실패가 클릭 동작에 영향 주지 않음 */ }
+        }, true);
+      })();
+    </script>
+
     <meta name="description" content={description} />
     {noindex && <meta name="robots" content="noindex, follow" />}
     {keywords && <meta name="keywords" content={keywords} />}
@@ -124,13 +174,20 @@ const ogImageURL = new URL(ogImage, Astro.site).href;
 
     <!-- Naver Analytics (비동기 로드 — 렌더링을 막지 않음) -->
     <script is:inline>
-      window.wcs_add = window.wcs_add || {};
-      window.wcs_add['wa'] = '2403ec27630898';
       (function () {
+        // 대행사 GTM 의 네이버 광고 태그도 같은 전역 wcs_add.wa 를 자기 키(s_…)로 바꾼다.
+        // wcs_do() 호출 직전에 우리 키를 다시 넣어야 네이버 애널리틱스 페이지뷰가 대행사 키로 새지 않는다.
+        var NA_KEY = '2403ec27630898';
+        window.wcs_add = window.wcs_add || {};
+        window.wcs_add['wa'] = NA_KEY;
         var s = document.createElement('script');
         s.src = 'https://wcs.pstatic.net/wcslog.js';
         s.async = true;
-        s.onload = function () { if (window.wcs) { window.wcs_do(); } };
+        s.onload = function () {
+          if (!window.wcs) return;
+          window.wcs_add['wa'] = NA_KEY;
+          window.wcs_do();
+        };
         document.head.appendChild(s);
       })();
     </script>
