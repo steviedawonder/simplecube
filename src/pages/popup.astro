@@ -24,6 +24,8 @@ const [faqResult, bgResult] = await Promise.allSettled([
 
 const faqItems = faqResult.status === 'fulfilled' ? faqResult.value.rows as { question: string; answer: string }[] : [];
 const backgrounds: any[] = bgResult.status === 'fulfilled' ? bgResult.value.rows as any[] : [];
+// DB 일시 오류로 일부 내용이 빠졌으면 그 응답은 CDN 에 캐시하지 않는다
+if ([faqResult, bgResult].some((r) => r.status === 'rejected')) Astro.response.headers.set('Cache-Control', 'no-store');
 ---
 
 <BaseLayout
