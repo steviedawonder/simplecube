@@ -28,8 +28,8 @@ const backdrops: any[] = bdResult.status === 'fulfilled' ? bdResult.value.rows a
 ---
 
 <BaseLayout
-  title="웨딩 포토부스 대여 | 16,000건 결혼식 경험·프리미엄 — 심플큐브"
-  description="결혼식 포토부스로 하객 반응까지 특별하게. 프리미엄 웨딩 포토부스, 맞춤 프레임·무제한 인화·전문 운영. 16,000건 경험의 심플큐브, 지금 예약 문의하세요."
+  title="웨딩 포토부스 대여 | 결혼식 포토방명록 포함 50만원~ — 심플큐브"
+  description="결혼식 하객 포토 서비스, 심플큐브 웨딩 포토부스. 포토 방명록·액자·원본 USB·무제한 인화 기본 구성, 전담 스텝 2인 운영. 50만원~(최대 할인가 42만원), 2019년부터 16,000건 행사 경험."
   keywords="웨딩 포토부스, 결혼식 포토부스, 웨딩 포토부스 대여, 결혼식 포토부스 대여, 하객 포토 서비스, 포토방명록, 웨딩홀 포토부스, 호텔웨딩 포토부스, 심플큐브 웨딩"
   transparentNav={false}
 >
@@ -91,7 +91,6 @@ const backdrops: any[] = bdResult.status === 'fulfilled' ? bdResult.value.rows a
       <div id="wg-page-indicator" class="flex items-center justify-center gap-2 mt-5"></div>
       <div id="wedding-gallery-empty" class="text-center py-12 hidden">
         <p class="text-secondary text-sm">등록된 현장사진이 없습니다.</p>
-        <p class="text-secondary/60 text-xs mt-2">관리자에서 사진 관리 &gt; 웨딩 탭에서 현장사진 태그로 업로드 가능</p>
       </div>
       <div id="wedding-gallery-loading" class="text-center py-12">
         <p class="text-secondary text-sm">불러오는 중...</p>
@@ -175,7 +174,6 @@ const backdrops: any[] = bdResult.status === 'fulfilled' ? bdResult.value.rows a
       ) : (
         <div id="ps-empty" class="text-center py-12">
           <p class="text-secondary text-sm">등록된 포토스트립 사진이 없습니다.</p>
-          <p class="text-secondary/60 text-xs mt-2">관리자에서 사진 관리 &gt; 웨딩 탭에서 업로드 가능</p>
         </div>
       )}
     </div>
@@ -230,7 +228,6 @@ const backdrops: any[] = bdResult.status === 'fulfilled' ? bdResult.value.rows a
       ) : (
         <div class="text-center py-12">
           <p class="text-secondary text-sm">등록된 백드롭 사진이 없습니다.</p>
-          <p class="text-secondary/60 text-xs mt-2">관리자에서 배경·백드롭 메뉴에서 업로드 가능</p>
         </div>
       )}
     </div>

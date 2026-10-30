@@ -31,6 +31,15 @@ export function toIntlPhone(phone: string): string {
   return `+82-${phone.replace(/^0/, '')}`;
 }
 
+// 가격 — /pricing/ 가격 카드와 같은 값. 가격을 바꾸면 가격 카드(pricing.astro)·rental·corporate 카드,
+// 각 페이지 ServiceSchema offers 의 minPrice, 그리고 이 값을 함께 바꿀 것.
+export const PRICES = {
+  wedding: 500000, // 웨딩 포토부스 ~부터
+  weddingMaxDiscount: 420000, // 웨딩 최대 할인가
+  event: 550000, // 행사 포토부스(팝업·기업행사·페스티벌) ~부터
+};
+export const PRICE_LABELS = { wedding: '50만원', weddingMaxDiscount: '42만원', event: '55만원' };
+
 // contact 페이지 상담 시간과 동일: 10:00 ~ 18:00, 주말·공휴일 휴무
 const WEEKDAY_HOURS = [
   {

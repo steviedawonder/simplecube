@@ -16,6 +16,12 @@ function escapeXml(str: string): string {
     .replace(/'/g, '&apos;');
 }
 
+// 'IMG_3432', 'KakaoTalk_Photo_…', '20240512_1.jpg' 처럼 사진 설명이 아닌 파일명 제목
+function isFilenameTitle(t: string): boolean {
+  const s = t.trim();
+  return !s || /^(IMG|DSC|DSCF|KakaoTalk|Screenshot|PXL|photo)[_\-\s]/i.test(s) || /^[\d_\-\s.()]+$/.test(s) || /\.(jpe?g|png|webp|heic|gif)$/i.test(s);
+}
+
 function absolute(url: string): string {
   if (/^https?:\/\//.test(url)) return url;
   return `${siteUrl}${url.startsWith('/') ? '' : '/'}${url}`;
@@ -38,7 +44,8 @@ export async function GET() {
       const tag = String(row.page_tag || row.page || 'popup');
       const page = tag === 'wedding' ? '/wedding/' : '/popup/';
       const label = tag === 'wedding' ? '웨딩 포토부스 현장' : '팝업·행사 포토부스 현장';
-      const title = String(row.title || '').trim() || `심플큐브 ${label}${row.tags ? ` — ${String(row.tags)}` : ''}`;
+      const raw = String(row.title || '');
+      const title = isFilenameTitle(raw) ? `심플큐브 ${label}${row.tags ? ` — ${String(row.tags)}` : ''}` : raw.trim();
       add(page, String(row.image_url), title);
     }
 
