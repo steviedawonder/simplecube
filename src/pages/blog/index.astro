@@ -41,7 +41,7 @@ const categories = [...new Set(posts.map((p) => p.category_name).filter(Boolean)
   transparentNav={false}
   pageType="CollectionPage"
 >
-  <BreadcrumbSchema items={[{ name: '블로그', url: '/blog/' }]} />
+  <BreadcrumbSchema items={[{ name: '블로그', url: '/blog/' }]} visible={false} />
   <!-- 좌측 골드 보더 히어로 (투명 배경) -->
   <section class="pt-20 lg:pt-22">
     <div class="mx-auto max-w-7xl px-6 lg:px-8 py-6 border-b border-border-light">
