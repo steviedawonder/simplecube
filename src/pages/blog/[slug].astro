@@ -6,7 +6,7 @@ import Button from '@components/common/Button.astro';
 import { safeRows } from '@lib/db';
 import { sanitizeSlug, isCleanSlug } from '@utils/slug';
 import { cdnImage, cdnCrop } from '@utils/image';
-import { ORG_NAME, ORG_REF, absUrl } from '@data/business';
+import { ORG_NAME, ORG_REF, PRICE_LABELS, absUrl } from '@data/business';
 
 const { slug } = Astro.params;
 
@@ -104,23 +104,20 @@ function calcReadingTime(html: string): number {
 
 interface ToCItem { id: string; level: number; text: string }
 
-function extractToC(html: string): ToCItem[] {
-  const re = /<h([23])[^>]*>([\s\S]*?)<\/h[23]>/gi;
-  const items: ToCItem[] = [];
-  let m: RegExpExecArray | null;
-  let i = 0;
-  while ((m = re.exec(html)) !== null) {
-    const text = m[2].replace(/<[^>]*>/g, '').trim();
-    if (text) items.push({ id: `h-${i++}`, level: parseInt(m[1]), text });
-  }
-  return items;
-}
-
-function injectIds(html: string, toc: ToCItem[]): string {
-  let i = 0;
-  return html.replace(/<h([23])([^>]*)>([\s\S]*?)<\/h[23]>/gi, (_, lvl, attrs, inner) =>
-    i < toc.length ? `<h${lvl} id="${toc[i++].id}"${attrs}>${inner}</h${lvl}>` : _
-  );
+// 목차 + 제목 id 를 한 번에: 글자 없는 헤딩(네이버 에디터 잔재 <h2><span><b><br></b></span></h2>)은 지우고
+// (이미지만 든 헤딩은 문단으로 보존), id 는 실제 글자가 있는 h2·h3 에만 순서대로 붙인다.
+// 예전에는 빈 헤딩도 id 순번을 차지해 목차 링크가 엉뚱한 제목으로 이동했다(5편, 49개).
+function buildToc(html: string): { html: string; toc: ToCItem[] } {
+  const toc: ToCItem[] = [];
+  const out = html.replace(/<h([1-6])(\s[^>]*)?>([\s\S]*?)<\/h\1>/gi, (_m, lvl: string, attrs = '', inner: string) => {
+    const text = inner.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
+    if (!text) return /<img\b/i.test(inner) ? `<p>${inner}</p>` : '';
+    if (lvl !== '2' && lvl !== '3') return `<h${lvl}${attrs}>${inner}</h${lvl}>`;
+    const id = `h-${toc.length}`;
+    toc.push({ id, level: Number(lvl), text });
+    return `<h${lvl} id="${id}"${attrs.replace(/\sid=(["'])[^"']*\1/i, '')}>${inner}</h${lvl}>`;
+  });
+  return { html: out, toc };
 }
 
 function escapeAttr(s: string): string {
@@ -140,6 +137,11 @@ function normalizeContent(html: string, title: string): string {
     .replace(/<h([1-6])[^>]*>(?:\s|&nbsp;|<br\s*\/?>)*<\/h\1>/gi, '')
     .replace(/<h1(\s[^>]*)?>/gi, (_m, attrs = '') => `<h2${attrs}>`)
     .replace(/<\/h1>/gi, '</h2>')
+    // 본문 속 사이트 링크는 슬래시로 끝나는 정식 주소로 (예: /popup#portfolio → /popup/#portfolio, 301 을 거치지 않게)
+    .replace(
+      /href=(["'])(?:https?:\/\/(?:www\.)?simplecube\.net)?\/(popup|wedding|rental|corporate|pricing|graduation|brand|contact|seoul|busan|daegu|daejeon|gwangju|ulsan|jeonju|cheonan|cheongju|chungju)(#[^"']*)?\1/gi,
+      (_m, q: string, page: string, hash = '') => `href=${q}/${page}/${hash}${q}`
+    )
     .replace(/<img\b([^>]*)>/gi, (_m, attrs: string) => {
       let a = attrs.replace(/\s\/$/, '');
       a = a.replace(/\salt=(["'])(?:\s*|붙여넣기 이미지|image|이미지)\1/i, '');
@@ -156,9 +158,22 @@ function normalizeContent(html: string, title: string): string {
 const content = normalizeContent(String(post.content || ''), String(post.title));
 const metaDescription = cleanText(String(post.seo_description || post.description || ''));
 const readingTime = calcReadingTime(content);
-const toc = extractToC(content);
-const processedContent = injectIds(content, toc);
+const { html: processedContent, toc } = buildToc(content);
 const hasToc = toc.length >= 3;
+
+// 본문 아래 '관련 서비스' — 글 주제(제목·카테고리·태그)에 맞는 서비스 페이지로 연결.
+// 블로그 12편 중 11편이 서비스 페이지로 가는 링크가 0개였다 (방문자·검색엔진 모두 블로그에서 서비스 페이지로 못 감).
+const SERVICE_LINKS = [
+  { re: /웨딩|결혼|예식|하객|성당|웨딩홀|신랑|신부/, href: '/wedding/', label: '웨딩 포토부스 구성 보기' },
+  { re: /기업|컨퍼런스|임직원|사내|송년회|신년회|세미나|박람회/, href: '/corporate/', label: '기업행사 포토부스' },
+  { re: /팝업|페스티벌|축제|브랜드|런칭|와인/, href: '/popup/', label: '팝업·행사 포토부스' },
+  { re: /졸업|학교|대학|어린이|유치원|학생/, href: '/graduation/', label: '졸업식·학교 행사 포토부스' },
+];
+const topic = `${post.title} ${post.category_name ?? ''} ${tags.join(' ')}`;
+const serviceLinks = SERVICE_LINKS.filter((l) => l.re.test(topic)).slice(0, 2);
+if (serviceLinks.length === 0) serviceLinks.push({ re: /./, href: '/rental/', label: '포토부스 대여 안내' });
+serviceLinks.push({ re: /./, href: '/pricing/', label: `포토부스 대여 가격 (웨딩 ${PRICE_LABELS.wedding}~ · 행사 ${PRICE_LABELS.event}~)` });
+const quoteHref = serviceLinks[0].href === '/wedding/' ? '/contact/' : '/inquiry/popup/';
 
 // canonical 과 같은 퍼센트 인코딩 형태 (JSON-LD @id 가 WebPage 노드와 정확히 일치하도록)
 const pageUrl = absUrl(`/blog/${post.slug}/`);
@@ -312,6 +327,19 @@ const formattedDate = new Date(post.created_at).toLocaleDateString('ko-KR', {
       <!-- Body content -->
       <div class="blog-content mt-12" set:html={processedContent} />
 
+      <!-- 관련 서비스 (블로그 → 서비스 페이지 내부 링크) -->
+      <nav aria-label="관련 서비스" class="mt-12 rounded-xl border border-olive/30 bg-olive-tint p-5 lg:p-6">
+        <p class="text-sm font-semibold text-primary">이 글과 관련된 심플큐브 서비스</p>
+        <ul class="mt-3 flex flex-wrap gap-2">
+          {serviceLinks.map((l) => (
+            <li>
+              <a href={l.href} class="inline-block rounded-full border border-olive/40 bg-white px-4 py-2 text-sm text-primary transition-colors hover:border-olive">{l.label} →</a>
+            </li>
+          ))}
+        </ul>
+        <a href={quoteHref} class="mt-4 inline-block rounded-lg bg-olive px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90">무료 견적 문의</a>
+      </nav>
+
       <!-- Tags -->
       {tags.length > 0 && (
         <div class="mt-12 flex flex-wrap gap-2 border-t border-border-light pt-6">
@@ -332,9 +360,9 @@ const formattedDate = new Date(post.created_at).toLocaleDateString('ko-KR', {
           loading="lazy"
         />
         <div>
-          <p class="text-sm font-semibold text-primary">심플큐브 (SimpleCube)</p>
+          <p class="text-sm font-semibold text-primary">심플큐브 (SIMPLE CUBE)</p>
           <p class="mt-1 text-xs text-secondary leading-relaxed">
-            16,000건 이상의 행사를 운영한 포토부스 전문 기업. 웨딩·팝업·기업행사 등 모든 규모의 이벤트에 전국 출장 서비스를 제공합니다.
+            2019년부터 16,000건 이상의 행사를 운영한 포토부스 대여 브랜드. 서울 본점과 부산·대전·전주 지점에서 웨딩·팝업·기업행사 포토부스를 전국 출장 설치합니다.
           </p>
           <a
             href="/brand/"
