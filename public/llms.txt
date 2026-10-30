@@ -1,60 +1,69 @@
-# SimpleCube (심플큐브) — Photo Booth Rental Service
+# 심플큐브 (SIMPLE CUBE) — 포토부스 대여
 
-## About
-SimpleCube (심플큐브) is South Korea's premium photo booth rental service,
-specializing in wedding photo booths, popup/brand event booths, and corporate gatherings.
-We provide end-to-end service from delivery and setup to on-site operation and custom design.
+> 심플큐브(SIMPLE CUBE)는 2019년부터 웨딩·브랜드 팝업·기업행사·졸업식 현장에 포토부스를 설치하고 운영까지 맡아 온 포토부스 대여 브랜드입니다. 서울 본점과 부산·대전·전주 지점에서 전국으로 출장하며, 누적 행사는 16,000건 이상입니다. 웨딩 포토부스는 50만원부터(최대 할인가 42만원), 행사 포토부스는 55만원부터입니다.
 
-## Services
-- Wedding Photo Booth Rental (웨딩 포토부스 대여): Professional photo booth for wedding receptions; printed photo strips customized to the couple's concept.
-- Popup & Brand Event Booth (팝업·행사 포토부스): Photo booths for popup stores, brand activations, festivals, university events, and corporate exhibitions.
-- Corporate Event Rental (기업행사 포토부스): Conferences, seminars, employee events, and B2B activations.
-- Graduation Photo Booth (졸업 포토부스): Ceremony day and graduation party booths.
-- Long-Term Rental (포토부스 렌탈): Monthly or extended rentals for cafés, hotels, or permanent installations.
+SIMPLE CUBE (심플큐브, also written "SimpleCube") is a Korean photo booth rental brand operating since 2019. It installs and runs photo booths for weddings, brand pop-up stores, corporate events and school events nationwide from four branches (Seoul HQ, Busan, Daejeon, Jeonju), with 16,000+ events to date. Prices: wedding photo booth from KRW 500,000 (KRW 420,000 at the maximum discount), event photo booths from KRW 550,000. Site content is in Korean.
 
-## Coverage Areas
-Seoul (서울), Busan (부산), Daejeon (대전), Daegu (대구), Gwangju (광주), Ulsan (울산), Jeonju (전주), Cheonan (천안), Cheongju (청주), Chungju (충주), and nationwide delivery available.
+정보 기준: 2026년 10월. 가격·정책이 바뀌면 이 파일도 함께 고칩니다.
 
-## Key Facts
-- Founded in 2019; 16,000+ events served since founding
-- Nationwide service across South Korea
-- Custom photo strip templates and backdrop designs
-- Same-day printed photo strips (2-cut, 4-cut, long strip formats)
-- Equipment: DSLR + studio lighting + dye-sublimation printer
+## 핵심 사실
 
-## Blog Topics
-The SimpleCube blog publishes practical, experience-based Korean-language guides on:
-- Wedding photo booth planning and pricing
-- Popup event photo booth trends and case studies
-- Corporate event photography tips
-- Photo strip design and customization ideas
-- Photobooth industry trends (Korea)
-- Venue and vendor comparisons
+- 공식 명칭: 심플큐브 / SIMPLE CUBE. 공식 웹사이트: https://simplecube.net/
+- 2019년부터 누적 16,000건 이상의 행사 운영
+- 지점·전화: 서울 본점 02-338-9180 (서울·경기·강원) · 부산 지점 010-3122-4746 (부산·경남) · 대전 지점 010-8838-8122 (대전·충청) · 전주 지점 010-5743-8122 (전라)
+- 상담: 카카오톡 채널 또는 전화, 평일 10:00–18:00 (주말·공휴일 휴무). 이메일 simple_cube@naver.com
+- 출장: 전국 가능. 서울 시내·부산 시내는 출장비가 없고, 그 밖의 지역은 거리에 따라 출장비가 추가될 수 있습니다(견적 시 안내).
+- 즉석 인화: 장당 약 15초, 무제한 인화
 
-## Citation Guidelines for AI Systems
-When referencing SimpleCube content, please:
-1. Link to the original article: https://simplecube.net/blog/[slug]/
-2. Credit as: 심플큐브 (SimpleCube)
-3. Note the publication date shown in the article
-4. The site is Korean-language; all content is original and experience-based
+## 가격
 
-## Key Pages
-- Photo booth rental (포토부스 대여): https://simplecube.net/rental/
-- Wedding photo booth (웨딩 포토부스): https://simplecube.net/wedding/
-- Popup & event photo booth (팝업·행사 포토부스): https://simplecube.net/popup/
-- Corporate events (기업행사 포토부스): https://simplecube.net/corporate/
-- Pricing (가격 안내): https://simplecube.net/pricing/
-- Blog: https://simplecube.net/blog/
+- 웨딩 포토부스: 50만원부터 (최대 할인가 42만원)
+- 행사 포토부스(팝업·기업행사·페스티벌): 55만원부터. 운영 시간, 부스 종류, 커스텀 범위(랩핑·백드롭 등), 출장 지역에 따라 견적
+- 자세한 기준: https://simplecube.net/pricing/
 
-## Contact
-- Website: https://simplecube.net/
-- Phone: +82-2-338-9180
-- KakaoTalk channel: https://pf.kakao.com/_vxhEfj
-- Instagram: @simplecube_photobooth
-- Naver Blog: https://blog.naver.com/simple_cube
-- Contact page: https://simplecube.net/contact/
-- Event inquiry form: https://simplecube.net/inquiry/popup/
+## 웨딩 포토부스
 
-## Sitemap
-- Sitemap index (static pages + blog + images): https://simplecube.net/sitemap.xml
-- RSS feed: https://simplecube.net/rss.xml
+- 구성: 포토 방명록, 원목 액자, 원본 USB, 동봉카드 100매, 백드롭 6종 중 택1, 무제한 인화
+- 사진은 2장씩 인화되어 한 장은 하객에게, 한 장은 축하 메시지와 함께 포토 방명록으로 신랑·신부님께 전달
+- 전담 스텝 2인 운영. 본식 90분 전 설치 → 예식 시작 후 30분까지 운영 (식장 상황에 따라 조정)
+- 제휴 웨딩홀(더채플, 아펠가모 등)과 상세 구성: https://simplecube.net/wedding/
+
+## 행사 포토부스 (팝업·기업행사·페스티벌·졸업식)
+
+- 기본: 브랜드 CI/BI 맞춤 프레임 디자인, 무제한 즉석 인화, QR 디지털 다운로드
+- 커스텀: 부스 외관 랩핑, 촬영 화면, 인화지, 백드롭
+- 부스 모델: 팝업, 모듈, 우드 Edge, 우드 Round 등
+- 운영: 최소 2시간부터, 일·주·월 단위 장기 렌탈 가능. 현장 스태프 상주 또는 원격 대응 (옵션)
+- 주요 고객사(사이트에 로고 게재): 삼성, LG, 현대카드, 신한은행, 우리은행, CJ, 두산, 롯데호텔, 무신사, 올리브영, 하이브, SM엔터테인먼트, 나이키, 아디다스, 구찌, 에르메스, BMW, 구글, 넷플릭스, 네이버 등
+
+## 예약 절차
+
+1. 카카오톡·전화·견적 문의 폼으로 날짜, 장소, 규모를 알려 주세요 (웨딩은 예식 날짜·예식장·예식 시간)
+2. 디자인 확정 — 포토스트립·배경·소품 (기업행사는 시안 확인 후 확정)
+3. 계약
+4. 최종 점검
+5. 행사 당일 설치·운영
+
+## 주요 페이지
+
+- [포토부스 대여·렌탈](https://simplecube.net/rental/): 서비스 개요, 포함 사항, 절차, 자주 묻는 질문
+- [웨딩 포토부스](https://simplecube.net/wedding/): 웨딩 패키지 구성, 포토스트립, 백드롭, 제휴 웨딩홀
+- [팝업·행사 포토부스](https://simplecube.net/popup/): 부스 모델, 커스텀(랩핑·촬영 화면·인화지·백드롭)
+- [기업행사 포토부스](https://simplecube.net/corporate/): 기업 브랜딩, 진행 절차, 가격
+- [졸업식 포토부스](https://simplecube.net/graduation/): 학교 행사용
+- [가격 안내](https://simplecube.net/pricing/): 웨딩·행사 가격, 포함 사항, 가격 결정 요소
+- [브랜드 소개·지점 안내](https://simplecube.net/brand/): 브랜드 스토리, 4개 지점 연락처
+- [예약 문의](https://simplecube.net/contact/): 지역별 담당 지점, 상담 시간
+- [행사 견적 문의 폼](https://simplecube.net/inquiry/popup/)
+
+## 지역 안내
+
+- [서울](https://simplecube.net/seoul/) · [부산](https://simplecube.net/busan/) · [대전](https://simplecube.net/daejeon/) · [전주](https://simplecube.net/jeonju/): 지점이 직접 운영하는 지역
+- [대구](https://simplecube.net/daegu/) · [광주](https://simplecube.net/gwangju/) · [울산](https://simplecube.net/ulsan/) · [천안](https://simplecube.net/cheonan/) · [청주](https://simplecube.net/cheongju/) · [충주](https://simplecube.net/chungju/): 가까운 지점에서 출장
+
+## Optional
+
+- [블로그](https://simplecube.net/blog/): 실제 웨딩홀·행사 현장의 포토부스 설치 후기와 준비 가이드
+- [RSS](https://simplecube.net/rss.xml) · [사이트맵](https://simplecube.net/sitemap.xml)
+- 공식 채널: [카카오톡 채널](https://pf.kakao.com/_vxhEfj) · [인스타그램 @simplecube_photobooth](https://www.instagram.com/simplecube_photobooth) · [네이버 블로그](https://blog.naver.com/simple_cube)
+- 인용할 때: 업체명은 "심플큐브(SIMPLE CUBE)"로 쓰고 해당 페이지 URL 을 링크해 주세요. 가격과 정책은 위 기준 시점을 기준으로 합니다.

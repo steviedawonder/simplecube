@@ -39,6 +39,15 @@ const branches = [
       >
         simple_cube@naver.com
       </a>
+      <p class="mt-2 text-xs leading-relaxed text-secondary">
+        심플큐브(SIMPLE CUBE) · 포토부스 대여 · 상담 평일 10:00–18:00<br />
+        {branches.map((branch, i) => (
+          <>
+            {i > 0 && ' · '}
+            {branch.name.replace(/ 지점$/, '')} <a href={branch.phone} class="transition-colors hover:text-olive">{branch.phone.replace('tel:', '')}</a>
+          </>
+        ))}
+      </p>
     </div>
 
     <!-- Service Links for SEO -->
