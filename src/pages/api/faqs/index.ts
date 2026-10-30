@@ -1,16 +1,18 @@
 import type { APIRoute } from 'astro';
 import db from '@lib/db';
+import { isFaqPage } from '@data/faqPages';
 
 export const prerender = false;
 
 export const GET: APIRoute = async ({ url }) => {
   const page = url.searchParams.get('page');
 
-  let sql = 'SELECT * FROM faqs WHERE active = 1';
+  // 관리자 전용 API (미들웨어가 로그인 확인) — 비활성 FAQ 도 보여야 관리자 화면에서 다시 켤 수 있다
+  let sql = 'SELECT * FROM faqs';
   const args: any[] = [];
 
-  if (page && ['wedding', 'popup', 'rental', 'corporate', 'general', 'pricing'].includes(page)) {
-    sql += ' AND page = ?';
+  if (page && isFaqPage(page)) {
+    sql += ' WHERE page = ?';
     args.push(page);
   }
 
@@ -36,7 +38,7 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    if (!['wedding', 'popup', 'rental', 'corporate', 'general', 'pricing'].includes(page)) {
+    if (!isFaqPage(page)) {
       return new Response(JSON.stringify({ error: '유효하지 않은 페이지입니다.' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
