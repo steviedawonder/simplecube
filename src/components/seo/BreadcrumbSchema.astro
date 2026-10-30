@@ -8,9 +8,11 @@ interface BreadcrumbItem {
 
 interface Props {
   items: BreadcrumbItem[];
+  // false: 구조화 데이터만 출력 (자체 히어로가 있어 화면 경로 표시를 두지 않던 페이지 — 브랜드·문의·블로그 목록)
+  visible?: boolean;
 }
 
-const { items } = Astro.props;
+const { items, visible = true } = Astro.props;
 
 // 첫 항목은 '홈' 대신 사이트 이름 — 네이버 가이드: "top"·"홈" 같은 일반 단어 대신 페이지를 설명하는 텍스트
 const breadcrumbItems = [
@@ -36,6 +38,7 @@ const jsonLd = {
 
 <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 
+{visible && (
 <nav aria-label="Breadcrumb" class="mx-auto max-w-7xl px-6 lg:px-8 pt-24 pb-2">
   <ol class="flex items-center gap-1.5 text-xs text-secondary/60">
     {breadcrumbItems.map((item, index) => (
@@ -54,3 +57,4 @@ const jsonLd = {
     ))}
   </ol>
 </nav>
+)}
