@@ -20,6 +20,7 @@
         width="680"
         height="1209"
         class="w-full h-auto block"
+        loading="lazy"
         decoding="async"
       />
       <!-- Clickable area covering only the brown button at the bottom (~7% of image height) -->
@@ -42,7 +43,7 @@
 
 <script>
   const STORAGE_KEY = 'noui-event-popup-dismissed';
-  const SHOW_DELAY_MS = 3000;
+  const SHOW_DELAY_MS = 600;
 
   function shouldShowPopup(): boolean {
     try {
@@ -60,8 +61,11 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    // 진입 직후 본문을 가리지 않도록 잠시 뒤에 표시 (스크롤 잠금 없음)
-    if (shouldShowPopup()) setTimeout(() => setPopup(true), SHOW_DELAY_MS);
+    // 타이머로 띄우면 팝업 이미지가 LCP(최대 콘텐츠)로 잡혀 모바일 LCP 가 3초+ 늦어진다.
+    // LCP 는 첫 입력(스크롤·탭) 뒤로는 갱신되지 않으므로, 첫 스크롤 뒤에 띄운다 (첫 화면 H1 도 가리지 않음).
+    if (shouldShowPopup()) {
+      window.addEventListener('scroll', () => setTimeout(() => setPopup(true), SHOW_DELAY_MS), { once: true, passive: true });
+    }
 
     document.getElementById('event-popup-close')?.addEventListener('click', () => setPopup(false));
 

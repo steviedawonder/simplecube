@@ -273,10 +273,14 @@ const formattedDate = new Date(post.created_at).toLocaleDateString('ko-KR', {
       {post.image && (
         <div class="mt-8 overflow-hidden rounded-2xl">
           <img
-            src={post.image}
+            src={cdnImage(post.image, 900)}
+            srcset={`${cdnImage(post.image, 480)} 480w, ${cdnImage(post.image, 900)} 900w, ${cdnImage(post.image, 1200)} 1200w`}
+            sizes="(min-width: 768px) 768px, 100vw"
             alt={post.seo_title || post.title}
             class="w-full object-cover"
             loading="eager"
+            fetchpriority="high"
+            decoding="async"
             width="900"
             height="506"
           />

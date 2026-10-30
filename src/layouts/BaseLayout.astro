@@ -111,10 +111,14 @@ const ogImageURL = new URL(ogImage, Astro.site).href;
     {!noindex && <WebPageSchema url={canonicalURL.href} name={title} description={description} type={pageType} />}
 
 
-    <!-- 홈 히어로 키워드 전용 Noto Sans KR 900 — 실제 쓰는 글자만 받는 초소형 서브셋, 렌더 차단 없음 -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@900&display=swap&text=%EC%9B%A8%EB%94%A9%EB%B8%8C%EB%9E%9C%EB%93%9C%EA%B8%B0%EC%97%85%ED%96%89%EC%82%AC%ED%8E%98%EC%8A%A4%ED%8B%B0%EB%B2%8C%EB%AA%A8%EB%93%A0%EC%88%9C%EA%B0%84" rel="stylesheet" />
+    <!-- 홈 히어로 키워드 전용 Noto Sans KR 900 — 실제 쓰는 글자만 받는 초소형 서브셋.
+         홈에서만, media=print → all 로 렌더를 막지 않게 받는다 (다른 페이지에서 FCP 를 4초까지 늦추던 원인) -->
+    {Astro.url.pathname === '/' && (
+      <>
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@900&display=swap&text=%EC%9B%A8%EB%94%A9%EB%B8%8C%EB%9E%9C%EB%93%9C%EA%B8%B0%EC%97%85%ED%96%89%EC%82%AC%ED%8E%98%EC%8A%A4%ED%8B%B0%EB%B2%8C%EB%AA%A8%EB%93%A0%EC%88%9C%EA%B0%84" rel="stylesheet" media="print" onload="this.media='all'" />
+      </>
+    )}
 
     <title>{title}</title>
 
