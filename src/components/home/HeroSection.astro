@@ -147,6 +147,10 @@
     transition: all 0.4s ease;
     position: relative;
   }
+  /* 터치 영역 확대 (보이는 크기는 그대로) — 6px 점은 모바일에서 누르기 어렵다 */
+  .progress-dot { position: relative; }
+  .progress-dot::before { content: ''; position: absolute; inset: -12px -5px; }
+
   .progress-dot.active {
     background: #D4AA45;
     width: 24px;
