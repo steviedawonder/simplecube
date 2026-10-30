@@ -1,10 +1,21 @@
 ---
+import { ORG_REF, absUrl, branchNode, type BranchKey } from '@data/business';
+
+interface OfferItem {
+  name: string;
+  minPrice: number;      // 화면 가격 카드의 'N만원~' 과 같은 값 (원 단위)
+  description?: string;
+  url?: string;
+}
+
 interface ServiceItem {
   name: string;
   description: string;
   url: string;
-  price?: string;
   image?: string;
+  branch?: BranchKey;     // 이 서비스를 직접 응대하는 지점 (지역 페이지). 없으면 회사(심플큐브)
+  areaServed?: string[];  // 서비스 도시. 없으면 대한민국 전역 (전국 출장)
+  offers?: OfferItem[];   // 화면에 보이는 가격 카드만 — 가격을 바꾸면 여기도 같이 바꿀 것
 }
 
 interface Props {
@@ -13,49 +24,42 @@ interface Props {
 
 const { services } = Astro.props;
 
-const siteUrl = 'https://simplecube.net';
-
 const jsonLd = {
   '@context': 'https://schema.org',
   '@graph': services.map(service => {
+    const url = absUrl(service.url);
     const serviceSchema: Record<string, any> = {
       '@type': 'Service',
+      '@id': `${url}#service`,
       name: service.name,
+      serviceType: '포토부스 대여',
       description: service.description,
-      url: service.url.startsWith('http') ? service.url : `${siteUrl}${service.url}`,
-      provider: {
-        '@type': 'LocalBusiness',
-        name: '심플큐브',
-        alternateName: 'SIMPLE CUBE',
-        url: siteUrl,
-        telephone: '02-338-9180',
-        address: {
-          '@type': 'PostalAddress',
-          addressLocality: '서울',
-          addressCountry: 'KR',
-        },
-      },
-      areaServed: [
-        { '@type': 'City', name: '서울' },
-        { '@type': 'City', name: '부산' },
-        { '@type': 'City', name: '대전' },
-        { '@type': 'City', name: '전주' },
-      ],
+      url,
+      mainEntityOfPage: { '@id': url },
+      provider: service.branch ? branchNode(service.branch) : ORG_REF,
+      areaServed: service.areaServed?.length
+        ? service.areaServed.map(name => ({ '@type': 'City', name }))
+        : { '@type': 'Country', name: '대한민국' },
     };
 
     if (service.image) {
-      serviceSchema.image = service.image.startsWith('http')
-        ? service.image
-        : `${siteUrl}${service.image}`;
+      serviceSchema.image = absUrl(service.image);
     }
 
-    if (service.price) {
-      serviceSchema.offers = {
+    if (service.offers?.length) {
+      // '~부터' 가격이므로 고정 price 대신 PriceSpecification.minPrice 사용
+      serviceSchema.offers = service.offers.map(offer => ({
         '@type': 'Offer',
-        price: service.price,
+        name: offer.name,
+        ...(offer.description && { description: offer.description }),
+        url: absUrl(offer.url ?? service.url),
         priceCurrency: 'KRW',
-        availability: 'https://schema.org/InStock',
-      };
+        priceSpecification: {
+          '@type': 'PriceSpecification',
+          minPrice: offer.minPrice,
+          priceCurrency: 'KRW',
+        },
+      }));
     }
 
     return serviceSchema;

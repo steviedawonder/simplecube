@@ -31,7 +31,10 @@ const faqItems = (pricingFaqResult.rows.length > 0 ? pricingFaqResult.rows : ren
       name: '포토부스 대여 가격 안내',
       description: '심플큐브 포토부스 대여 가격 안내. 웨딩, 기업행사, 팝업스토어, 페스티벌 등 행사 유형별 맞춤 견적을 제공합니다. 전국 출장 설치 및 전문 운영 스태프 지원.',
       url: '/pricing/',
-      price: '500000',
+      offers: [
+        { name: '웨딩 포토부스', description: '결혼식 · 웨딩홀 맞춤 세팅 (최대 할인가 42만원)', minPrice: 500000, url: '/wedding/' },
+        { name: '행사 포토부스', description: '브랜드 행사 · 기업 이벤트', minPrice: 550000, url: '/corporate/' },
+      ],
     },
   ]} />
   {faqItems.length > 0 && <FAQSchema faqs={faqItems} />}

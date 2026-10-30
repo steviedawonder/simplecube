@@ -1,0 +1,12 @@
+---
+// 문의 페이지용 — 서울 본점·부산·대전·전주 지점 LocalBusiness.
+// 화면의 지점 카드(전화·상담시간·카카오톡·인스타그램)와 같은 값을 @data/business 에서 가져온다.
+import { BRANCHES, branchNode, type BranchKey } from '@data/business';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': (Object.keys(BRANCHES) as BranchKey[]).map(branchNode),
+};
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />

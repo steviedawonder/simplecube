@@ -2,6 +2,7 @@
 import BaseLayout from '@layouts/BaseLayout.astro';
 import BrandStory from '@components/brand/BrandStory.astro';
 import BranchOffices from '@components/brand/BranchOffices.astro';
+import BreadcrumbSchema from '@components/seo/BreadcrumbSchema.astro';
 
 ---
 
@@ -9,7 +10,9 @@ import BranchOffices from '@components/brand/BranchOffices.astro';
   title="BRAND | 심플큐브"
   description="심플큐브의 브랜드 스토리와 전국 지점 안내. Simple but Special."
   transparentNav={false}
+  pageType="AboutPage"
 >
+  <BreadcrumbSchema items={[{ name: '브랜드소개', url: '/brand/' }]} />
   <!-- 좌측 골드 보더 히어로 (투명 배경) -->
   <section class="pt-20 lg:pt-22">
     <div class="mx-auto max-w-7xl px-6 lg:px-8 py-6 border-b border-border-light">

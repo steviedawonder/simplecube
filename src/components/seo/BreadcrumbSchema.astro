@@ -1,4 +1,6 @@
 ---
+import { ORG_NAME, absUrl } from '@data/business';
+
 interface BreadcrumbItem {
   name: string;
   url: string;
@@ -10,19 +12,19 @@ interface Props {
 
 const { items } = Astro.props;
 
-const siteUrl = 'https://simplecube.net';
-
+// 첫 항목은 '홈' 대신 사이트 이름 — 네이버 가이드: "top"·"홈" 같은 일반 단어 대신 페이지를 설명하는 텍스트
 const breadcrumbItems = [
-  { name: '홈', url: siteUrl },
+  { name: ORG_NAME, url: absUrl('/') },
   ...items.map(item => ({
     name: item.name,
-    url: item.url.startsWith('http') ? item.url : `${siteUrl}${item.url}`,
+    url: absUrl(item.url),
   })),
 ];
 
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
+  '@id': `${breadcrumbItems[breadcrumbItems.length - 1].url}#breadcrumb`,
   itemListElement: breadcrumbItems.map((item, index) => ({
     '@type': 'ListItem',
     position: index + 1,

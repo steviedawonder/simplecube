@@ -4,6 +4,7 @@ export const prerender = false;
 import BaseLayout from '@layouts/BaseLayout.astro';
 import db from '@lib/db';
 import { cdnImage } from '@utils/image';
+import BreadcrumbSchema from '@components/seo/BreadcrumbSchema.astro';
 
 // Single query with GROUP_CONCAT to avoid N+1 tag queries
 const result = await db.execute(`
@@ -30,7 +31,9 @@ const categories = [...new Set(posts.map((p) => p.category_name).filter(Boolean)
   title="포토부스 가이드 · 웨딩/기업행사 사례 | 심플큐브"
   description="심플큐브의 포토부스 이야기. 팝업, 웨딩 포토부스 트렌드와 유용한 가이드를 만나보세요."
   transparentNav={false}
+  pageType="CollectionPage"
 >
+  <BreadcrumbSchema items={[{ name: '블로그', url: '/blog/' }]} />
   <!-- 좌측 골드 보더 히어로 (투명 배경) -->
   <section class="pt-20 lg:pt-22">
     <div class="mx-auto max-w-7xl px-6 lg:px-8 py-6 border-b border-border-light">
