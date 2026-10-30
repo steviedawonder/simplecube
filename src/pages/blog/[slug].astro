@@ -170,9 +170,9 @@ const SERVICE_LINKS = [
   { re: /졸업|학교|대학|어린이|유치원|학생/, href: '/graduation/', label: '졸업식·학교 행사 포토부스' },
 ];
 const topic = `${post.title} ${post.category_name ?? ''} ${tags.join(' ')}`;
-const serviceLinks = SERVICE_LINKS.filter((l) => l.re.test(topic)).slice(0, 2);
-if (serviceLinks.length === 0) serviceLinks.push({ re: /./, href: '/rental/', label: '포토부스 대여 안내' });
-serviceLinks.push({ re: /./, href: '/pricing/', label: `포토부스 대여 가격 (웨딩 ${PRICE_LABELS.wedding}~ · 행사 ${PRICE_LABELS.event}~)` });
+const serviceLinks = SERVICE_LINKS.filter((l) => l.re.test(topic)).slice(0, 2).map(({ href, label }) => ({ href, label }));
+if (serviceLinks.length === 0) serviceLinks.push({ href: '/rental/', label: '포토부스 대여 안내' });
+serviceLinks.push({ href: '/pricing/', label: `포토부스 대여 가격 (웨딩 ${PRICE_LABELS.wedding}~ · 행사 ${PRICE_LABELS.event}~)` });
 const quoteHref = serviceLinks[0].href === '/wedding/' ? '/contact/' : '/inquiry/popup/';
 
 // canonical 과 같은 퍼센트 인코딩 형태 (JSON-LD @id 가 WebPage 노드와 정확히 일치하도록)
