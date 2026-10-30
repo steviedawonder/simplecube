@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import db from '@lib/db';
 import { sanitizeSlug } from '@utils/slug';
+import { notifyIndexNow, blogPath, isLivePost } from '@lib/indexnow';
 
 export const prerender = false;
 
@@ -66,9 +67,9 @@ export const PUT: APIRoute = async ({ params, request }) => {
       });
     }
 
-    // Check if post exists
+    // Check if post exists (+ 수정 전 공개 상태·슬러그 — IndexNow 판단용)
     const existing = await db.execute({
-      sql: 'SELECT id FROM posts WHERE id = ?',
+      sql: 'SELECT id, slug, draft, scheduled_at, external_url, deleted_at FROM posts WHERE id = ?',
       args: [id],
     });
     if (existing.rows.length === 0) {
@@ -161,6 +162,17 @@ export const PUT: APIRoute = async ({ params, request }) => {
       }
     }
 
+    // 공개 상태가 바뀌었거나 공개 글이 수정됐으면 네이버·Bing 에 알림 (백그라운드)
+    const before = existing.rows[0] as any;
+    const wasLive = isLivePost(before);
+    const nowLive = isLivePost({ draft, scheduled_at, external_url, deleted_at: before.deleted_at });
+    const slugChanged = String(before.slug) !== cleanSlug;
+    const paths: string[] = [];
+    if (nowLive) paths.push(blogPath(cleanSlug)); // 새로 공개 or 공개 글 수정
+    if (wasLive && (!nowLive || slugChanged)) paths.push(blogPath(String(before.slug))); // 비공개 전환·슬러그 변경 → 옛 URL
+    if (wasLive !== nowLive || (wasLive && slugChanged)) paths.push('/blog/'); // 목록이 바뀜
+    if (paths.length > 0) notifyIndexNow(paths);
+
     return new Response(JSON.stringify({ id, title, slug: cleanSlug }), {
       headers: { 'Content-Type': 'application/json' },
     });
@@ -189,7 +201,7 @@ export const DELETE: APIRoute = async ({ params }) => {
     }
 
     const existing = await db.execute({
-      sql: 'SELECT id FROM posts WHERE id = ? AND deleted_at IS NULL',
+      sql: 'SELECT id, slug, draft, scheduled_at, external_url, deleted_at FROM posts WHERE id = ? AND deleted_at IS NULL',
       args: [id],
     });
     if (existing.rows.length === 0) {
@@ -204,6 +216,10 @@ export const DELETE: APIRoute = async ({ params }) => {
       sql: "UPDATE posts SET deleted_at = datetime('now') WHERE id = ?",
       args: [id],
     });
+
+    // 공개 글을 지웠으면 URL 이 404 가 됐다고 알림 (백그라운드)
+    const removed = existing.rows[0] as any;
+    if (isLivePost(removed)) notifyIndexNow([blogPath(String(removed.slug)), '/blog/']);
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { 'Content-Type': 'application/json' },

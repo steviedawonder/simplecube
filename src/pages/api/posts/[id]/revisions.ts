@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import db from '@lib/db';
+import { notifyIndexNow, blogPath, isLivePost } from '@lib/indexnow';
 
 export const prerender = false;
 
@@ -86,6 +87,14 @@ export const POST: APIRoute = async ({ params, request }) => {
             WHERE id = ?`,
       args: [rev.title, rev.content, rev.seo_title || '', rev.seo_description || '', rev.focus_keyword || '', id],
     });
+
+    // 공개 글의 본문이 이전 버전으로 바뀌었으면 알림 (백그라운드)
+    const cur = await db.execute({
+      sql: 'SELECT slug, draft, scheduled_at, external_url, deleted_at FROM posts WHERE id = ?',
+      args: [id],
+    });
+    const post = cur.rows[0] as any;
+    if (post && isLivePost(post)) notifyIndexNow([blogPath(String(post.slug))]);
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { 'Content-Type': 'application/json' },
