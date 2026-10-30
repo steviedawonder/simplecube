@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import db from '@lib/db';
+import { notifyIndexNow, blogPath, isLivePost } from '@lib/indexnow';
 
 export const prerender = false;
 
@@ -14,7 +15,7 @@ export const POST: APIRoute = async ({ params }) => {
     }
 
     const existing = await db.execute({
-      sql: 'SELECT id FROM posts WHERE id = ? AND deleted_at IS NOT NULL',
+      sql: 'SELECT id, slug, draft, scheduled_at, external_url FROM posts WHERE id = ? AND deleted_at IS NOT NULL',
       args: [id],
     });
 
@@ -29,6 +30,10 @@ export const POST: APIRoute = async ({ params }) => {
       sql: 'UPDATE posts SET deleted_at = NULL WHERE id = ?',
       args: [id],
     });
+
+    // 복원된 글이 공개 상태면 다시 알림 (백그라운드)
+    const restored = existing.rows[0] as any;
+    if (isLivePost(restored)) notifyIndexNow([blogPath(String(restored.slug)), '/blog/']);
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { 'Content-Type': 'application/json' },

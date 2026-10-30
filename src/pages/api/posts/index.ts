@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import db from '@lib/db';
 import { sanitizeSlug } from '@utils/slug';
+import { notifyIndexNow, blogPath, isLivePost } from '@lib/indexnow';
 
 export const prerender = false;
 
@@ -126,6 +127,11 @@ export const POST: APIRoute = async ({ request }) => {
           args: [postId, Number(tagId)],
         });
       }
+    }
+
+    // 바로 공개되는 글이면 네이버·Bing 에 알림 (백그라운드 — 저장 응답을 지연·실패시키지 않음)
+    if (isLivePost({ draft, scheduled_at, external_url })) {
+      notifyIndexNow([blogPath(cleanSlug), '/blog/']);
     }
 
     return new Response(JSON.stringify({ id: postId, title, slug: cleanSlug }), {
