@@ -109,6 +109,7 @@ import { POPUP_DEFAULT_TAGS, POPUP_CUSTOM_TAGS } from '@lib/defaultTags';
 
 <script>
   import { cdnImage } from '@utils/image';
+  import { portfolioAlt } from '@utils/portfolio';
   const defaultTags: string[] = (window as any).__popupDefaultTags || [];
   const hardcodedCustomTags: string[] = (window as any).__popupCustomTags || [];
 
@@ -236,9 +237,11 @@ import { POPUP_DEFAULT_TAGS, POPUP_CUSTOM_TAGS } from '@lib/defaultTags';
           const thumbUrl = item.image_url.includes('res.cloudinary.com')
             ? item.image_url.replace('/upload/', '/upload/w_400,f_auto,q_auto/')
             : item.image_url;
+          // 파일명 같은 제목(IMG_…)은 대체텍스트로 쓰지 않는다
+          const alt = portfolioAlt(item.title, item.tags, '포토부스 현장').replace(/"/g, '&quot;');
           html += `
-            <div class="pf-marquee-item" data-src="${item.image_url}" data-alt="${item.title || '포트폴리오'}" data-idx="${globalIdx}">
-              <img src="${thumbUrl}" alt="${item.title || '포트폴리오'}" loading="lazy" />
+            <div class="pf-marquee-item" data-src="${item.image_url}" data-alt="${alt}" data-idx="${globalIdx}">
+              <img src="${thumbUrl}" alt="${alt}" loading="lazy" />
             </div>
           `;
         });

@@ -137,6 +137,8 @@ function normalizeContent(html: string, title: string): string {
     .replace(/<h([1-6])[^>]*>(?:\s|&nbsp;|<br\s*\/?>)*<\/h\1>/gi, '')
     .replace(/<h1(\s[^>]*)?>/gi, (_m, attrs = '') => `<h2${attrs}>`)
     .replace(/<\/h1>/gi, '</h2>')
+    // 원고 단계의 '[이미지: 설명]' 자리표시자 문단 — 사진으로 바꾸지 않고 발행된 경우 공개 글에 글자 그대로 보이지 않게
+    .replace(/<p\b[^>]*>\s*\[(?:이미지|사진)\s*:[^\]]*\]\s*<\/p>/g, '')
     // 본문 속 사이트 링크는 슬래시로 끝나는 정식 주소로 (예: /popup#portfolio → /popup/#portfolio, 301 을 거치지 않게)
     .replace(
       /href=(["'])(?:https?:\/\/(?:www\.)?simplecube\.net)?\/(popup|wedding|rental|corporate|pricing|graduation|brand|contact|seoul|busan|daegu|daejeon|gwangju|ulsan|jeonju|cheonan|cheongju|chungju)(#[^"']*)?\1/gi,

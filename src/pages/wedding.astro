@@ -332,6 +332,7 @@ if ([faqResult, catResult, psResult, bdResult].some((r) => r.status === 'rejecte
 
 <script>
   import { cdnImage } from '@utils/image';
+  import { portfolioAlt } from '@utils/portfolio';
 {
   // === Wedding Gallery: paginated grid with CSS slide animation ===
   async function loadWeddingGallery() {
@@ -372,7 +373,8 @@ if ([faqResult, catResult, psResult, bdResult].some((r) => r.status === 'rejecte
 
       function makeItemHtml(item: any) {
         const src = item.image_url || '';
-        const alt = item.title || '웨딩 현장사진';
+        // 파일명 같은 제목(IMG_…)은 대체텍스트로 쓰지 않는다
+        const alt = portfolioAlt(item.title, item.tags, '웨딩 포토부스 현장사진').replace(/"/g, '&quot;');
         // Cloudinary URL에 리사이즈 transform 적용 (갤러리 썸네일용)
         const thumbSrc = src.includes('res.cloudinary.com')
           ? src.replace('/upload/', '/upload/w_500,f_auto,q_auto/')
@@ -390,7 +392,7 @@ if ([faqResult, catResult, psResult, bdResult].some((r) => r.status === 'rejecte
         const pp = perPage();
         const start = page * pp;
         wgGrid.innerHTML = visibleItems.slice(start, start + pp).map(makeItemHtml).join('');
-        wgItems = visibleItems.slice(start, start + pp).map((item: any) => ({ src: item.image_url || '', alt: item.title || '웨딩 현장사진' }));
+        wgItems = visibleItems.slice(start, start + pp).map((item: any) => ({ src: item.image_url || '', alt: portfolioAlt(item.title, item.tags, '웨딩 포토부스 현장사진') }));
       }
 
       // ── slide animation using CSS keyframes ────────────────────────────────
