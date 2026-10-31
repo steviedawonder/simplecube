@@ -9,7 +9,7 @@ import BrandStory from '@components/brand/BrandStory.astro';
 import OrganizationSchema from '@components/seo/OrganizationSchema.astro';
 import EventPopup from '@components/common/EventPopup.astro';
 import QuickFacts from '@components/common/QuickFacts.astro';
-import { PRICE_LABELS } from '@data/business';
+import { HOURS_LABEL, PRICE_LABELS } from '@data/business';
 ---
 
 <BaseLayout
@@ -28,7 +28,7 @@ import { PRICE_LABELS } from '@data/business';
       { label: '포함', value: '맞춤 프레임 디자인 · 무제한 즉석 인화(장당 약 15초) · 설치·철거 · 디지털 파일 제공' },
       { label: '지역', value: '전국 출장 · 서울 본점과 부산·대전·전주 지점이 직접 운영' },
       { label: '예약', value: '카카오톡 또는 전화(02-338-9180)로 날짜·장소 전달 → 견적 → 디자인 확정 → 당일 설치·운영' },
-      { label: '상담', value: '평일 10:00–18:00 (주말·공휴일 휴무)' },
+      { label: '상담', value: HOURS_LABEL },
     ]}
   />
   <ServicesSection />

@@ -40,13 +40,15 @@ export const PRICES = {
 };
 export const PRICE_LABELS = { wedding: '50만원', weddingMaxDiscount: '42만원', event: '55만원' };
 
-// contact 페이지 상담 시간과 동일: 10:00 ~ 18:00, 주말·공휴일 휴무
-const WEEKDAY_HOURS = [
+// 상담(영업) 시간: 매일 10:00–18:30 — 2026-10-31 확정, 네이버 플레이스와 같은 값.
+// 바꿀 때는 /contact/ 지점 카드·푸터·홈 '한눈에 보기'·llms.txt·네이버/카카오 플레이스를 함께 바꿀 것.
+export const HOURS_LABEL = '매일 10:00–18:30';
+const OPENING_HOURS = [
   {
     '@type': 'OpeningHoursSpecification',
-    dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+    dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
     opens: '10:00',
-    closes: '18:00',
+    closes: '18:30',
   },
 ];
 
@@ -127,7 +129,7 @@ export function branchNode(key: BranchKey) {
       addressCountry: 'KR',
     },
     areaServed: b.areaServed.map((name) => ({ '@type': 'AdministrativeArea', name })),
-    openingHoursSpecification: WEEKDAY_HOURS,
+    openingHoursSpecification: OPENING_HOURS,
     priceRange: '₩₩',
     ...(b.sameAs && { sameAs: b.sameAs }),
     parentOrganization: ORG_REF,

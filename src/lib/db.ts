@@ -1,5 +1,6 @@
 import { createClient, type Client } from '@libsql/client';
 import bcrypt from 'bcryptjs';
+import { PAGE_FAQS, COST_ANSWER_PREFIX } from '@data/pageFaqs';
 
 let _client: Client | null = null;
 
@@ -430,6 +431,41 @@ export async function migrateFaqsPageConstraint() {
     'ALTER TABLE faqs_new RENAME TO faqs',
   ], 'write');
   console.log('faqs table migrated successfully');
+}
+
+// 2026-10 노출 점검: 전용 FAQ 가 없던 가격·렌탈·기업행사·졸업식 페이지에 사실 기반 FAQ 를 넣고,
+// 행사·웨딩 '비용' 답변 앞에 가격 한 문장을 붙인다(가격 숫자가 없어 AI 답변이 가격을 잘못 인용하던 문제).
+// settings 표식으로 딱 한 번만 실행한다 — 이미 FAQ 가 있는 페이지는 건너뛰고, 이후 관리자에서 고치거나 지운 내용은 다시 덮어쓰지 않는다.
+// 표식 INSERT 를 같은 트랜잭션에 넣어(settings.key 는 PRIMARY KEY) 여러 인스턴스가 동시에 시작해도 한 번만 반영된다.
+const PAGE_FAQ_SEED_KEY = 'seed_page_faqs_2026_10';
+
+export async function seedPageFaqs() {
+  const client = getClient();
+  const done = await client.execute({ sql: 'SELECT 1 FROM settings WHERE key = ?', args: [PAGE_FAQ_SEED_KEY] });
+  if (done.rows.length > 0) return;
+
+  const statements: { sql: string; args: any[] }[] = [
+    { sql: 'INSERT INTO settings (key, value) VALUES (?, ?)', args: [PAGE_FAQ_SEED_KEY, new Date().toISOString()] },
+  ];
+  for (const [page, faqs] of Object.entries(PAGE_FAQS)) {
+    const existing = await client.execute({ sql: 'SELECT COUNT(*) AS count FROM faqs WHERE page = ?', args: [page] });
+    if (Number((existing.rows[0] as any).count) > 0) continue;
+    faqs.forEach((faq, i) => {
+      statements.push({
+        sql: 'INSERT INTO faqs (page, question, answer, sort_order, active) VALUES (?, ?, ?, ?, 1)',
+        args: [page, faq.question, faq.answer, i],
+      });
+    });
+  }
+  for (const [page, prefix] of Object.entries(COST_ANSWER_PREFIX)) {
+    statements.push({
+      sql: `UPDATE faqs SET answer = ? || char(10) || answer, updated_at = datetime('now')
+            WHERE page = ? AND question = '비용은 어떻게 되나요?' AND answer NOT LIKE '%만원%'`,
+      args: [prefix, page],
+    });
+  }
+  await client.batch(statements, 'write');
+  console.log('page FAQs seeded');
 }
 
 export async function migratePortfolioColumns() {

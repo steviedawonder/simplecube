@@ -3,6 +3,7 @@
 export const prerender = false;
 
 import db from '@lib/db';
+import { portfolioAlt } from '@utils/portfolio';
 
 const siteUrl = 'https://simplecube.net';
 const MAX_IMAGES_PER_PAGE = 1000; // 구글 제한
@@ -14,12 +15,6 @@ function escapeXml(str: string): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&apos;');
-}
-
-// 'IMG_3432', 'KakaoTalk_Photo_…', '20240512_1.jpg' 처럼 사진 설명이 아닌 파일명 제목
-function isFilenameTitle(t: string): boolean {
-  const s = t.trim();
-  return !s || /^(IMG|DSC|DSCF|KakaoTalk|Screenshot|PXL|photo)[_\-\s]/i.test(s) || /^[\d_\-\s.()]+$/.test(s) || /\.(jpe?g|png|webp|heic|gif)$/i.test(s);
 }
 
 function absolute(url: string): string {
@@ -45,7 +40,7 @@ export async function GET() {
       const page = tag === 'wedding' ? '/wedding/' : '/popup/';
       const label = tag === 'wedding' ? '웨딩 포토부스 현장' : '팝업·행사 포토부스 현장';
       const raw = String(row.title || '');
-      const title = isFilenameTitle(raw) ? `심플큐브 ${label}${row.tags ? ` — ${String(row.tags)}` : ''}` : raw.trim();
+      const title = portfolioAlt(raw, row.tags, label);
       add(page, String(row.image_url), title);
     }
 
