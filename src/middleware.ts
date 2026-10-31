@@ -1,6 +1,6 @@
 import { defineMiddleware } from 'astro:middleware';
 import { getActiveUser, getTokenFromCookies } from './lib/auth';
-import { initDB, seedSEORules, seedOwnerAccount, seedFaqs, seedPackageItems, seedPageContents, seedCustomContents, migratePortfolioColumns, seedPhotostripCategories, migrateUsersEmailToUsername, migrateFaqsPageConstraint, migrateBadSlugs } from './lib/db';
+import { initDB, seedSEORules, seedOwnerAccount, seedFaqs, seedPackageItems, seedPageContents, seedCustomContents, migratePortfolioColumns, seedPhotostripCategories, migrateUsersEmailToUsername, migrateFaqsPageConstraint, seedPageFaqs, migrateBadSlugs } from './lib/db';
 
 let dbInitialized = false;
 
@@ -81,6 +81,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
       await seedPageContents();
       await seedCustomContents();
       await migrateFaqsPageConstraint();
+      await seedPageFaqs(); // 제약 해제 뒤에 실행해야 졸업식 FAQ 를 넣을 수 있음
       await migratePortfolioColumns();
       await seedPhotostripCategories();
       await migrateBadSlugs();
