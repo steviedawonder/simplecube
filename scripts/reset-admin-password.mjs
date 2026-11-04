@@ -7,9 +7,11 @@ import fs from 'node:fs';
 
 for (const line of fs.readFileSync('.env', 'utf8').split('\n')) {
   const m = line.match(/^([A-Z0-9_]+)=(.*)$/);
-  if (m && !process.env[m[1]]) process.env[m[1]] = m[2].trim().replace(/^["']|["']$/g, '');
+  // vercel env pull 은 값 끝의 줄바꿈을 따옴표 안에 글자 그대로 \n 으로 적어 두므로, 실제 줄바꿈으로 바꾼 뒤 잘라낸다
+  if (m && !process.env[m[1]]) process.env[m[1]] = m[2].trim().replace(/^["']|["']$/g, '').replace(/\\n/g, '\n').trim();
 }
-if (!process.env.TURSO_DATABASE_URL) {
+const env = (k) => (process.env[k] || '').trim();
+if (!env('TURSO_DATABASE_URL')) {
   console.error('.env 에 TURSO_DATABASE_URL 이 없습니다. ./setup.sh 를 먼저 실행하세요.');
   process.exit(1);
 }
@@ -54,7 +56,7 @@ if (!process.stdin.isTTY) {
   process.exit(1);
 }
 
-const db = createClient({ url: process.env.TURSO_DATABASE_URL, authToken: process.env.TURSO_AUTH_TOKEN });
+const db = createClient({ url: env('TURSO_DATABASE_URL'), authToken: env('TURSO_AUTH_TOKEN') || undefined });
 const username = process.argv[2] || 'admin';
 
 const users = await db.execute('SELECT username, role, active FROM users ORDER BY id');
