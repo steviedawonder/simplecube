@@ -1,6 +1,7 @@
 import { createClient, type Client } from '@libsql/client';
 import bcrypt from 'bcryptjs';
 import { PAGE_FAQS, COST_ANSWER_PREFIX } from '@data/pageFaqs';
+import { DEFAULT_PARTNER_HALLS } from '@data/partnerHalls';
 
 let _client: Client | null = null;
 
@@ -209,6 +210,18 @@ export async function initDB() {
       image_url TEXT NOT NULL,
       public_id TEXT NOT NULL,
       title TEXT,
+      sort_order INTEGER DEFAULT 0,
+      visible INTEGER DEFAULT 1,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS partner_halls (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      image_url TEXT NOT NULL,
+      public_id TEXT DEFAULT '',
+      logo_url TEXT DEFAULT '',
+      logo_public_id TEXT DEFAULT '',
       sort_order INTEGER DEFAULT 0,
       visible INTEGER DEFAULT 1,
       created_at TEXT DEFAULT (datetime('now'))
@@ -508,6 +521,21 @@ export async function seedPhotostripCategories() {
     await client.execute({
       sql: 'INSERT INTO photostrip_categories (name, sort_order) VALUES (?, ?)',
       args: [cat.name, cat.sort_order],
+    });
+  }
+}
+
+// 제휴 웨딩홀: 최초 1회, 기존 하드코딩 목록을 DB 로 옮긴다 (이후부터는 관리자에서 추가·삭제·수정)
+export async function seedPartnerHalls() {
+  const client = getClient();
+  const existing = await client.execute('SELECT COUNT(*) as count FROM partner_halls');
+  if ((existing.rows[0] as any).count > 0) return;
+
+  for (let i = 0; i < DEFAULT_PARTNER_HALLS.length; i++) {
+    const h = DEFAULT_PARTNER_HALLS[i];
+    await client.execute({
+      sql: 'INSERT INTO partner_halls (name, image_url, public_id, sort_order) VALUES (?, ?, ?, ?)',
+      args: [h.name, h.image, '', i],
     });
   }
 }

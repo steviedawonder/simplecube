@@ -541,10 +541,51 @@ const photostripCats = catResult.rows as any[];
   editCancel.addEventListener('click', closeEditModal);
   editModal.addEventListener('click', (e) => { if (e.target === editModal) closeEditModal(); });
 
+  // 수정 중인 카드 (저장 후 새로고침 없이 이 카드만 갱신 → 스크롤 위치 유지)
+  let editingCard: HTMLElement | null = null;
+
+  const escHtml = (v: string) => v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+  function applyCardEdit(card: HTMLElement, v: { title: string; tags: string; pageTag: string; visible: boolean; cutType: string }) {
+    card.dataset.title = v.title;
+    card.dataset.tags = v.tags;
+    card.dataset.pageTag = v.pageTag;
+    card.dataset.page = v.pageTag;
+    card.dataset.visible = v.visible ? '1' : '0';
+    card.dataset.cutType = v.cutType;
+
+    // 숨김 / 페이지 태그 배지
+    card.querySelector('.pf-badge-hidden')?.remove();
+    card.querySelector('.pf-badge-page')?.remove();
+    const isWedding = v.pageTag === 'wedding';
+    const badges = document.createElement('div');
+    badges.innerHTML =
+      (!v.visible ? '<div class="absolute top-2 left-2 px-2 py-0.5 bg-red-500 text-white text-[10px] rounded-full font-medium pf-badge-hidden">숨김</div>' : '') +
+      `<div class="absolute top-2 px-2 py-0.5 text-[10px] rounded-full font-medium pf-badge-page ${!v.visible ? 'left-12' : 'left-2'} ${isWedding ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}">${isWedding ? '웨딩' : '행사'}</div>`;
+    const actions = card.querySelector('.pf-card-actions');
+    Array.from(badges.children).forEach(b => card.insertBefore(b, actions));
+
+    // 제목 / 태그
+    const info = card.querySelector('.p-3') as HTMLElement | null;
+    if (info) {
+      const tagList = v.tags.split(',').map(t => t.trim()).filter(Boolean);
+      info.innerHTML =
+        (v.title ? `<p class="text-sm font-medium text-gray-900 truncate">${escHtml(v.title)}</p>` : '') +
+        '<div class="flex flex-wrap gap-1 mt-1.5">' +
+        (v.cutType ? `<span class="px-1.5 py-0.5 text-[10px] bg-purple-100 text-purple-600 rounded font-medium">${escHtml(v.cutType)}</span>` : '') +
+        tagList.map(t => `<span class="px-1.5 py-0.5 text-[10px] bg-gray-100 text-gray-500 rounded">${escHtml(t)}</span>`).join('') +
+        '</div>';
+    }
+    const img = card.querySelector('img');
+    if (img) img.alt = v.title || '포트폴리오';
+    filterCards(); // 페이지 탭/태그 필터에 맞게 표시 갱신
+  }
+
   document.querySelectorAll('.edit-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const card = (btn as HTMLElement).closest('.portfolio-card') as HTMLElement;
+      editingCard = card;
       const id = card.dataset.id!;
       const title = card.dataset.title || '';
       const tags = card.dataset.tags || '';
@@ -580,7 +621,12 @@ const photostripCats = catResult.rows as any[];
     });
 
     if (res.ok) {
-      window.location.reload();
+      // 새로고침하면 맨 위로 올라갔다 돌아오므로, 해당 카드만 갱신하고 현재 스크롤 위치를 그대로 둔다
+      if (editingCard && editingCard.dataset.id === id) {
+        applyCardEdit(editingCard, { title, tags, pageTag, visible, cutType });
+      }
+      closeEditModal();
+      showPfToast('저장되었습니다.');
     } else {
       alert('저장 중 오류가 발생했습니다.');
     }

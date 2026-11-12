@@ -1,30 +1,20 @@
 ---
-const partners = [
-  { name: '더채플 청담', image: '/images/wedding/partners/partner-chaple-cheongdam-500x500.jpg' },
-  { name: '더채플 논현', image: '/images/wedding/partners/partner-chaple-nonhyeon-500x500.jpg' },
-  { name: '더채플앳대치', image: '/images/wedding/partners/partner-the-chapel-daechi.webp' },
-  { name: '아펠가모 반포', image: '/images/wedding/partners/parnter-apelgamo-banpo-500x500.jpg' },
-  { name: '아펠가모 잠실', image: '/images/wedding/partners/parnter-apelgamo-jamsil-500x500.jpg' },
-  { name: '아펠가모 선릉', image: '/images/wedding/partners/parnter-apelgamo-seonreung-500x500.jpg' },
-  { name: '아펠가모 광화문', image: '/images/wedding/partners/parnter-apelgamo-gwanghwamun-500x500.jpg' },
-  { name: '더링크호텔', image: '/images/wedding/partners/partner-the-link-hotel.webp' },
-  { name: '신도림라마다호텔', image: '/images/wedding/partners/partner-sindorim-ramada.webp' },
-  { name: '루벨 강동', image: '/images/wedding/partners/parnter-luvel-500x500.jpg' },
-  { name: '루나미엘레', image: '/images/wedding/partners/partner-lunamiele.webp' },
-  { name: '라루체', image: '/images/wedding/partners/parnter-laluce-500x500.jpg' },
-  { name: '로프트가든344', image: '/images/wedding/partners/parnter-loftgarden344-500x500.jpg' },
-  { name: 'L65', image: '/images/wedding/partners/parnter-l65-500x500.jpg' },
-  { name: '씨엘드포레', image: '/images/wedding/partners/parnter-cieldeforet-500x500.jpg' },
-  { name: '호텔 선샤인', image: '/images/wedding/partners/parnter-hotel-sunshine-500x500.jpg' },
-  { name: 'S가든', image: '/images/wedding/partners/partner-s-garden.webp' },
-  { name: '라포르테', image: '/images/wedding/partners/partner-laporte.webp' },
-  { name: '마리드엘 웨딩', image: '/images/wedding/partners/partner-maridel-wedding.webp' },
-  { name: '메종드보네르', image: '/images/wedding/partners/partner-maison-de-bonheur.webp' },
-  { name: '벨리스', image: '/images/wedding/partners/partner-bellis.webp' },
-  { name: '비렌티', image: '/images/wedding/partners/partner-virenti.webp' },
-];
+import db from '@lib/db';
+import { DEFAULT_PARTNER_HALLS } from '@data/partnerHalls';
+
+// 관리자(/admin/partners)에서 추가·삭제·수정한 목록을 노출.
+// DB 조회 자체가 실패했을 때(테이블 미생성·일시 오류)만 기본 목록으로 대체한다.
+interface Partner { name: string; image: string; logo?: string }
+let partners: Partner[] = DEFAULT_PARTNER_HALLS;
+try {
+  const result = await db.execute('SELECT name, image_url, logo_url FROM partner_halls WHERE visible = 1 ORDER BY sort_order ASC, id ASC');
+  partners = (result.rows as any[]).map((r) => ({ name: r.name, image: r.image_url, logo: r.logo_url || '' }));
+} catch { /* fallback */ }
+const thumb = (u: string) => (u.includes('res.cloudinary.com') && u.includes('/upload/') ? u.replace('/upload/', '/upload/w_500,h_500,c_fill,f_auto,q_auto/') : u);
+const logoThumb = (u: string) => (u.includes('res.cloudinary.com') && u.includes('/upload/') ? u.replace('/upload/', '/upload/w_300,f_auto,q_auto/') : u);
 ---
 
+{partners.length > 0 && (
 <section id="partner-halls" class="bg-white py-10 lg:py-14">
   <div class="mx-auto max-w-7xl px-6 lg:px-8">
     <!-- Header -->
@@ -41,11 +31,16 @@ const partners = [
         <div class="group overflow-hidden rounded-xl">
           <div class="relative">
             <img
-              src={partner.image}
+              src={thumb(partner.image)}
               alt={partner.name}
               class="aspect-square w-full object-cover transition-transform duration-500 group-hover:scale-105"
               loading="lazy"
             />
+            {partner.logo && (
+              <div class="absolute inset-0 m-auto flex h-[55%] w-[55%] items-center justify-center bg-white/70 p-1.5 md:p-2">
+                <img src={logoThumb(partner.logo)} alt="" class="max-h-full max-w-full object-contain" loading="lazy" />
+              </div>
+            )}
             {/* Desktop: hover overlay */}
             <div class="hidden md:block absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
             <div class="hidden md:block absolute bottom-0 left-0 right-0 p-3 translate-y-2 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
@@ -59,3 +54,4 @@ const partners = [
     </div>
   </div>
 </section>
+)}

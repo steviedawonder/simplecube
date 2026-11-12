@@ -20,11 +20,14 @@
 
     <!-- Hero image -->
     <!-- LCP 이미지: 지연 로딩·등장 애니메이션 없이 바로 표시 -->
-    <div class="mt-6 md:mt-10 overflow-hidden rounded-2xl">
+    <!-- 원본 비율(1920×2006)대로 노출: 고정 높이 + object-cover 는 인물·포토부스를 잘라냈음 -->
+    <div class="mt-6 md:mt-10 mx-auto max-w-[480px] md:max-w-[640px] overflow-hidden rounded-2xl">
       <img
         src="/images/wedding/hero.webp"
         alt="심플큐브 웨딩 포토부스"
-        class="h-[260px] w-full object-cover md:h-[400px] lg:h-[520px]"
+        width="1920"
+        height="2006"
+        class="block h-auto w-full"
         fetchpriority="high"
         decoding="async"
       />

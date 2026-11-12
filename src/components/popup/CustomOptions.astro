@@ -461,7 +461,6 @@ const menus = [
     const prevBtn = area.querySelector('.custom-pf-prev') as HTMLButtonElement;
     const nextBtn = area.querySelector('.custom-pf-next') as HTMLButtonElement;
     const menuId = area.dataset.menuId || '';
-    const isPaper = (tag === '인화지');
 
     try {
       const res = await fetch(`/api/portfolio?page_tag=popup&tags=${encodeURIComponent(tag)}`);
@@ -473,38 +472,24 @@ const menus = [
         return;
       }
 
-      // 2행 레이아웃: flex-direction column + 고정 높이로 wrap → 가로 스크롤
+      // 가로 스크롤 2행 레이아웃. 사진은 높이만 고정하고 가로는 원본 비율대로 (잘림 없음)
       const gap = 10; // gap-2.5 = 10px
-      const fitClass = isPaper ? 'object-contain bg-gray-50' : 'object-cover';
-
-      // 아이템 크기 (모바일 / 데스크톱) — 모두 정사각형
-      const itemW = 130;
       const itemH = 130;
-      const itemWMd = 160;
       const itemHMd = 160;
+      const avgRatio = 0.8; // 한 줄/두 줄 판단용 평균 가로세로비 추정치
 
-      grid.style.flexDirection = 'column';
-
-      // 반응형: 1줄에 다 들어가면 1줄, 안 되면 2줄
       const mql = window.matchMedia('(min-width: 768px)');
-      function applyGridHeight() {
-        const w = mql.matches ? itemWMd : itemW;
-        const h = mql.matches ? itemHMd : itemH;
-        const totalItemsWidth = items.length * (w + gap);
-        const availableWidth = grid.parentElement?.clientWidth || grid.clientWidth || 400;
-        const needsTwoRows = totalItemsWidth > availableWidth;
-        grid.style.height = needsTwoRows ? `${h * 2 + gap}px` : `${h}px`;
-      }
-      mql.addEventListener('change', applyGridHeight);
-      // ResizeObserver로 컨테이너 크기 변화도 감지
-      new ResizeObserver(applyGridHeight).observe(grid.parentElement || grid);
+      const h0 = mql.matches ? itemHMd : itemH;
+      const availableWidth = grid.parentElement?.clientWidth || grid.clientWidth || 400;
+      // 한 줄에 다 들어가면 1줄, 아니면 2줄(번갈아 배치)
+      const needsTwoRows = items.length * (h0 * avgRatio + gap) > availableWidth;
 
-      grid.innerHTML = items.map((item: any) => `
-        <div class="custom-pf-thumb group cursor-pointer overflow-hidden rounded-lg relative shrink-0" style="width:${itemW}px;height:${itemH}px" data-url="${item.image_url}" data-title="${item.title || ''}">
+      const thumbHtml = (item: any, idx: number) => `
+        <div class="custom-pf-thumb group cursor-pointer overflow-hidden rounded-lg relative shrink-0 bg-gray-50" style="height:${h0}px;min-width:${Math.round(h0 * 0.6)}px" data-idx="${idx}" data-url="${item.image_url}" data-title="${item.title || ''}">
           <img
             src="${cdnImage(item.image_url, 600)}"
             alt="${item.title || ''}"
-            class="w-full h-full ${fitClass} rounded-lg transition-transform duration-500 group-hover:scale-105"
+            class="h-full w-auto max-w-none block rounded-lg transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
           />
           <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 rounded-lg flex items-center justify-center">
@@ -512,22 +497,26 @@ const menus = [
               <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
             </svg>
           </div>
-        </div>
-      `).join('');
+        </div>`;
 
-      // 반응형 아이템 크기 업데이트
+      const rowCount = needsTwoRows ? 2 : 1;
+      const rows: string[][] = Array.from({ length: rowCount }, () => []);
+      items.forEach((item: any, i: number) => rows[i % rowCount].push(thumbHtml(item, i)));
+
+      grid.style.display = 'block';
+      grid.innerHTML = `<div style="display:flex;flex-direction:column;gap:${gap}px;width:max-content;min-width:100%">${
+        rows.map(r => `<div class="custom-pf-row" style="display:flex;gap:${gap}px;align-items:flex-start">${r.join('')}</div>`).join('')
+      }</div>`;
+
+      // 반응형 아이템 높이 업데이트
       function applyItemSizes() {
-        const w = mql.matches ? itemWMd : itemW;
         const h = mql.matches ? itemHMd : itemH;
         grid.querySelectorAll<HTMLElement>('.custom-pf-thumb').forEach(el => {
-          el.style.width = `${w}px`;
           el.style.height = `${h}px`;
+          el.style.minWidth = `${Math.round(h * 0.6)}px`;
         });
-        applyGridHeight();
       }
       mql.addEventListener('change', applyItemSizes);
-      applyItemSizes();
-      requestAnimationFrame(applyGridHeight);
 
       // Arrow navigation
       function updateArrows() {
@@ -544,6 +533,8 @@ const menus = [
         grid.scrollBy({ left: 300, behavior: 'smooth' });
       });
       grid.addEventListener('scroll', updateArrows);
+      // 사진 폭은 이미지 로드 후 확정되므로 로드될 때마다 화살표 상태 갱신
+      grid.addEventListener('load', updateArrows, true);
 
       // Initial check (after render)
       requestAnimationFrame(updateArrows);
@@ -563,13 +554,13 @@ const menus = [
 
   function bindCustomLightbox(grid: HTMLElement) {
     const thumbs = grid.querySelectorAll('.custom-pf-thumb');
-    thumbs.forEach((thumb, i) => {
+    thumbs.forEach((thumb) => {
       thumb.addEventListener('click', () => {
-        lbImages = Array.from(grid.querySelectorAll('.custom-pf-thumb')).map(t => ({
-          url: (t as HTMLElement).dataset.url || '',
-          title: (t as HTMLElement).dataset.title || '',
-        }));
-        lbIdx = i;
+        // 2행으로 나뉘어 있어도 등록 순서대로 넘겨 보도록 data-idx 순 정렬
+        const ordered = Array.from(grid.querySelectorAll<HTMLElement>('.custom-pf-thumb'))
+          .sort((a, b) => Number(a.dataset.idx) - Number(b.dataset.idx));
+        lbImages = ordered.map(t => ({ url: t.dataset.url || '', title: t.dataset.title || '' }));
+        lbIdx = ordered.indexOf(thumb as HTMLElement);
         showLb();
         lightbox.classList.remove('hidden');
         lightbox.classList.add('flex');

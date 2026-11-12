@@ -1,0 +1,353 @@
+---
+export const prerender = false;
+import AdminLayout from '@layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="제휴 웨딩홀">
+  <script is:inline src="/js/image-compress.js"></script>
+  <h2 class="page-title">제휴 웨딩홀 관리</h2>
+  <p class="page-desc">웨딩 페이지 「제휴 웨딩홀」에 노출되는 목록을 추가·삭제·수정하고, 카드를 끌어서 노출 순서를 바꿉니다.</p>
+
+  <div class="panel-toolbar">
+    <div class="toolbar-normal">
+      <button id="ph-add-btn" class="btn-primary">+ 웨딩홀 추가</button>
+    </div>
+  </div>
+
+  <div id="ph-grid" class="gallery-grid"></div>
+  <div id="ph-empty" class="empty-state hidden">등록된 제휴 웨딩홀이 없습니다.</div>
+  <div id="ph-loading" class="loading-state">불러오는 중...</div>
+
+  <!-- Add / Edit Modal -->
+  <div id="ph-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="ph-modal-title" class="modal-title">웨딩홀 추가</h3>
+        <button id="ph-modal-close" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">웨딩홀명 <span style="color:#ef4444">*</span></label>
+          <input type="text" id="ph-name" class="form-input" placeholder="예: 더채플 청담" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">배경 이미지 <span id="ph-image-req" style="color:#ef4444">*</span></label>
+          <input type="file" id="ph-image" accept="image/*" class="form-input" />
+          <p id="ph-image-note" class="form-note hidden">새 파일을 선택하면 기존 이미지를 교체합니다.</p>
+          <img id="ph-image-preview" class="ph-preview hidden" alt="" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">로고 이미지 (선택)</label>
+          <input type="file" id="ph-logo" accept="image/*" class="form-input" />
+          <p class="form-note">배경 위 중앙에 흰색 반투명 박스와 함께 표시됩니다. (이미 로고가 들어간 배경이면 비워두세요)</p>
+          <img id="ph-logo-preview" class="ph-preview ph-preview-logo hidden" alt="" />
+          <label id="ph-logo-remove-wrap" class="ph-check hidden"><input type="checkbox" id="ph-logo-remove" /> 현재 로고 삭제</label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="ph-cancel" class="btn-secondary">취소</button>
+        <button id="ph-save" class="btn-primary">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Modal -->
+  <div id="ph-delete-modal" class="modal-overlay hidden">
+    <div class="modal-card modal-small">
+      <div class="modal-header">
+        <h3 class="modal-title">삭제 확인</h3>
+        <button id="ph-delete-close" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="ph-delete-text">이 웨딩홀을 삭제하시겠습니까?</p>
+      </div>
+      <div class="modal-footer">
+        <button id="ph-delete-cancel" class="btn-secondary">취소</button>
+        <button id="ph-delete-confirm" class="btn-danger">삭제</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="ph-toast" class="gallery-toast"></div>
+</AdminLayout>
+
+<style is:global>
+  .page-title { font-size: 1.5rem; font-weight: 700; color: #1d1d1f; margin-bottom: 0.25rem; }
+  .page-desc { font-size: 0.9rem; color: #6e6e73; margin-bottom: 1.5rem; }
+  .panel-toolbar { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
+  .toolbar-normal { display: flex; gap: 0.5rem; align-items: center; }
+  .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; }
+  @media (min-width: 768px) { .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); } }
+  .gallery-card { position: relative; background: #fff; border: 1px solid #e8e8ed; border-radius: 10px; overflow: hidden; transition: box-shadow 0.2s; cursor: grab; }
+  .gallery-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .gallery-card.dragging { opacity: 0.5; }
+  .gallery-card.drag-over { border-color: #D4AA45; box-shadow: 0 0 0 2px rgba(212,170,69,0.3); }
+  .gallery-card.is-hidden img { opacity: 0.4; }
+  .ph-thumb { position: relative; aspect-ratio: 1/1; background: #f0f0f2; }
+  .ph-thumb img.ph-bg { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .ph-thumb .ph-logo-box { position: absolute; inset: 0; margin: auto; width: 55%; height: 55%; background: rgba(255,255,255,0.72); display: flex; align-items: center; justify-content: center; padding: 6px; }
+  .ph-thumb .ph-logo-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .gallery-card-info { padding: 0.5rem 0.75rem; }
+  .gallery-card-title { font-size: 0.8125rem; font-weight: 500; color: #1d1d1f; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .gallery-card-meta { font-size: 0.6875rem; color: #8c8c8c; margin-top: 2px; }
+  .ph-order { position: absolute; top: 0.5rem; left: 0.5rem; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px; background: rgba(0,0,0,0.6); color: #fff; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+  .gallery-card-actions { position: absolute; top: 0.5rem; right: 0.5rem; display: flex; gap: 0.25rem; opacity: 0; transition: opacity 0.2s; }
+  .gallery-card:hover .gallery-card-actions, .gallery-card:focus-within .gallery-card-actions { opacity: 1; }
+  .card-action-btn { width: 28px; height: 28px; border-radius: 6px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.92); color: #6e6e73; transition: all 0.15s; }
+  .card-action-btn:hover { background: #fff; color: #1d1d1f; }
+  .card-action-btn.delete { background: rgba(239,68,68,0.9); color: #fff; }
+  .card-action-btn.delete:hover { background: #ef4444; }
+  .empty-state { text-align: center; padding: 3rem 1rem; color: #8c8c8c; font-size: 0.9rem; }
+  .loading-state { text-align: center; padding: 2rem; color: #8c8c8c; font-size: 0.875rem; }
+  .hidden { display: none !important; }
+
+  .btn-primary { padding: 0.5rem 1rem; background: #D4AA45; color: #fff; border: none; border-radius: 8px; font-size: 0.875rem; font-weight: 500; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+  .btn-primary:hover { background: #C49A2F; }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-secondary { padding: 0.5rem 1rem; background: #fff; color: #6e6e73; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 0.875rem; font-weight: 500; cursor: pointer; font-family: inherit; }
+  .btn-secondary:hover { border-color: #1d1d1f; color: #1d1d1f; }
+  .btn-danger { padding: 0.5rem 1rem; background: #ef4444; color: #fff; border: none; border-radius: 8px; font-size: 0.875rem; font-weight: 500; cursor: pointer; font-family: inherit; }
+  .btn-danger:hover { background: #dc2626; }
+
+  .modal-overlay { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.4); padding: 1rem; }
+  .modal-card { background: #fff; border-radius: 14px; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+  .modal-small { max-width: 380px; }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.5rem; border-bottom: 1px solid #e8e8ed; }
+  .modal-title { font-size: 1rem; font-weight: 600; color: #1d1d1f; }
+  .modal-close { background: none; border: none; font-size: 1.5rem; color: #8c8c8c; cursor: pointer; line-height: 1; }
+  .modal-body { padding: 1.25rem 1.5rem; }
+  .modal-footer { display: flex; justify-content: flex-end; gap: 0.75rem; padding: 1rem 1.5rem; border-top: 1px solid #e8e8ed; }
+  .form-group { margin-bottom: 1rem; }
+  .form-label { display: block; font-size: 0.8125rem; font-weight: 500; color: #1d1d1f; margin-bottom: 0.375rem; }
+  .form-input { width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 0.875rem; font-family: inherit; color: #1d1d1f; }
+  .form-input:focus { outline: none; border-color: #D4AA45; }
+  .form-note { font-size: 0.75rem; color: #8c8c8c; margin-top: 0.375rem; }
+  .ph-preview { margin-top: 0.5rem; width: 96px; height: 96px; object-fit: cover; border-radius: 8px; border: 1px solid #e8e8ed; }
+  .ph-preview-logo { object-fit: contain; background: #f0f0f2; }
+  .ph-check { display: flex; align-items: center; gap: 0.375rem; margin-top: 0.5rem; font-size: 0.8125rem; color: #6e6e73; }
+  .gallery-toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(20px); background: #1d1d1f; color: #fff; padding: 0.75rem 1.5rem; border-radius: 10px; font-size: 0.875rem; font-weight: 500; opacity: 0; pointer-events: none; transition: all 0.3s; z-index: 200; }
+  .gallery-toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .gallery-toast.error { background: #ef4444; }
+</style>
+
+<script>
+  type Hall = { id: number; name: string; image_url: string; logo_url: string; visible: number; sort_order: number };
+
+  const grid = document.getElementById('ph-grid')!;
+  const emptyEl = document.getElementById('ph-empty')!;
+  const loadingEl = document.getElementById('ph-loading')!;
+  const modal = document.getElementById('ph-modal')!;
+  const nameInput = document.getElementById('ph-name') as HTMLInputElement;
+  const imageInput = document.getElementById('ph-image') as HTMLInputElement;
+  const logoInput = document.getElementById('ph-logo') as HTMLInputElement;
+  const imagePreview = document.getElementById('ph-image-preview') as HTMLImageElement;
+  const logoPreview = document.getElementById('ph-logo-preview') as HTMLImageElement;
+  const logoRemoveWrap = document.getElementById('ph-logo-remove-wrap')!;
+  const logoRemove = document.getElementById('ph-logo-remove') as HTMLInputElement;
+  const saveBtn = document.getElementById('ph-save') as HTMLButtonElement;
+  const toast = document.getElementById('ph-toast')!;
+
+  let halls: Hall[] = [];
+  let editing: Hall | null = null; // null = 신규 추가
+  let deleting: Hall | null = null;
+
+  const esc = (v: any) => String(v ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+
+  function showToast(msg: string, isError = false) {
+    toast.textContent = msg;
+    toast.classList.toggle('error', isError);
+    toast.classList.add('visible');
+    setTimeout(() => toast.classList.remove('visible'), 2500);
+  }
+
+  function thumb(url: string) {
+    return url.includes('res.cloudinary.com') && url.includes('/upload/')
+      ? url.replace('/upload/', '/upload/w_400,f_auto,q_auto/') : url;
+  }
+
+  async function load() {
+    loadingEl.classList.remove('hidden');
+    try {
+      const res = await fetch('/api/partners');
+      halls = await res.json();
+      if (!Array.isArray(halls)) throw new Error();
+    } catch {
+      halls = [];
+      showToast('목록을 불러오지 못했습니다.', true);
+    }
+    loadingEl.classList.add('hidden');
+    render();
+  }
+
+  function render() {
+    emptyEl.classList.toggle('hidden', halls.length > 0);
+    grid.innerHTML = halls.map((h, i) => `
+      <div class="gallery-card ${h.visible ? '' : 'is-hidden'}" draggable="true" data-id="${h.id}">
+        <div class="ph-thumb">
+          <img class="ph-bg" src="${esc(thumb(h.image_url))}" alt="${esc(h.name)}" loading="lazy" />
+          ${h.logo_url ? `<div class="ph-logo-box"><img src="${esc(thumb(h.logo_url))}" alt="" /></div>` : ''}
+        </div>
+        <span class="ph-order">${i + 1}</span>
+        <div class="gallery-card-actions">
+          <button class="card-action-btn visibility" title="${h.visible ? '숨기기' : '보이기'}" data-act="toggle">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${h.visible
+              ? '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'
+              : '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'}</svg>
+          </button>
+          <button class="card-action-btn edit" title="수정" data-act="edit">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="card-action-btn delete" title="삭제" data-act="delete">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          </button>
+        </div>
+        <div class="gallery-card-info">
+          <div class="gallery-card-title">${esc(h.name)}</div>
+          ${h.visible ? '' : '<div class="gallery-card-meta">숨김</div>'}
+        </div>
+      </div>
+    `).join('');
+    bindCards();
+  }
+
+  function bindCards() {
+    let dragged: HTMLElement | null = null;
+    grid.querySelectorAll<HTMLElement>('.gallery-card').forEach(card => {
+      const id = Number(card.dataset.id);
+      const hall = () => halls.find(h => h.id === id)!;
+
+      card.querySelectorAll<HTMLElement>('.card-action-btn').forEach(btn => {
+        btn.addEventListener('mousedown', e => e.stopPropagation());
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const act = btn.dataset.act;
+          if (act === 'edit') openModal(hall());
+          else if (act === 'delete') openDelete(hall());
+          else if (act === 'toggle') {
+            const h = hall();
+            const res = await fetch(`/api/partners/${id}`, {
+              method: 'PUT', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ visible: !h.visible }),
+            });
+            if (res.ok) { h.visible = h.visible ? 0 : 1; render(); showToast(h.visible ? '표시 처리됨' : '숨김 처리됨'); }
+            else showToast('오류가 발생했습니다.', true);
+          }
+        });
+      });
+
+      card.addEventListener('dragstart', (e) => { dragged = card; card.classList.add('dragging'); (e as DragEvent).dataTransfer!.effectAllowed = 'move'; });
+      card.addEventListener('dragend', () => { card.classList.remove('dragging'); grid.querySelectorAll('.gallery-card').forEach(c => c.classList.remove('drag-over')); dragged = null; });
+      card.addEventListener('dragover', (e) => { e.preventDefault(); if (dragged && card !== dragged) card.classList.add('drag-over'); });
+      card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
+      card.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        card.classList.remove('drag-over');
+        if (!dragged || card === dragged) return;
+        const cards = Array.from(grid.querySelectorAll('.gallery-card'));
+        if (cards.indexOf(dragged) < cards.indexOf(card)) card.after(dragged); else card.before(dragged);
+
+        const ids = Array.from(grid.querySelectorAll<HTMLElement>('.gallery-card')).map(c => Number(c.dataset.id));
+        halls = ids.map(i => halls.find(h => h.id === i)!);
+        halls.forEach((h, i) => (h.sort_order = i));
+        try {
+          const rs = await Promise.all(halls.map(h => fetch(`/api/partners/${h.id}`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sort_order: h.sort_order }),
+          })));
+          if (rs.some(r => !r.ok)) throw new Error();
+          render();
+          showToast('순서가 저장되었습니다.');
+        } catch { showToast('순서 저장 실패', true); }
+      });
+    });
+  }
+
+  // ===== 추가 / 수정 모달 =====
+  async function readPreview(input: HTMLInputElement, img: HTMLImageElement) {
+    const f = input.files?.[0];
+    if (!f) return;
+    img.src = URL.createObjectURL(f);
+    img.classList.remove('hidden');
+  }
+  imageInput.addEventListener('change', () => readPreview(imageInput, imagePreview));
+  logoInput.addEventListener('change', () => readPreview(logoInput, logoPreview));
+
+  function openModal(h: Hall | null) {
+    editing = h;
+    document.getElementById('ph-modal-title')!.textContent = h ? '웨딩홀 수정' : '웨딩홀 추가';
+    nameInput.value = h?.name || '';
+    imageInput.value = '';
+    logoInput.value = '';
+    logoRemove.checked = false;
+    document.getElementById('ph-image-req')!.classList.toggle('hidden', !!h);
+    document.getElementById('ph-image-note')!.classList.toggle('hidden', !h);
+    if (h) { imagePreview.src = thumb(h.image_url); imagePreview.classList.remove('hidden'); }
+    else imagePreview.classList.add('hidden');
+    if (h?.logo_url) { logoPreview.src = thumb(h.logo_url); logoPreview.classList.remove('hidden'); logoRemoveWrap.classList.remove('hidden'); }
+    else { logoPreview.classList.add('hidden'); logoRemoveWrap.classList.add('hidden'); }
+    modal.classList.remove('hidden');
+    nameInput.focus();
+  }
+  function closeModal() { modal.classList.add('hidden'); editing = null; }
+  document.getElementById('ph-add-btn')!.addEventListener('click', () => openModal(null));
+  document.getElementById('ph-modal-close')!.addEventListener('click', closeModal);
+  document.getElementById('ph-cancel')!.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+  saveBtn.addEventListener('click', async () => {
+    const name = nameInput.value.trim();
+    if (!name) { showToast('웨딩홀명을 입력해주세요.', true); return; }
+    if (!editing && !imageInput.files?.[0]) { showToast('배경 이미지를 선택해주세요.', true); return; }
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = '저장 중...';
+    try {
+      const compress = (window as any).compressImage as ((f: File) => Promise<File>) | undefined;
+      const fd = new FormData();
+      fd.append('name', name);
+      let img = imageInput.files?.[0];
+      let logo = logoInput.files?.[0];
+      if (img && compress) img = await compress(img);
+      if (logo && compress) logo = await compress(logo);
+      if (img) fd.append('image', img);
+      if (logo) fd.append('logo', logo);
+      if (editing && logoRemove.checked) fd.append('remove_logo', '1');
+
+      const res = await fetch(editing ? `/api/partners/${editing.id}` : '/api/partners', { method: editing ? 'PUT' : 'POST', body: fd });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || '저장 실패');
+      const wasEdit = !!editing;
+      closeModal();
+      await load();
+      showToast(wasEdit ? '저장되었습니다.' : '웨딩홀이 추가되었습니다.');
+    } catch (e: any) {
+      showToast(e.message || '저장 중 오류가 발생했습니다.', true);
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = '저장';
+    }
+  });
+
+  // ===== 삭제 =====
+  const delModal = document.getElementById('ph-delete-modal')!;
+  function openDelete(h: Hall) {
+    deleting = h;
+    document.getElementById('ph-delete-text')!.innerHTML = `<strong>${esc(h.name)}</strong> 을(를) 삭제하시겠습니까?<br/>이 작업은 되돌릴 수 없습니다.`;
+    delModal.classList.remove('hidden');
+  }
+  const closeDelete = () => { delModal.classList.add('hidden'); deleting = null; };
+  document.getElementById('ph-delete-close')!.addEventListener('click', closeDelete);
+  document.getElementById('ph-delete-cancel')!.addEventListener('click', closeDelete);
+  delModal.addEventListener('click', (e) => { if (e.target === delModal) closeDelete(); });
+  document.getElementById('ph-delete-confirm')!.addEventListener('click', async () => {
+    if (!deleting) return;
+    const target = deleting;
+    closeDelete();
+    const res = await fetch(`/api/partners/${target.id}`, { method: 'DELETE' });
+    if (res.ok) { halls = halls.filter(h => h.id !== target.id); render(); showToast('삭제되었습니다.'); }
+    else showToast('삭제 중 오류가 발생했습니다.', true);
+  });
+
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeModal(); closeDelete(); } });
+
+  load();
+</script>

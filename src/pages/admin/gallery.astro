@@ -105,6 +105,31 @@ import AdminLayout from '@layouts/AdminLayout.astro';
     </div>
   </div>
 
+  <!-- Edit Modal (이름·분류 수정) -->
+  <div id="edit-modal" class="modal-overlay hidden">
+    <div class="modal-card modal-small">
+      <div class="modal-header">
+        <h3 id="edit-modal-title" class="modal-title">정보 수정</h3>
+        <button id="edit-modal-close" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">이름</label>
+          <input type="text" id="edit-title" class="form-input" placeholder="이름" />
+        </div>
+        <div id="edit-category-group" class="form-group">
+          <label class="form-label">분류</label>
+          <input type="text" id="edit-category" class="form-input" list="edit-category-list" placeholder="예: 기본, 시즌, 브랜드" />
+          <datalist id="edit-category-list"></datalist>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="edit-cancel" class="btn-secondary">취소</button>
+        <button id="edit-save" class="btn-primary">저장</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Confirm Delete Modal -->
   <div id="delete-modal" class="modal-overlay hidden">
     <div class="modal-card modal-small">
@@ -125,7 +150,7 @@ import AdminLayout from '@layouts/AdminLayout.astro';
   <!-- Toast -->
   <div id="gallery-toast" class="gallery-toast"></div>
 
-  <style>
+  <style is:global>
     .page-title { font-size: 1.5rem; font-weight: 700; color: #1d1d1f; margin-bottom: 0.25rem; }
     .page-desc { font-size: 0.9rem; color: #6e6e73; margin-bottom: 1.5rem; }
 
@@ -182,6 +207,8 @@ import AdminLayout from '@layouts/AdminLayout.astro';
     }
     .card-action-btn.delete { background: rgba(239,68,68,0.9); color: #fff; }
     .card-action-btn.delete:hover { background: #ef4444; }
+    .card-action-btn.edit { background: rgba(255,255,255,0.92); color: #6e6e73; }
+    .card-action-btn.edit:hover { background: #fff; color: #1d1d1f; }
     .card-action-btn.visibility { background: rgba(255,255,255,0.9); color: #6e6e73; }
     .card-action-btn.visibility:hover { background: #fff; color: #1d1d1f; }
 
@@ -378,11 +405,13 @@ import AdminLayout from '@layouts/AdminLayout.astro';
   // === Render helpers ===
   function renderCard(item: any, type: string) {
     const title = item.title || item.category || '';
+    const editable = type === 'backgrounds' || type === 'backdrops';
+    const esc = (v: any) => String(v ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
     const meta = type === 'backgrounds' ? (item.category || '기본') : '';
     const hasVisibility = false;
 
     return `
-      <div class="gallery-card" draggable="true" data-id="${item.id}" data-type="${type}" data-sort="${item.sort_order || 0}">
+      <div class="gallery-card" draggable="true" data-id="${item.id}" data-type="${type}" data-sort="${item.sort_order || 0}" data-title="${esc(item.title)}" data-category="${esc(item.category)}">
         <div class="drag-handle">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="9" cy="5" r="1"/><circle cx="15" cy="5" r="1"/>
@@ -392,6 +421,11 @@ import AdminLayout from '@layouts/AdminLayout.astro';
         </div>
         <div class="card-checkbox"><input type="checkbox" data-id="${item.id}" /></div>
         <div class="gallery-card-actions">
+          ${editable ? `
+            <button class="card-action-btn edit" data-id="${item.id}" title="이름·분류 수정">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+          ` : ''}
           ${hasVisibility ? `
             <button class="card-action-btn visibility" data-id="${item.id}" data-visible="${item.visible}" title="${item.visible ? '숨기기' : '보이기'}">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -507,6 +541,17 @@ import AdminLayout from '@layouts/AdminLayout.astro';
       });
     });
 
+    // 이름·분류 수정
+    gridEl.querySelectorAll('.card-action-btn.edit').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (deleteMode) return;
+        openEditModal((btn as HTMLElement).closest('.gallery-card') as HTMLElement, type);
+      });
+      // 드래그 시작 방지 (버튼 클릭이 카드 드래그로 번지지 않게)
+      btn.addEventListener('mousedown', (e) => e.stopPropagation());
+    });
+
     // Visibility toggle
     gridEl.querySelectorAll('.card-action-btn.visibility').forEach(btn => {
       btn.addEventListener('click', async (e) => {
@@ -591,6 +636,64 @@ import AdminLayout from '@layouts/AdminLayout.astro';
       });
     });
   }
+
+  // === Edit modal (업로드 후에도 이름·분류 수정) ===
+  const editModal = document.getElementById('edit-modal')!;
+  const editTitleInput = document.getElementById('edit-title') as HTMLInputElement;
+  const editCategoryInput = document.getElementById('edit-category') as HTMLInputElement;
+  const editCategoryGroup = document.getElementById('edit-category-group')!;
+  let editTarget: { card: HTMLElement; type: string } | null = null;
+
+  function openEditModal(card: HTMLElement, type: string) {
+    editTarget = { card, type };
+    const isBg = type === 'backgrounds';
+    document.getElementById('edit-modal-title')!.textContent = isBg ? '배경 정보 수정' : '백드롭 정보 수정';
+    editTitleInput.value = card.dataset.title || '';
+    editCategoryInput.value = card.dataset.category || '';
+    editCategoryGroup.classList.toggle('hidden', !isBg);
+    // 이미 쓰고 있는 분류를 자동완성으로 제안
+    const cats = new Set<string>();
+    document.querySelectorAll<HTMLElement>('#bg-grid .gallery-card').forEach(c => { if (c.dataset.category) cats.add(c.dataset.category); });
+    document.getElementById('edit-category-list')!.innerHTML = Array.from(cats).map(c => `<option value="${c.replace(/"/g, '&quot;')}"></option>`).join('');
+    editModal.classList.remove('hidden');
+    editTitleInput.focus();
+  }
+  function closeEditModal() { editModal.classList.add('hidden'); editTarget = null; }
+  document.getElementById('edit-modal-close')!.addEventListener('click', closeEditModal);
+  document.getElementById('edit-cancel')!.addEventListener('click', closeEditModal);
+  editModal.addEventListener('click', (e) => { if (e.target === editModal) closeEditModal(); });
+  [editTitleInput, editCategoryInput].forEach(inp => inp.addEventListener('keydown', (e) => {
+    if ((e as KeyboardEvent).key === 'Enter') { e.preventDefault(); document.getElementById('edit-save')!.click(); }
+  }));
+
+  document.getElementById('edit-save')!.addEventListener('click', async () => {
+    if (!editTarget) return;
+    const { card, type } = editTarget;
+    const isBg = type === 'backgrounds';
+    const title = editTitleInput.value.trim();
+    const category = editCategoryInput.value.trim() || '기본';
+    const apiBase = isBg ? '/api/backgrounds' : '/api/backdrops';
+    const body: any = { title };
+    if (isBg) body.category = category;
+    try {
+      const res = await fetch(`${apiBase}/${card.dataset.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error();
+      // 목록을 다시 불러오지 않고 카드만 갱신 (스크롤·순서 유지)
+      card.dataset.title = title;
+      if (isBg) card.dataset.category = category;
+      const shown = title || (isBg ? category : '');
+      card.querySelector('.gallery-card-title')!.textContent = shown || '(제목 없음)';
+      const metaEl = card.querySelector('.gallery-card-meta');
+      if (isBg && metaEl) metaEl.textContent = category;
+      card.querySelector('img')?.setAttribute('alt', shown);
+      closeEditModal();
+      showToast('저장되었습니다.');
+    } catch { showToast('저장 중 오류가 발생했습니다.', true); }
+  });
 
   // === Load functions ===
   async function loadBackgrounds() {

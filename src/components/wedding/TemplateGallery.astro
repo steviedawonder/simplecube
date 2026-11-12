@@ -69,14 +69,14 @@ const hasDbBackdrops = backdrops.length > 0;
     {hasDbBackdrops ? (
       <div class="gs-fade-up mt-10 md:mt-16">
         <h3 class="mb-4 md:mb-8 text-center text-base md:text-lg font-semibold text-primary">백드롭 옵션</h3>
-        <div id="backdrop-grid" class="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-4">
+        <div id="backdrop-grid" class="grid grid-cols-2 items-start gap-2 md:grid-cols-3 md:gap-4">
           {backdrops.map((bd: any) => (
             <div class="backdrop-thumb group cursor-pointer overflow-hidden rounded-xl md:rounded-2xl border border-border-light relative"
                  data-url={bd.image_url} data-title={bd.title || '백드롭'}>
               <img
                 src={bd.image_url.includes('res.cloudinary.com') ? bd.image_url.replace('/upload/', '/upload/w_400,f_auto,q_auto/') : bd.image_url}
                 alt={bd.title || '백드롭'}
-                class="w-full aspect-[4/3] object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                class="block h-auto w-full transition-transform duration-500 group-hover:scale-105"
                 loading="lazy"
               />
               <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">

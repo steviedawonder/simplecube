@@ -90,7 +90,7 @@ if ([faqResult, catResult, psResult, bdResult].some((r) => r.status === 'rejecte
       <!-- Gallery carousel wrapper -->
       <div class="relative">
         <div class="overflow-hidden" id="wg-carousel-wrap">
-          <div id="wg-grid" class="grid grid-cols-2 gap-2 md:grid-cols-3"></div>
+          <div id="wg-grid" class="grid grid-cols-2 items-start gap-2 md:grid-cols-3"></div>
         </div>
         <!-- Prev/Next buttons -->
         <button id="wg-prev" class="hidden absolute -left-4 lg:-left-6 top-1/2 -translate-y-1/2 w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-primary text-white shadow-lg items-center justify-center hover:bg-olive transition-colors z-10" aria-label="이전">
@@ -219,14 +219,14 @@ if ([faqResult, catResult, psResult, bdResult].some((r) => r.status === 'rejecte
       </div>
 
       {backdrops.length > 0 ? (
-        <div id="bd-grid" class="gs-stagger grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-4">
+        <div id="bd-grid" class="gs-stagger grid grid-cols-2 items-start gap-2 md:grid-cols-3 md:gap-4">
           {backdrops.map((bd: any) => (
             <div class="bd-item group cursor-pointer overflow-hidden rounded-xl border border-border-light relative"
                  data-url={bd.image_url} data-title={bd.title || '백드롭'}>
               <img
                 src={bd.image_url.includes('res.cloudinary.com') ? bd.image_url.replace('/upload/', '/upload/w_400,f_auto,q_auto/') : bd.image_url}
                 alt={bd.title || '백드롭'}
-                class="w-full aspect-[4/3] object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                class="block h-auto w-full transition-transform duration-500 group-hover:scale-105"
                 loading="lazy"
               />
               <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
@@ -380,7 +380,7 @@ if ([faqResult, catResult, psResult, bdResult].some((r) => r.status === 'rejecte
           ? src.replace('/upload/', '/upload/w_500,f_auto,q_auto/')
           : src;
         return `<div class="wg-item group cursor-pointer overflow-hidden rounded-lg" data-src="${src}" data-alt="${alt}">
-          <div class="relative"><img src="${thumbSrc}" alt="${alt}" class="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+          <div class="relative"><img src="${thumbSrc}" alt="${alt}" class="block h-auto w-full transition-transform duration-500 group-hover:scale-105" loading="lazy" />
             <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
               <svg class="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6"/></svg>
             </div>

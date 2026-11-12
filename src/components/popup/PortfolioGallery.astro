@@ -35,6 +35,11 @@ import { POPUP_DEFAULT_TAGS, POPUP_CUSTOM_TAGS } from '@lib/defaultTags';
     </div>
   </div>
 
+  <!-- 기기별 보기: 태그 클릭 시 해당 기기 사례 전체를 원본 비율 그리드로 노출 -->
+  <div id="pf-grid-wrap" class="mx-auto max-w-7xl px-6 lg:px-8 hidden">
+    <div id="pf-grid" class="pf-grid"></div>
+  </div>
+
   <div class="mx-auto max-w-7xl px-6 lg:px-8">
     <div id="pf-empty" class="text-center py-16 hidden">
       <p class="text-secondary text-sm">준비 중입니다.</p>
@@ -63,6 +68,9 @@ import { POPUP_DEFAULT_TAGS, POPUP_CUSTOM_TAGS } from '@lib/defaultTags';
 
 <style is:global>
   .pf-marquee-track {
+    /* translateX(-50%) 가 "콘텐츠 전체의 절반"이 되도록 폭을 콘텐츠에 맞춘다.
+       (이전엔 폭이 부모와 같아 -50% 가 화면 폭의 절반만 움직여 반복 구간이 어긋났다) */
+    width: max-content;
     animation: pf-scroll var(--duration, 30s) linear infinite;
   }
   .pf-marquee-row:hover .pf-marquee-track,
@@ -77,29 +85,49 @@ import { POPUP_DEFAULT_TAGS, POPUP_CUSTOM_TAGS } from '@lib/defaultTags';
     0% { transform: translateX(0); }
     100% { transform: translateX(-50%); }
   }
+  /* 원본 비율 유지: 높이만 고정하고 가로는 이미지 비율대로 (잘림 없음) */
   .pf-marquee-item {
     flex-shrink: 0;
-    width: 150px;
-    height: 112px;
+    height: 150px;
+    min-width: 100px;
     border-radius: 0.5rem;
     overflow: hidden;
     cursor: pointer;
+    background: #f0efec;
   }
   @media (min-width: 768px) {
-    .pf-marquee-item {
-      width: 300px;
-      height: 225px;
-    }
+    .pf-marquee-item { height: 240px; min-width: 160px; }
   }
   .pf-marquee-item img {
-    width: 100%;
     height: 100%;
-    object-fit: cover;
+    width: auto;
+    max-width: none;
+    display: block;
     transition: transform 0.5s ease;
   }
   .pf-marquee-item:hover img {
     transform: scale(1.05);
   }
+  /* 기기별 그리드 (피키픽 방식): 사진 원본 비율 그대로 masonry 배치 */
+  .pf-grid { column-count: 2; column-gap: 0.5rem; }
+  @media (min-width: 768px) { .pf-grid { column-count: 3; column-gap: 0.75rem; } }
+  @media (min-width: 1024px) { .pf-grid { column-count: 4; } }
+  .pf-grid-item {
+    break-inside: avoid;
+    margin-bottom: 0.5rem;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    cursor: pointer;
+    background: #f0efec;
+  }
+  @media (min-width: 768px) { .pf-grid-item { margin-bottom: 0.75rem; } }
+  .pf-grid-item img {
+    display: block;
+    width: 100%;
+    height: auto;
+    transition: transform 0.5s ease;
+  }
+  .pf-grid-item:hover img { transform: scale(1.03); }
 </style>
 
 <script is:inline define:vars={{ defaultTags: POPUP_DEFAULT_TAGS, customTags: POPUP_CUSTOM_TAGS }}>
@@ -186,7 +214,12 @@ import { POPUP_DEFAULT_TAGS, POPUP_CUSTOM_TAGS } from '@lib/defaultTags';
                 b.classList.add('bg-white', 'border', 'border-gray-200', 'text-secondary');
               }
             });
-            renderMarquee(tag ? filteredItems.filter(i => (i.tags || '').split(',').map((t: string) => t.trim()).includes(tag)) : filteredItems);
+            if (tag) {
+              renderGrid(filteredItems.filter(i => (i.tags || '').split(',').map((t: string) => t.trim()).includes(tag)));
+            } else {
+              hideGrid();
+              renderMarquee(filteredItems);
+            }
           });
         });
       }
@@ -201,6 +234,34 @@ import { POPUP_DEFAULT_TAGS, POPUP_CUSTOM_TAGS } from '@lib/defaultTags';
       loading.classList.add('hidden');
       empty.classList.remove('hidden');
     }
+  }
+
+  // 기기별 보기: 해당 기기 사례 전체를 원본 비율 그리드로 한 번에 노출
+  function renderGrid(items: any[]) {
+    const marqueeWrap = document.getElementById('pf-marquee-wrap')!;
+    const gridWrap = document.getElementById('pf-grid-wrap')!;
+    const grid = document.getElementById('pf-grid')!;
+    const empty = document.getElementById('pf-empty')!;
+    marqueeWrap.classList.add('hidden');
+    if (items.length === 0) {
+      gridWrap.classList.add('hidden');
+      empty.classList.remove('hidden');
+      return;
+    }
+    empty.classList.add('hidden');
+    grid.innerHTML = items.map((item: any) => {
+      const thumbUrl = item.image_url.includes('res.cloudinary.com')
+        ? item.image_url.replace('/upload/', '/upload/w_600,f_auto,q_auto/')
+        : item.image_url;
+      const alt = portfolioAlt(item.title, item.tags, '포토부스 현장').replace(/"/g, '&quot;');
+      return `<div class="pf-grid-item" data-src="${item.image_url}" data-alt="${alt}"><img src="${thumbUrl}" alt="${alt}" loading="lazy" decoding="async" /></div>`;
+    }).join('');
+    gridWrap.classList.remove('hidden');
+  }
+
+  function hideGrid() {
+    document.getElementById('pf-grid-wrap')!.classList.add('hidden');
+    document.getElementById('pf-grid')!.innerHTML = '';
   }
 
   function renderMarquee(items: any[]) {
@@ -235,73 +296,89 @@ import { POPUP_DEFAULT_TAGS, POPUP_CUSTOM_TAGS } from '@lib/defaultTags';
           const globalIdx = rowIdx === 0 ? i : mid + i;
           // Cloudinary URL에 리사이즈 transform 적용 (마키 썸네일용)
           const thumbUrl = item.image_url.includes('res.cloudinary.com')
-            ? item.image_url.replace('/upload/', '/upload/w_400,f_auto,q_auto/')
+            ? item.image_url.replace('/upload/', '/upload/h_500,f_auto,q_auto/')
             : item.image_url;
           // 파일명 같은 제목(IMG_…)은 대체텍스트로 쓰지 않는다
           const alt = portfolioAlt(item.title, item.tags, '포토부스 현장').replace(/"/g, '&quot;');
           html += `
             <div class="pf-marquee-item" data-src="${item.image_url}" data-alt="${alt}" data-idx="${globalIdx}">
-              <img src="${thumbUrl}" alt="${alt}" loading="lazy" />
+              <img src="${thumbUrl}" alt="${alt}" decoding="async" />
             </div>
           `;
         });
       }
       track.innerHTML = html;
+      track.style.animationDelay = ''; // 이전 좌우 이동으로 남은 위치 초기화
 
-      // Set animation duration based on actual track width for constant speed
-      // Speed: ~150px/s regardless of item count
-      const SPEED = 1000; // pixels per second
-      requestAnimationFrame(() => {
+      // 속도 일정 유지: 트랙 폭(=이미지 로드 후 확정)에 맞춰 duration 계산
+      const SPEED = 60; // pixels per second
+      const applyDuration = () => {
         const trackWidth = track.scrollWidth / 2; // animation moves 50%
+        if (!trackWidth) return;
         const duration = trackWidth / SPEED;
         track.style.setProperty('--duration', `${duration}s`);
         track.style.setProperty('--duration2', `${duration * 1.1}s`);
-      });
+      };
+      requestAnimationFrame(applyDuration);
+      (track as any).__ro?.disconnect();
+      const ro = new ResizeObserver(applyDuration);
+      ro.observe(track);
+      (track as any).__ro = ro;
     });
 
     // Setup nav arrows
     setupNavArrows();
   }
 
+  // 좌우 버튼: 현재 위치에서 순차 이동. 이동 후 CSS 애니메이션을 "그 위치부터" 이어서 재생한다
+  // (이전에는 transform/animation 을 비우면서 애니메이션이 0% 로 재시작 → 첫 페이지로 돌아갔다)
+  let navBound = false;
   function setupNavArrows() {
+    if (navBound) return; // 태그 전환마다 호출되므로 리스너 중복 등록 방지
+    navBound = true;
     const prevBtn = document.getElementById('pf-nav-prev');
     const nextBtn = document.getElementById('pf-nav-next');
     const tracks = document.querySelectorAll<HTMLDivElement>('.pf-marquee-track');
     const wrap = document.getElementById('pf-marquee-wrap')!;
+    let busy = false;
 
     function scrollTracks(direction: number) {
-      // direction: -1 = left (prev), 1 = right (next)
-      const scrollAmount = direction * 600; // px to jump
+      // direction: -1 = 다음(오른쪽 버튼, 콘텐츠가 왼쪽으로), 1 = 이전
+      if (busy) return;
+      busy = true;
+      const scrollAmount = direction * 600;
+      wrap.classList.add('paused');
+
+      let pending = tracks.length;
+      const finishOne = () => { if (--pending <= 0) { busy = false; wrap.classList.remove('paused'); } };
 
       tracks.forEach(track => {
-        // Pause animation
-        wrap.classList.add('paused');
+        const currentX = new DOMMatrix(getComputedStyle(track).transform).m41;
+        const half = track.scrollWidth / 2;
 
-        // Get current computed transform
-        const computed = getComputedStyle(track);
-        const matrix = new DOMMatrix(computed.transform);
-        const currentX = matrix.m41;
-
-        // Apply new position smoothly
         track.style.animation = 'none';
         track.style.transform = `translateX(${currentX}px)`;
-
-        // Force reflow
-        track.offsetHeight;
-
-        // Animate to new position
+        track.offsetHeight; // reflow
         track.style.transition = 'transform 0.6s cubic-bezier(0.25, 0.1, 0.25, 1)';
         track.style.transform = `translateX(${currentX + scrollAmount}px)`;
 
-        // After transition, resume CSS animation from new position
+        let done = false;
         const onEnd = () => {
+          if (done) return;
+          done = true;
           track.removeEventListener('transitionend', onEnd);
+          // 이동한 위치를 [-half, 0) 범위로 정규화 후, 애니메이션을 그 지점부터 이어서 재생
+          let target = (currentX + scrollAmount) % half;
+          if (target > 0) target -= half;
           track.style.transition = '';
           track.style.transform = '';
           track.style.animation = '';
-          wrap.classList.remove('paused');
+          const dur = parseFloat(getComputedStyle(track).animationDuration) || 30;
+          track.style.animationDelay = `${-(Math.abs(target) / half) * dur}s`;
+          finishOne();
         };
         track.addEventListener('transitionend', onEnd);
+        setTimeout(onEnd, 800); // transitionend 누락 대비
       });
     }
 
@@ -324,7 +401,8 @@ import { POPUP_DEFAULT_TAGS, POPUP_CUSTOM_TAGS } from '@lib/defaultTags';
       // Collect unique items from marquee
       const seen = new Set<string>();
       const result: { src: string; alt: string }[] = [];
-      document.querySelectorAll('.pf-marquee-item').forEach(el => {
+      const gridVisible = !document.getElementById('pf-grid-wrap')!.classList.contains('hidden');
+      document.querySelectorAll(gridVisible ? '.pf-grid-item' : '.pf-marquee-item').forEach(el => {
         const src = (el as HTMLElement).dataset.src || '';
         if (!seen.has(src)) {
           seen.add(src);
@@ -359,7 +437,7 @@ import { POPUP_DEFAULT_TAGS, POPUP_CUSTOM_TAGS } from '@lib/defaultTags';
     }
 
     document.addEventListener('click', (e) => {
-      const item = (e.target as HTMLElement).closest('.pf-marquee-item');
+      const item = (e.target as HTMLElement).closest('.pf-marquee-item, .pf-grid-item');
       if (!item) return;
       openLb((item as HTMLElement).dataset.src || '');
     });
